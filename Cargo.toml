@@ -1,0 +1,9 @@
+[package]
+name = "pointillism"
+version = "0.1.0"
+edition = "2021"
+authors = ["Violeta Hernández <vi.hdz.p@gmail.com>"]
+
+[dependencies]
+hound = "3.5.0"
+rand = "0.8.5"
