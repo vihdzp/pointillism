@@ -2,8 +2,9 @@
 
 use crate::{sample::*, signal::Signal, Freq, Map, Time};
 
-pub mod poly;
 pub mod noise;
+pub mod poly;
+pub mod mix;
 
 /// A sine curve.
 ///
@@ -113,6 +114,26 @@ impl Map<f64, f64> for SawTri {
         } else {
             2.0 * (1.0 - x) / (1.0 - self.shape) - 1.0
         }
+    }
+}
+
+/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ToPos<C: Map<f64, f64>>(pub C);
+
+impl<C: Map<f64, f64>> Map<f64, f64> for ToPos<C> {
+    fn eval(&self, x: f64) -> f64 {
+        crate::to_pos(self.0.eval(x))
+    }
+}
+
+/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ToSgn<C: Map<f64, f64>>(pub C);
+
+impl<C: Map<f64, f64>> Map<f64, f64> for ToSgn<C> {
+    fn eval(&self, x: f64) -> f64 {
+        crate::to_sgn(self.0.eval(x))
     }
 }
 

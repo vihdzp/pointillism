@@ -2,8 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::sample::*;
-use crate::Map;
+use crate::{sample::*, Map, MapMut};
 
 /// A trait for a stream of data, generated every frame.
 ///
@@ -26,6 +25,34 @@ pub trait Signal {
         let res = self.get();
         self.advance();
         res
+    }
+}
+
+/// Represents the function that retriggers a signal.
+#[derive(Clone, Copy, Debug)]
+pub struct Retrigger<Y> {
+    /// Dummy value.
+    phantom: PhantomData<Y>,
+}
+
+impl<Y> Default for Retrigger<Y> {
+    fn default() -> Self {
+        Self {
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<Y> Retrigger<Y> {
+    /// Initializes the [`Retrigger`] function.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<S: Signal, Y> MapMut<S, Y> for Retrigger<Y> {
+    fn modify(&self, sgn: &mut S, _: Y) {
+        sgn.retrigger();
     }
 }
 
@@ -180,7 +207,7 @@ impl<S: Signal, F: Map<f64, f64>> PointwiseMapSgn<S, F> {
     }
 
     /// Returns a mutable reference to the function modifying the signal.
-    pub  fn func_mut(&mut self) -> &mut F {
+    pub fn func_mut(&mut self) -> &mut F {
         &mut self.map.func
     }
 }

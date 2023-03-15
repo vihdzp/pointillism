@@ -44,10 +44,10 @@ pub trait Sample:
     Copy
     + Default
     + Debug
-    + Add
+    + Add<Output = Self>
     + AddAssign
-    + Neg
-    + Sub
+    + Neg<Output = Self>
+    + Sub<Output = Self>
     + SubAssign
     + Mul<f64, Output = Self>
     + MulAssign<f64>
