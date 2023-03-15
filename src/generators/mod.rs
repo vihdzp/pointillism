@@ -245,10 +245,16 @@ pub struct NoiseGen<S: Sample> {
     val: S,
 }
 
+impl<S: Sample> Default for NoiseGen<S> {
+    fn default() -> Self {
+        Self { val: S::rand() }
+    }
+}
+
 impl<S: Sample> NoiseGen<S> {
     /// Initializes a new [`NoiseGen`].
     pub fn new() -> Self {
-        Self { val: S::rand() }
+        Self::default()
     }
 }
 

@@ -1,3 +1,5 @@
+//! Structures that modify volume and panning.
+
 use crate::{
     sample::{AudioSample, Sample, Stereo},
     signal::{MapSgn, Signal},

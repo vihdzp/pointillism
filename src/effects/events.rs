@@ -1,3 +1,5 @@
+//! Declares sequences and loops.
+
 use crate::{signal::Signal, MapMut, Time};
 
 /// An indexed point in time.

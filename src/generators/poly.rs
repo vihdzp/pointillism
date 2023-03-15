@@ -2,6 +2,10 @@ use std::collections::BTreeMap;
 
 use crate::signal::{Signal, StopSignal};
 
+/// A polyphonic signal.
+///
+/// This stores multiple instances of a signal `S`, which can be added and
+/// stopped.
 #[derive(Clone, Debug)]
 pub struct Polyphony<S: StopSignal> {
     /// The signals currently playing.
@@ -21,10 +25,17 @@ impl<S: StopSignal> Default for Polyphony<S> {
 }
 
 impl<S: StopSignal> Polyphony<S> {
+    /// Initializes a new polyphonic signal, playing nothing.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Returns a reference to the structure of currently played signals.
+    pub fn signals(&self) -> &BTreeMap<usize, S> {
+        &self.signals
+    }
+
+    /// Adds a signal, returns its index.
     pub fn add(&mut self, sgn: S) -> usize {
         let idx = self.idx;
         self.signals.insert(idx, sgn);
@@ -32,17 +43,23 @@ impl<S: StopSignal> Polyphony<S> {
         idx
     }
 
+    /// Gets a reference to a particular signal.
     pub fn get(&self, idx: usize) -> Option<&S> {
         self.signals.get(&idx)
     }
 
+    /// Gets a mutable reference to a particular signal.
     pub fn get_mut(&mut self, idx: usize) -> Option<&mut S> {
         self.signals.get_mut(&idx)
     }
 
-    pub fn stop(&mut self, idx: usize) {
+    /// Stops a given signal, returns whether it was successful.
+    pub fn stop(&mut self, idx: usize) -> bool {
         if let Some(sgn) = self.get_mut(idx) {
             sgn.stop();
+            true
+        } else {
+            false
         }
     }
 }

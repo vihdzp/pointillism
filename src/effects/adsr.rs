@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+//! Implements an ADSR envelope for signals.
 
 use crate::{
     sample::Env,
@@ -8,8 +8,9 @@ use crate::{
 
 use super::{Envelope, Volume};
 
+/// Any of the stages in an ADSR envelope.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AdsrPhase {
+pub enum AdsrStage {
     /// Start to peak.
     Attack,
 
@@ -41,8 +42,8 @@ pub struct Adsr {
     /// The time from the signal stop to it being done.
     pub release: Time,
 
-    /// Current phase of the envelope.
-    phase: AdsrPhase,
+    /// Current stage of the envelope.
+    stage: AdsrStage,
 
     /// A value from `0.0` to `1.0` representing how far along the phase we are.
     val: f64,
@@ -55,13 +56,14 @@ impl Adsr {
             decay,
             sustain,
             release,
-            phase: AdsrPhase::Attack,
+            stage: AdsrStage::Attack,
             val: 0.0,
         }
     }
 
-    pub fn phase(&self) -> AdsrPhase {
-        self.phase
+    /// Current stage of the envelope.
+    pub fn stage(&self) -> AdsrStage {
+        self.stage
     }
 }
 
@@ -69,49 +71,49 @@ impl Signal for Adsr {
     type Sample = Env;
 
     fn get(&self) -> Env {
-        Env(match self.phase() {
-            AdsrPhase::Attack => self.val,
-            AdsrPhase::Decay => 1.0 + (self.sustain - 1.0) * self.val,
-            AdsrPhase::Sustain => self.sustain,
-            AdsrPhase::Release => self.sustain * (1.0 - self.val),
-            AdsrPhase::Done => 0.0,
+        Env(match self.stage() {
+            AdsrStage::Attack => self.val,
+            AdsrStage::Decay => 1.0 + (self.sustain - 1.0) * self.val,
+            AdsrStage::Sustain => self.sustain,
+            AdsrStage::Release => self.sustain * (1.0 - self.val),
+            AdsrStage::Done => 0.0,
         })
     }
 
     fn advance(&mut self) {
-        match self.phase() {
-            AdsrPhase::Attack => {
+        match self.stage() {
+            AdsrStage::Attack => {
                 self.val += 1.0 / self.attack.frames();
 
                 if self.val > 1.0 {
-                    self.phase = AdsrPhase::Decay;
+                    self.stage = AdsrStage::Decay;
                     self.val -= 1.0;
                 }
             }
 
-            AdsrPhase::Decay => {
+            AdsrStage::Decay => {
                 self.val += 1.0 / self.decay.frames();
 
                 if self.val > 1.0 {
-                    self.phase = AdsrPhase::Sustain;
+                    self.stage = AdsrStage::Sustain;
                     self.val = 0.0;
                 }
             }
 
-            AdsrPhase::Release => {
+            AdsrStage::Release => {
                 self.val += 1.0 / self.release.frames();
 
                 if self.val > 1.0 {
-                    self.phase = AdsrPhase::Done;
+                    self.stage = AdsrStage::Done;
                 }
             }
 
-            AdsrPhase::Sustain | AdsrPhase::Done => {}
+            AdsrStage::Sustain | AdsrStage::Done => {}
         }
     }
 
     fn retrigger(&mut self) {
-        self.phase = AdsrPhase::Attack;
+        self.stage = AdsrStage::Attack;
         self.val = 0.0;
     }
 }
@@ -120,11 +122,11 @@ impl StopSignal for Adsr {
     fn stop(&mut self) {
         self.sustain = self.get().0;
         self.val = 0.0;
-        self.phase = AdsrPhase::Release;
+        self.stage = AdsrStage::Release;
     }
 
     fn is_done(&self) -> bool {
-        self.phase == AdsrPhase::Done
+        self.stage == AdsrStage::Done
     }
 }
 
@@ -132,13 +134,13 @@ impl StopSignal for Adsr {
 #[derive(Clone, Copy, Debug)]
 pub struct VolFn<S: Signal> {
     /// Dummy value.
-    phantom: PhantomData<Volume<S>>,
+    phantom: std::marker::PhantomData<S>,
 }
 
 impl<S: Signal> Default for VolFn<S> {
     fn default() -> Self {
         Self {
-            phantom: PhantomData,
+            phantom: std::marker::PhantomData,
         }
     }
 }

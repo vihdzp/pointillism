@@ -1,3 +1,5 @@
+//! Various simple effects one can use to modify signals.
+
 pub mod adsr;
 pub mod events;
 mod pan;

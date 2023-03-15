@@ -1,3 +1,5 @@
+//! Declares the [`Signal`] trait and implements it for simple types.
+
 use std::marker::PhantomData;
 
 use crate::sample::*;

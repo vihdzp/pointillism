@@ -1,3 +1,5 @@
+//! Pointillism: A library for generating audio.
+
 mod basic;
 pub mod effects;
 pub mod generators;
