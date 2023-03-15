@@ -5,18 +5,19 @@ use hound::WavWriter;
 use rand::Rng;
 use std::{fmt::Debug, iter::Sum, ops::*};
 
-/// A sample of mono audio.
+/// A sample of mono audio, typically holding a value between `-1.0` and `1.0`.
 ///
 /// This is distinguished from [`Env`] as they have different uses, but one may
 /// freely convert one to the other if so needed.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Mono(pub f64);
 
-/// A sample of stereo audio.
+/// A sample of stereo audio, typically holding values between `-1.0` and `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Stereo(pub f64, pub f64);
 
-/// A data sample from an envelope.
+/// A data sample from an envelope, typically holding a value between `-1.0` and 
+/// `1.0`.
 ///
 /// This is distinguished from [`Mono`] as they have different uses, but one may
 /// freely convert one to the other if so needed.

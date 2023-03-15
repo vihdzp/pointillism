@@ -3,6 +3,7 @@
 use crate::{sample::*, signal::Signal, Freq, Map, Time};
 
 pub mod poly;
+pub mod noise;
 
 /// A sine curve.
 ///
@@ -235,41 +236,5 @@ impl<C: Map<f64, f64>> CurveGen<C> {
     /// Returns a mutable refrence to the frequency of the curve.
     pub fn freq_mut(&mut self) -> &mut Freq {
         &mut self.sgn.freq
-    }
-}
-
-/// Generates random data.
-#[derive(Clone, Copy, Debug)]
-pub struct NoiseGen<S: Sample> {
-    /// The current random value.
-    val: S,
-}
-
-impl<S: Sample> Default for NoiseGen<S> {
-    fn default() -> Self {
-        Self { val: S::rand() }
-    }
-}
-
-impl<S: Sample> NoiseGen<S> {
-    /// Initializes a new [`NoiseGen`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl<S: Sample> Signal for NoiseGen<S> {
-    type Sample = S;
-
-    fn get(&self) -> Self::Sample {
-        self.val
-    }
-
-    fn advance(&mut self) {
-        self.val = S::rand();
-    }
-
-    fn retrigger(&mut self) {
-        self.advance();
     }
 }

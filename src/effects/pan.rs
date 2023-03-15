@@ -1,65 +1,28 @@
 //! Structures that modify volume and panning.
 
 use crate::{
-    sample::{AudioSample, Sample, Stereo},
-    signal::{MapSgn, Signal},
-    Map,
+    sample::{AudioSample, Stereo},
+    signal::{MapSgn, PointwiseMapSgn, Signal},
+    Map, Vol,
 };
 
-/// Represents the gain of some signal.
-#[derive(Clone, Copy, Debug)]
-pub struct Vol {
-    /// Gain factor.
-    pub gain: f64,
-}
-
-impl Vol {
-    /// Initializes a new volume variable.
-    pub fn new(gain: f64) -> Self {
-        Self { gain }
-    }
-
-    /// Gain measured in decibels.
-    pub fn new_db(db: f64) -> Self {
-        Self::new(10f64.powf(db / 20.0))
-    }
-
-    /// The gain in decibels.
-    pub fn db(&self) -> f64 {
-        20.0 * self.gain.log10()
-    }
-
-    /// Silence.
-    pub fn silence() -> Self {
-        Self::new(0.0)
-    }
-}
-
-impl Default for Vol {
-    fn default() -> Self {
-        Self::new(1.0)
-    }
-}
-
-impl<S: Sample> Map<S, S> for Vol {
-    fn eval(&self, x: S) -> S {
-        x * self.gain
-    }
-}
-
-pub type Volume<S> = MapSgn<S, <S as Signal>::Sample, Vol>;
+/// Controls the volume of a signal.
+pub type Volume<S> = PointwiseMapSgn<S, Vol>;
 
 impl<S: Signal> Volume<S> {
-    pub fn new(sgn: S, gain: f64) -> Self {
-        Self::new_generic(sgn, Vol { gain })
+    /// Initializes a new signal with a given [`Vol`].
+    pub const fn new(sgn: S, vol: Vol) -> Self {
+        Self::new_pointwise(sgn, vol)
     }
 
-    pub fn gain(&self) -> f64 {
-        self.map.gain
+    /// Gain of the signal.
+    pub const fn gain(&self) -> f64 {
+        self.func().gain
     }
 
+    /// Returns a mutable reference to the gain of the signal.
     pub fn gain_mut(&mut self) -> &mut f64 {
-        &mut self.map.gain
+        &mut self.func_mut().gain
     }
 }
 

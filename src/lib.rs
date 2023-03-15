@@ -2,11 +2,14 @@
 //!
 //! A library for generating and manipulating audio.
 
-mod basic;
+pub mod basic;
 pub mod effects;
 pub mod generators;
+pub mod sample;
+pub mod signal;
 
 pub use basic::*;
+use hound::*;
 
 /// The sample rate for the audio file, in samples per second.
 pub const SAMPLE_RATE: u32 = 44100;
@@ -15,12 +18,19 @@ pub const SAMPLE_RATE: u32 = 44100;
 pub const CHANNELS: u8 = 2;
 
 /// The specification for the output file.
-pub const SPEC: hound::WavSpec = hound::WavSpec {
+pub const SPEC: WavSpec = WavSpec {
     channels: CHANNELS as u16,
     sample_rate: SAMPLE_RATE,
     bits_per_sample: 32,
-    sample_format: hound::SampleFormat::Float,
+    sample_format: SampleFormat::Float,
 };
 
 /// Pitch for the base note A4.
 pub const A4: Freq = Freq::new(440.0);
+
+/// Initializes a [`WavWriter`] object using the default specifications.
+pub fn writer<P: AsRef<std::path::Path>>(
+    filename: P,
+) -> Result<WavWriter<std::io::BufWriter<std::fs::File>>> {
+    WavWriter::create(filename, SPEC)
+}

@@ -93,7 +93,7 @@ impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> MapSgn<S, Y, F> {
     ///
     /// There are many type aliases for specific subtypes of [`MapSgn`], and
     /// these will often provide more convenient instantiations via `new`.
-    pub fn new_generic(sgn: S, map: F) -> Self {
+    pub const fn new_generic(sgn: S, map: F) -> Self {
         Self {
             sgn,
             map,
@@ -125,6 +125,63 @@ impl<S: StopSignal, Y: Sample, F: Map<S::Sample, Y>> StopSignal for MapSgn<S, Y,
 
     fn is_done(&self) -> bool {
         self.sgn.is_done()
+    }
+}
+
+/// Applies a function pointwise to the entries of a [`Sample`].
+#[derive(Clone, Debug)]
+pub struct Pointwise<S: Sample, F: Map<f64, f64>> {
+    /// The function to apply.
+    pub func: F,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
+}
+
+impl<S: Sample, F: Map<f64, f64>> Pointwise<S, F> {
+    /// Initializes a new [`Pointwise`] function.
+    pub const fn new(func: F) -> Self {
+        Self {
+            func,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: Sample, F: Map<f64, f64>> Map<S, S> for Pointwise<S, F> {
+    fn eval(&self, x: S) -> S {
+        x.map(|y| self.func.eval(y))
+    }
+}
+
+/// Maps a signal through a pointwise function.
+pub type PointwiseMapSgn<S, F> =
+    MapSgn<S, <S as Signal>::Sample, Pointwise<<S as Signal>::Sample, F>>;
+
+impl<S: Signal, F: Map<f64, f64>> PointwiseMapSgn<S, F> {
+    /// Initializes a new [`PointwiseMapSgn`].
+    pub const fn new_pointwise(sgn: S, func: F) -> Self {
+        Self::new_generic(sgn, Pointwise::new(func))
+    }
+
+    /// Returns a reference to the original signal.
+    pub fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the original signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.map.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub  fn func_mut(&mut self) -> &mut F {
+        &mut self.map.func
     }
 }
 

@@ -3,9 +3,6 @@
 use crate::SAMPLE_RATE;
 use std::ops::*;
 
-pub mod sample;
-pub mod signal;
-
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 pub fn to_pos(x: f64) -> f64 {
     (x + 1.0) / 2.0
@@ -14,6 +11,11 @@ pub fn to_pos(x: f64) -> f64 {
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
 pub fn to_sgn(x: f64) -> f64 {
     2.0 * x - 1.0
+}
+
+/// Clamps a signal between `-1.0` and `1.0`.
+pub fn clip(x: f64) -> f64 {
+    x.clamp(-1.0, 1.0)
 }
 
 /// A wrapper for a Rust function which converts it into a [`Map`] or
@@ -43,6 +45,47 @@ pub trait MapMut<X, Y> {
 impl<X, Y, F: Fn(&mut X, Y)> MapMut<X, Y> for FnWrapper<F> {
     fn modify(&self, x: &mut X, y: Y) {
         self.0(x, y);
+    }
+}
+
+/// Represents the gain of some signal.
+#[derive(Clone, Copy, Debug)]
+pub struct Vol {
+    /// Gain factor.
+    pub gain: f64,
+}
+
+impl Vol {
+    /// Initializes a new volume variable.
+    pub const fn new(gain: f64) -> Self {
+        Self { gain }
+    }
+
+    /// Gain measured in decibels.
+    pub fn new_db(db: f64) -> Self {
+        Self::new(10f64.powf(db / 20.0))
+    }
+
+    /// The gain in decibels.
+    pub fn db(&self) -> f64 {
+        20.0 * self.gain.log10()
+    }
+
+    /// Silence.
+    pub const fn zero() -> Self {
+        Self::new(0.0)
+    }
+}
+
+impl Default for Vol {
+    fn default() -> Self {
+        Self::new(1.0)
+    }
+}
+
+impl Map<f64, f64> for Vol {
+    fn eval(&self, x: f64) -> f64 {
+        x * self.gain
     }
 }
 
