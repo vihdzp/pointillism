@@ -2,9 +2,9 @@
 
 use crate::{sample::*, signal::Signal, Freq, Map, Time};
 
+pub mod mix;
 pub mod noise;
 pub mod poly;
-pub mod mix;
 
 /// A sine curve.
 ///
@@ -110,7 +110,13 @@ impl SawTri {
 impl Map<f64, f64> for SawTri {
     fn eval(&self, x: f64) -> f64 {
         if x < self.shape {
-            2.0 * x / self.shape - 1.0
+            if self.shape.abs() < 1e-7 {
+                1.0
+            } else {
+                2.0 * x / self.shape - 1.0
+            }
+        } else if (1.0 - self.shape).abs() < 1e-7 {
+            1.0
         } else {
             2.0 * (1.0 - x) / (1.0 - self.shape) - 1.0
         }
