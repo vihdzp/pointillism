@@ -134,6 +134,7 @@ impl PanLaw for Mixed {
 }
 
 /// A wrapper for a [`PanLaw`] which converts it into a [`Map`].
+#[derive(Clone, Copy, Debug)]
 pub struct PanWrapper<P>(pub P);
 
 impl<A: AudioSample, P: PanLaw> Map<A, Stereo> for PanWrapper<P> {

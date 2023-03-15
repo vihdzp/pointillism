@@ -3,6 +3,7 @@
 use crate::{signal::Signal, MapMut, Time};
 
 /// An indexed point in time.
+#[derive(Clone, Copy, Debug)]
 pub struct Event {
     /// Index.
     pub idx: usize,
@@ -19,6 +20,7 @@ impl Event {
 }
 
 /// Changes a signal according to a specified function, at specified times.
+#[derive(Clone, Debug)]
 pub struct Sequence<S: Signal, F: MapMut<S, Event>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,
@@ -132,6 +134,7 @@ impl<S: Signal, F: MapMut<S, Event>> Signal for Sequence<S, F> {
 }
 
 /// Loops a list of events.
+#[derive(Clone, Debug)]
 pub struct Loop<S: Signal, F: MapMut<S, Event>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,

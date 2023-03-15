@@ -48,6 +48,7 @@ impl<S: Signal, E: Signal<Sample = Env>, F: MapMut<S, f64>> Signal for Envelope<
 
 /// Gates a signal through an envelope. Output will only come through when the
 /// envelope is above the threshold.
+#[derive(Clone, Debug)]
 pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
     /// The gated signal.
     pub sgn: S,
