@@ -22,6 +22,7 @@ pub fn clip(x: f64) -> f64 {
 /// [`MapMut`].
 ///
 /// This is needed to get around orphan rules.
+#[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<F>(pub F);
 
 /// An abstract trait for a structure representing a function `X → Y`.
