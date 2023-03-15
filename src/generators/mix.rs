@@ -1,3 +1,5 @@
+//! Functions for mixing signals together.
+
 use crate::{
     sample::{Mono, Stereo},
     signal::{Signal, StopSignal},
