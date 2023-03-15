@@ -142,6 +142,7 @@ impl Map<Env, Mono> for EnvToMono {
 pub type EnvGen<S> = MapSgn<S, Mono, EnvToMono>;
 
 impl<S: Signal<Sample = Env>> EnvGen<S> {
+    /// Initializes a new [`EnvGen`].
     pub fn new_env(sgn: S) -> Self {
         Self::new_generic(sgn, EnvToMono)
     }

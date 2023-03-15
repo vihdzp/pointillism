@@ -5,8 +5,6 @@ use hound::WavWriter;
 use rand::Rng;
 use std::{fmt::Debug, iter::Sum, ops::*};
 
-use crate::generators::to_sgn;
-
 /// A sample of mono audio.
 ///
 /// This is distinguished from [`Env`] as they have different uses, but one may
@@ -132,7 +130,7 @@ pub trait Sample:
 
     /// Generates a random sample.
     fn rand() -> Self {
-        Self::default().map(|_| to_sgn(rand::thread_rng().gen::<f64>() - 1.0))
+        Self::default().map(|_| super::to_sgn(rand::thread_rng().gen::<f64>() - 1.0))
     }
 
     fn _sum<I: Iterator<Item = Self>>(iter: I) -> Self {

@@ -76,6 +76,7 @@ impl<S: Signal, F: MapMut<S, Event>> Sequence<S, F> {
     }
 
     /// The number of events.
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.times.len()
     }

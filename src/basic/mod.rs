@@ -6,6 +6,16 @@ use std::ops::*;
 pub mod sample;
 pub mod signal;
 
+/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
+pub fn to_pos(x: f64) -> f64 {
+    (x + 1.0) / 2.0
+}
+
+/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
+pub fn to_sgn(x: f64) -> f64 {
+    2.0 * x - 1.0
+}
+
 /// A wrapper for a Rust function which converts it into a [`Map`] or
 /// [`MapMut`].
 ///
@@ -89,21 +99,18 @@ impl Freq {
     pub fn new_name(name: &str) -> Self {
         let mut chars = name.chars();
         let mut note = letter_to_note(chars.next().unwrap());
-        let idx;
 
-        match chars.next().unwrap() {
+        let idx = match chars.next().unwrap() {
             '#' => {
                 note += 1;
-                idx = 2;
+                2
             }
             'b' => {
                 note -= 1;
-                idx = 2;
+                2
             }
-            _ => {
-                idx = 1;
-            }
-        }
+            _ => 1,
+        };
 
         note += 12 * (name[idx..].parse::<i16>().unwrap() + 1);
         Self::new_midi(note)
