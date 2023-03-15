@@ -3,6 +3,8 @@ name = "pointillism"
 version = "0.1.0"
 edition = "2021"
 authors = ["Violeta Hernández <vi.hdz.p@gmail.com>"]
+description = "Library for generating audio."
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 hound = "3.5.0"
