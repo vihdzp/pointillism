@@ -16,7 +16,7 @@ pub struct Mono(pub f64);
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Stereo(pub f64, pub f64);
 
-/// A data sample from an envelope, typically holding a value between `-1.0` and 
+/// A data sample from an envelope, typically holding a value between `-1.0` and
 /// `1.0`.
 ///
 /// This is distinguished from [`Mono`] as they have different uses, but one may
@@ -131,7 +131,7 @@ pub trait Sample:
 
     /// Generates a random sample.
     fn rand() -> Self {
-        Self::default().map(|_| super::to_sgn(rand::thread_rng().gen::<f64>() - 1.0))
+        Self::default().map(|_| super::to_sgn(rand::thread_rng().gen::<f64>()))
     }
 
     fn _sum<I: Iterator<Item = Self>>(iter: I) -> Self {
