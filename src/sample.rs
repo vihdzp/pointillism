@@ -157,15 +157,12 @@ pub trait AudioSample: Sample {
     fn write<W: std::io::Write + std::io::Seek>(
         &self,
         writer: &mut WavWriter<W>,
-        channels: u8,
     ) -> Result<(), hound::Error> {
-        if channels == 1 {
-            writer.write_sample(self.get(0) as f32)
-        } else {
-            let sample = self.duplicate();
-            writer.write_sample(sample.get(0) as f32)?;
-            writer.write_sample(sample.get(1) as f32)
+        for idx in 0..Self::CHANNELS {
+            writer.write_sample(self.get(idx) as f32)?;
         }
+
+        Ok(())
     }
 }
 

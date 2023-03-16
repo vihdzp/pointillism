@@ -21,11 +21,15 @@ pub fn clip(x: f64) -> f64 {
 /// A wrapper for a Rust function which converts it into a [`Map`] or
 /// [`MapMut`].
 ///
-/// This is needed to get around orphan rules.
+/// It may be necessary to explicitly write down the types of the arguments to
+/// the function.
 #[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<F>(pub F);
 
 /// An abstract trait for a structure representing a function `X → Y`.
+///
+/// Due to orphan rules, this trait can't be implemented for Rust functions. In
+/// order to use it in this case, wrap your function in [`FnWrapper`].
 pub trait Map<X, Y> {
     /// Evaluates the function.
     fn eval(&self, x: X) -> Y;
@@ -39,6 +43,9 @@ impl<X, Y, F: Fn(X) -> Y> Map<X, Y> for FnWrapper<F> {
 
 /// An abstract trait for a structure representing a function taking `&mut X`
 /// and `Y`.
+///
+/// Due to orphan rules, this trait can't be implemented for Rust functions. In
+/// order to use it in this case, wrap your function in [`FnWrapper`].
 pub trait MapMut<X, Y> {
     fn modify(&self, x: &mut X, y: Y);
 }
@@ -161,11 +168,9 @@ impl Freq {
     }
 }
 
-impl Mul<Freq> for f64 {
-    type Output = Freq;
-
-    fn mul(self, rhs: Freq) -> Freq {
-        Freq::new(self * rhs.hz)
+impl From<Freq> for Time {
+    fn from(value: Freq) -> Self {
+        value.period()
     }
 }
 
@@ -206,7 +211,7 @@ pub struct Time {
 
 impl Time {
     /// Initializes a time variable for the number of seconds.
-    pub fn new(seconds: f64) -> Self {
+    pub const fn new(seconds: f64) -> Self {
         Self { seconds }
     }
 
@@ -220,13 +225,18 @@ impl Time {
         Self::new(60.0 / bpm)
     }
 
+    /// Time to frequency.
+    pub fn freq(&self) -> Freq {
+        Freq::new(1.0 / self.seconds())
+    }
+
     /// Zero seconds.
-    pub fn zero() -> Self {
-        Self::default()
+    pub const fn zero() -> Self {
+        Self::new(0.0)
     }
 
     /// The time in seconds.
-    pub fn seconds(&self) -> f64 {
+    pub const fn seconds(&self) -> f64 {
         self.seconds
     }
 
@@ -238,6 +248,20 @@ impl Time {
     /// Advances the time by one frame.
     pub fn advance(&mut self) {
         self.seconds += 1.0 / SAMPLE_RATE as f64;
+    }
+}
+
+impl From<Time> for Freq {
+    fn from(value: Time) -> Self {
+        value.freq()
+    }
+}
+
+impl Mul<Freq> for f64 {
+    type Output = Freq;
+
+    fn mul(self, rhs: Freq) -> Freq {
+        Freq::new(self * rhs.hz)
     }
 }
 
