@@ -35,10 +35,10 @@ fn main() {
             poly.stop(event.idx);
 
             // and adding a new one.
-            poly.add(osc(Freq::new_edo(
+            poly.add(osc(Freq::new_edo_note(
                 BASE,
                 5,
-                rand::thread_rng().gen_range(0..=7),
+                rand::thread_rng().gen_range(0..=7) as f64,
             )));
         }),
     );

@@ -1,6 +1,10 @@
 //! Declares basic curves that may be used in envelopes via
 //! [`CurveEnv`](crate::generators::CurveEnv), or to generate audio
 //! [`CurveGen`](crate::generators::CurveGen).
+//!
+//! By a curve, we mean any struct implementing `Map<f64, f64>`.
+
+use std::marker::PhantomData;
 
 use crate::Map;
 
@@ -21,6 +25,32 @@ pub struct ToSgn<C: Map<f64, f64>>(pub C);
 impl<C: Map<f64, f64>> Map<f64, f64> for ToSgn<C> {
     fn eval(&self, x: f64) -> f64 {
         crate::to_sgn(self.0.eval(x))
+    }
+}
+
+/// A constant function `X → Y`.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Const<X, Y: Clone> {
+    /// The constant value attained by the function.
+    pub val: Y,
+
+    /// Dummy variable.
+    phantom: PhantomData<X>,
+}
+
+impl<X, Y: Clone> Const<X, Y> {
+    /// Initializes a new constant function.
+    pub const fn new(val: Y) -> Self {
+        Self {
+            val,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<X, Y: Clone> Map<X, Y> for Const<X, Y> {
+    fn eval(&self, _: X) -> Y {
+        self.val.clone()
     }
 }
 

@@ -1,4 +1,6 @@
 //! Generative ambient music.
+//!
+//! Sounds even smoother after some post-processing reverb.
 
 use pointillism::prelude::*;
 use rand::Rng;
