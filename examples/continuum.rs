@@ -10,6 +10,12 @@ fn main() {
     // Length of each note.
     const NOTE_LEN: Time = Time::new(3.0);
 
+    // Length of released note.
+    const RELEASE_LEN: Time = Time::new(45.0);
+
+    // Number of notes in song.
+    const NOTE_COUNT: u16 = 200;
+
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
         pointillism::effects::pan::MixedPanner::new(
@@ -18,7 +24,7 @@ fn main() {
                     // Sine wave with specified frequency.
                     CurveGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
-                    Adsr::new(NOTE_LEN, Time::zero(), 1.0, 15.0 * NOTE_LEN),
+                    Adsr::new(NOTE_LEN, Time::zero(), 1.0, RELEASE_LEN),
                 ),
                 CurveEnv::new(InvSaw, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
@@ -66,14 +72,18 @@ fn main() {
             }
 
             // Plays a new note, as long as the song isn't about to end.
-            if event.time < 182.0 * NOTE_LEN {
+            if event.time < (NOTE_COUNT as f64 - 1.0) * NOTE_LEN - RELEASE_LEN {
                 poly.add(osc(freq, rand::thread_rng().gen()));
             }
         }),
     );
 
-    pointillism::create("examples/continuum.wav", 200.0 * NOTE_LEN, |_| {
-        // 10.0 might be too much, but just to be safe from clipping.
-        poly_loop.next() / 10.0
-    })
+    pointillism::create(
+        "examples/continuum.wav",
+        NOTE_COUNT as f64 * NOTE_LEN,
+        |_| {
+            // 10.0 might be too much, but just to be safe from clipping.
+            poly_loop.next() / 10.0
+        },
+    )
 }
