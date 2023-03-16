@@ -79,6 +79,26 @@ impl<C: Map<f64, f64>> LoopCurveEnv<C> {
         }
     }
 
+    /// A reference to the curve being played.
+    pub const fn curve(&self) -> &C {
+        &self.curve
+    }
+
+    /// A mutable reference to the curve being played.
+    pub fn curve_mut(&mut self) -> &mut C {
+        &mut self.curve
+    }
+
+    /// Returns the frequency of the curve.
+    pub fn freq(&self) -> Freq {
+        self.freq
+    }
+
+    /// Returns a mutable refrence to the frequency of the curve.
+    pub fn freq_mut(&mut self) -> &mut Freq {
+        &mut self.freq
+    }
+
     /// Returns the value between `0.0` and `1.0` which represents how far along
     /// the curve we're currently reading.
     pub fn val(&self) -> f64 {
@@ -119,13 +139,23 @@ impl<C: Map<f64, f64>> CurveGen<C> {
         Self::new_sgn(LoopCurveEnv::new(curve, freq))
     }
 
+    /// A reference to the curve being played.
+    pub fn curve(&self) -> &C {
+        self.sgn().curve()
+    }
+
+    /// A mutable reference to the curve being played.
+    pub fn curve_mut(&mut self) -> &mut C {
+        self.sgn_mut().curve_mut()
+    }
+
     /// Returns the frequency of the curve.
     pub fn freq(&self) -> Freq {
-        self.sgn.freq
+        self.sgn().freq()
     }
 
     /// Returns a mutable refrence to the frequency of the curve.
     pub fn freq_mut(&mut self) -> &mut Freq {
-        &mut self.sgn.freq
+        self.sgn_mut().freq_mut()
     }
 }

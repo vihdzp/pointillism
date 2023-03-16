@@ -127,6 +127,16 @@ impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> MapSgn<S, Y, F> {
             phantom: PhantomData,
         }
     }
+
+    /// Returns a reference to the original signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the original signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
 }
 
 impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> Signal for MapSgn<S, Y, F> {
@@ -189,16 +199,6 @@ impl<S: Signal, F: Map<f64, f64>> PointwiseMapSgn<S, F> {
     /// Initializes a new [`PointwiseMapSgn`].
     pub const fn new_pointwise(sgn: S, func: F) -> Self {
         Self::new_generic(sgn, Pointwise::new(func))
-    }
-
-    /// Returns a reference to the original signal.
-    pub fn sgn(&self) -> &S {
-        &self.sgn
-    }
-
-    /// Returns a mutable reference to the original signal.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        &mut self.sgn
     }
 
     /// Returns a reference to the function modifying the signal.

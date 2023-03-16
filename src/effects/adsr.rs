@@ -81,6 +81,8 @@ impl Signal for Adsr {
     }
 
     fn advance(&mut self) {
+        // Note that `self.val` can end up infinite. This isn't a problem
+        // though, as it will simply skip the ADSR stage in the next frame.
         match self.stage() {
             AdsrStage::Attack => {
                 self.val += 1.0 / self.attack.frames();

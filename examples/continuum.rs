@@ -17,13 +17,13 @@ fn main() {
                 AdsrEnvelope::new(
                     // Sine wave with specified frequency.
                     CurveGen::new(SawTri::saw(), freq),
-                    // ADSR envelope with long attack, long release.
-                    Adsr::new(5.0 * NOTE_LEN, 0.2 * NOTE_LEN, 0.6, 15.0 * NOTE_LEN),
+                    // ADSR envelope with long attack, very long release.
+                    Adsr::new(NOTE_LEN, Time::zero(), 1.0, 15.0 * NOTE_LEN),
                 ),
                 CurveEnv::new(InvSaw, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
                 FnWrapper(|sgn: &mut AdsrEnvelope<CurveGen<SawTri>>, val: f64| {
-                    sgn.sgn_mut().sgn.curve.shape = val / 4.0 + 0.75;
+                    sgn.sgn_mut().curve_mut().shape = val / 4.0 + 0.75;
                 }),
             ),
             angle,
@@ -66,13 +66,14 @@ fn main() {
             }
 
             // Plays a new note, as long as the song isn't about to end.
-            if event.time < 185.0 * NOTE_LEN {
+            if event.time < 182.0 * NOTE_LEN {
                 poly.add(osc(freq, rand::thread_rng().gen()));
             }
         }),
     );
 
     pointillism::create("examples/continuum.wav", 200.0 * NOTE_LEN, |_| {
-        poly_loop.next() / 2.0
+        // 10.0 might be too much, but just to be safe from clipping.
+        poly_loop.next() / 10.0
     })
 }
