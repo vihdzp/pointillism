@@ -16,11 +16,9 @@ The way in which `pointillism` outputs audio is by writing sample by sample
 into a `.wav` file. The output is hardcoded to use 32-bit floating point, 
 although calculations are internally done using 64-bit, for extra precision.
 
-For convenience, the [`Signal`](crate::signal::Signal) trait is provided.
-Structs implementing this trait generate sample data frame by frame, which
-can be advanced, or retriggered.
+For convenience, the `Signal` trait is provided. Structs implementing this trait 
+generate sample data frame by frame, which can be advanced, or retriggered.
 
 Signals may be composed to create more complex signals, using for instance
-an [`Envelope`](crate::effects::Envelope). Moreover, you can implement the
-trait for your own structs, giving you vast control over the samples you're
-producing.
+an `Envelope`. Moreover, you can implement the trait for your own structs,
+giving you vast control over the samples you're producing.
