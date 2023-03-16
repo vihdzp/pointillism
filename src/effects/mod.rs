@@ -2,10 +2,10 @@
 
 pub mod adsr;
 pub mod distortion;
-pub mod events;
 pub mod pan;
+pub mod sequence;
 
-use crate::{sample::*, signal::Signal, MapMut};
+use crate::{prelude::StopSignal, sample::*, signal::Signal, MapMut};
 
 /// Modifies a signal according to a given envelope.
 #[derive(Clone, Debug)]
@@ -21,8 +21,8 @@ pub struct Envelope<S: Signal, E: Signal<Sample = Env>, F: MapMut<S, f64>> {
 }
 
 impl<S: Signal, E: Signal<Sample = Env>, F: MapMut<S, f64>> Envelope<S, E, F> {
-    /// Initializes a new envelope.
-    pub fn new(mut sgn: S, env: E, func: F) -> Self {
+    /// Initializes a new [`Envelope`].
+    pub fn new_generic(mut sgn: S, env: E, mut func: F) -> Self {
         func.modify(&mut sgn, env.get().0);
         Self { sgn, env, func }
     }
@@ -43,6 +43,16 @@ impl<S: Signal, E: Signal<Sample = Env>, F: MapMut<S, f64>> Signal for Envelope<
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.env.retrigger();
+    }
+}
+
+impl<S: StopSignal, E: Signal<Sample = Env>, F: MapMut<S, f64>> StopSignal for Envelope<S, E, F> {
+    fn stop(&mut self) {
+        self.sgn.stop();
+    }
+
+    fn is_done(&self) -> bool {
+        self.sgn.is_done()
     }
 }
 

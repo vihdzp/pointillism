@@ -152,8 +152,8 @@ impl<S: Signal> VolFn<S> {
 }
 
 impl<S: Signal> MapMut<Volume<S>, f64> for VolFn<S> {
-    fn modify(&self, sgn: &mut Volume<S>, gain: f64) {
-        *sgn.gain_mut() = gain;
+    fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
+        *sgn.vol_mut() = Vol::new(gain);
     }
 }
 
@@ -168,7 +168,7 @@ impl<S: Signal> AdsrEnvelope<S> {
     /// Initializes a new ADSR envelope.
     pub fn new(sgn: S, env: Adsr) -> Self {
         Self {
-            env: Envelope::new(Volume::new(sgn, Vol::zero()), env, VolFn::new()),
+            env: Envelope::new_generic(Volume::new(sgn, Vol::zero()), env, VolFn::new()),
         }
     }
 

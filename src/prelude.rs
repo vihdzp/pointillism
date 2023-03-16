@@ -4,9 +4,11 @@ pub use crate::{
     basic::*,
     effects::{
         adsr::{Adsr, AdsrEnvelope},
+        pan::Volume,
+        sequence::{Event, Loop, Sequence},
         Envelope,
     },
-    generators::{curves::*, CurveEnv, CurveGen, LoopCurveEnv},
+    generators::{curves::*, poly::Polyphony, CurveEnv, CurveGen, LoopCurveEnv},
     sample::{AudioSample, Env, Mono, Sample, Stereo},
     signal::{Signal, StopSignal},
 };

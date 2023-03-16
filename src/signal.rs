@@ -51,7 +51,7 @@ impl<Y> Retrigger<Y> {
 }
 
 impl<S: Signal, Y> MapMut<S, Y> for Retrigger<Y> {
-    fn modify(&self, sgn: &mut S, _: Y) {
+    fn modify(&mut self, sgn: &mut S, _: Y) {
         sgn.retrigger();
     }
 }

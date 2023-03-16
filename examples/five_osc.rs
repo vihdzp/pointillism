@@ -1,3 +1,5 @@
+//! A simple example testing out basic functions of the library.
+
 use pointillism::prelude::*;
 
 fn main() {
@@ -12,7 +14,7 @@ fn main() {
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
-        Envelope::new(
+        Envelope::new_generic(
             // A triangle wave with a placeholder frequency.
             CurveGen::new(SawTri::tri(), BASE),
             // A sine wave, which controls the pitch of the triangle wave.

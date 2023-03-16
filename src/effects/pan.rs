@@ -1,10 +1,15 @@
 //! Structures that modify volume and panning.
 
+use std::marker::PhantomData;
+
 use crate::{
+    prelude::Env,
     sample::{AudioSample, Stereo},
     signal::{MapSgn, PointwiseMapSgn, Signal},
-    Map, Vol,
+    Map, MapMut, Vol,
 };
+
+use super::Envelope;
 
 /// Controls the volume of a signal.
 pub type Volume<S> = PointwiseMapSgn<S, Vol>;
@@ -15,14 +20,50 @@ impl<S: Signal> Volume<S> {
         Self::new_pointwise(sgn, vol)
     }
 
-    /// Gain of the signal.
-    pub const fn gain(&self) -> f64 {
-        self.func().gain
+    /// Volume of the signal.
+    pub const fn vol(&self) -> Vol {
+        *self.func()
     }
 
-    /// Returns a mutable reference to the gain of the signal.
-    pub fn gain_mut(&mut self) -> &mut f64 {
-        &mut self.func_mut().gain
+    /// Returns a mutable reference to the volume of the signal.
+    pub fn vol_mut(&mut self) -> &mut Vol {
+        self.func_mut()
+    }
+}
+
+/// The function that applies vibrato to a volume signal.
+pub struct Vib<S: Signal> {
+    /// Dummy variable.
+    phantom: PhantomData<S>,
+}
+
+impl<S: Signal> Default for Vib<S> {
+    fn default() -> Self {
+        Self {
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: Signal> Vib<S> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<S: Signal> MapMut<Volume<S>, f64> for Vib<S> {
+    fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
+        sgn.vol_mut().gain = gain;
+    }
+}
+
+/// Applies vibrato to a signal according to an envelope.
+pub type Vibrato<S, E> = Envelope<Volume<S>, E, Vib<S>>;
+
+impl<S: Signal, E: Signal<Sample = Env>> Vibrato<S, E> {
+    /// Initializes a new [`Vibrato`].
+    pub fn new(sgn: S, env: E) -> Self {
+        Self::new_generic(Volume::new(sgn, Vol::new(1.0)), env, Vib::new())
     }
 }
 

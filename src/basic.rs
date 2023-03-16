@@ -47,11 +47,11 @@ impl<X, Y, F: Fn(X) -> Y> Map<X, Y> for FnWrapper<F> {
 /// Due to orphan rules, this trait can't be implemented for Rust functions. In
 /// order to use it in this case, wrap your function in [`FnWrapper`].
 pub trait MapMut<X, Y> {
-    fn modify(&self, x: &mut X, y: Y);
+    fn modify(&mut self, x: &mut X, y: Y);
 }
 
-impl<X, Y, F: Fn(&mut X, Y)> MapMut<X, Y> for FnWrapper<F> {
-    fn modify(&self, x: &mut X, y: Y) {
+impl<X, Y, F: FnMut(&mut X, Y)> MapMut<X, Y> for FnWrapper<F> {
+    fn modify(&mut self, x: &mut X, y: Y) {
         self.0(x, y);
     }
 }

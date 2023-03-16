@@ -1,6 +1,6 @@
 //! Different kinds of signal distortion.
 
-use crate::{signal::PointwiseMapSgn, Map};
+use crate::{prelude::Signal, signal::PointwiseMapSgn, Map};
 
 /// Infinite clipping distortion.
 ///
@@ -16,6 +16,13 @@ impl Map<f64, f64> for InfClip {
 
 /// Applies [`InfClip`] distortion to a signal.
 pub type InfClipping<S> = PointwiseMapSgn<S, InfClip>;
+
+impl<S: Signal> InfClipping<S> {
+    /// Initializes a new [`InfClipping`].
+    pub fn new(sgn: S) -> Self {
+        Self::new_pointwise(sgn, InfClip)
+    }
+}
 
 /// Clipping distortion.
 ///
@@ -48,6 +55,13 @@ impl Map<f64, f64> for Clip {
 /// Applies [`Clip`] distortion to a signal.
 pub type Clipping<S> = PointwiseMapSgn<S, Clip>;
 
+impl<S: Signal> Clipping<S> {
+    /// Initializes a new [`Clipping`].
+    pub fn new(sgn: S, threshold: f64) -> Self {
+        Self::new_pointwise(sgn, Clip::new(threshold))
+    }
+}
+
 /// Arctangent distortion.
 ///
 /// Applies the function `tan⁻¹(shape * x)` to the input signal and normalizes.
@@ -78,5 +92,12 @@ impl Map<f64, f64> for Atan {
 
 /// Applies [`Atan`] distortion to a signal.
 pub type Arctangent<S> = PointwiseMapSgn<S, Atan>;
+
+impl<S: Signal> Arctangent<S> {
+    /// Initializes a new [`Arctangent`].
+    pub fn new(sgn: S, shape: f64) -> Self {
+        Self::new_pointwise(sgn, Atan::new(shape))
+    }
+}
 
 // Todo: bitcrusher effect.
