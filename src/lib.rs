@@ -24,6 +24,12 @@
 //! an [`Envelope`](crate::effects::Envelope). Moreover, you can implement the
 //! trait for your own structs, giving you vast control over the samples you're
 //! producing.
+//!
+//! ## Naming conventions
+//!
+//! The library has been coded in very large generality, and many types - even
+//! "basic" ones, are actually type aliases. As such, many constructors `new`
+//! are suffixed, to avoid ambiguity.
 
 pub mod effects;
 pub mod freq;

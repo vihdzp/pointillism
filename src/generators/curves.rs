@@ -98,6 +98,29 @@ impl<F: Map<Output = f64>> NegComp<F> {
     }
 }
 
+/// A linear map `y = mx + b`.
+#[derive(Clone, Copy, Debug)]
+pub struct Linear {
+    /// Slope of the map.
+    pub slope: f64,
+
+    /// y-intercept of the map.
+    pub intercept: f64,
+}
+
+impl Linear {
+    /// Initializes a new linear map.
+    pub const fn new(slope: f64, intercept: f64) -> Self {
+        Self { slope, intercept }
+    }
+
+    /// Initializes the linear map that rescales an interval to another.
+    pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
+        let slope = (end_hi - end_lo) / (init_hi - init_lo);
+        Self::new(slope, init_hi - slope * init_lo)
+    }
+}
+
 /// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
 ///
 /// Note that this is a type alias for [`Sgn`].

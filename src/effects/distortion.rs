@@ -1,6 +1,6 @@
 //! Different kinds of signal distortion.
 
-use crate::{map::Map, prelude::Signal, signal::PointwiseMapSgn};
+use crate::{prelude::*, signal::PointwiseMapSgn};
 
 /// Infinite clipping distortion.
 ///
