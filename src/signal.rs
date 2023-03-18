@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::{sample::*, Map, MapMut};
+use crate::{generators::HasFreq, map::*, sample::*};
 
 /// A trait for a stream of data, generated every frame.
 ///
@@ -35,18 +35,18 @@ pub struct Retrigger<Y> {
     phantom: PhantomData<Y>,
 }
 
-impl<Y> Default for Retrigger<Y> {
-    fn default() -> Self {
+impl<Y> Retrigger<Y> {
+    /// Initializes the [`Retrigger`] function.
+    pub const fn new() -> Self {
         Self {
             phantom: PhantomData,
         }
     }
 }
 
-impl<Y> Retrigger<Y> {
-    /// Initializes the [`Retrigger`] function.
-    pub fn new() -> Self {
-        Self::default()
+impl<Y> Default for Retrigger<Y> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -104,7 +104,7 @@ impl<S: Signal> StopSignal for Trailing<S> {
 
 /// Maps a signal to another via a specified map.
 #[derive(Clone, Copy, Debug)]
-pub struct MapSgn<S: Signal, Y: Sample, F: Map<S::Sample, Y>> {
+pub struct MapSgn<S: Signal, Y: Sample, F: Map<Input = S::Sample, Output = Y>> {
     /// The signal being mapped.
     pub sgn: S,
 
@@ -115,7 +115,7 @@ pub struct MapSgn<S: Signal, Y: Sample, F: Map<S::Sample, Y>> {
     phantom: PhantomData<Y>,
 }
 
-impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> MapSgn<S, Y, F> {
+impl<S: Signal, Y: Sample, F: Map<Input = S::Sample, Output = Y>> MapSgn<S, Y, F> {
     /// Initializes a generic [`MapSgn`].
     ///
     /// There are many type aliases for specific subtypes of [`MapSgn`], and
@@ -139,7 +139,7 @@ impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> MapSgn<S, Y, F> {
     }
 }
 
-impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> Signal for MapSgn<S, Y, F> {
+impl<S: Signal, Y: Sample, F: Map<Input = S::Sample, Output = Y>> Signal for MapSgn<S, Y, F> {
     type Sample = Y;
 
     fn get(&self) -> Y {
@@ -155,7 +155,9 @@ impl<S: Signal, Y: Sample, F: Map<S::Sample, Y>> Signal for MapSgn<S, Y, F> {
     }
 }
 
-impl<S: StopSignal, Y: Sample, F: Map<S::Sample, Y>> StopSignal for MapSgn<S, Y, F> {
+impl<S: StopSignal, Y: Sample, F: Map<Input = S::Sample, Output = Y>> StopSignal
+    for MapSgn<S, Y, F>
+{
     fn stop(&mut self) {
         self.sgn.stop();
     }
@@ -165,9 +167,19 @@ impl<S: StopSignal, Y: Sample, F: Map<S::Sample, Y>> StopSignal for MapSgn<S, Y,
     }
 }
 
+impl<S: HasFreq, Y: Sample, F: Map<Input = S::Sample, Output = Y>> HasFreq for MapSgn<S, Y, F> {
+    fn freq(&self) -> crate::Freq {
+        self.sgn().freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut crate::Freq {
+        self.sgn_mut().freq_mut()
+    }
+}
+
 /// Applies a function pointwise to the entries of a [`Sample`].
 #[derive(Clone, Debug)]
-pub struct Pointwise<S: Sample, F: Map<f64, f64>> {
+pub struct Pointwise<S: Sample, F: Map<Input = f64, Output = f64>> {
     /// The function to apply.
     pub func: F,
 
@@ -175,7 +187,7 @@ pub struct Pointwise<S: Sample, F: Map<f64, f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, F: Map<f64, f64>> Pointwise<S, F> {
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Pointwise<S, F> {
     /// Initializes a new [`Pointwise`] function.
     pub const fn new(func: F) -> Self {
         Self {
@@ -185,7 +197,10 @@ impl<S: Sample, F: Map<f64, f64>> Pointwise<S, F> {
     }
 }
 
-impl<S: Sample, F: Map<f64, f64>> Map<S, S> for Pointwise<S, F> {
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pointwise<S, F> {
+    type Input = S;
+    type Output = S;
+
     fn eval(&self, x: S) -> S {
         x.map(|y| self.func.eval(y))
     }
@@ -195,7 +210,7 @@ impl<S: Sample, F: Map<f64, f64>> Map<S, S> for Pointwise<S, F> {
 pub type PointwiseMapSgn<S, F> =
     MapSgn<S, <S as Signal>::Sample, Pointwise<<S as Signal>::Sample, F>>;
 
-impl<S: Signal, F: Map<f64, f64>> PointwiseMapSgn<S, F> {
+impl<S: Signal, F: Map<Input = f64, Output = f64>> PointwiseMapSgn<S, F> {
     /// Initializes a new [`PointwiseMapSgn`].
     pub const fn new_pointwise(sgn: S, func: F) -> Self {
         Self::new_generic(sgn, Pointwise::new(func))
@@ -216,7 +231,10 @@ impl<S: Signal, F: Map<f64, f64>> PointwiseMapSgn<S, F> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct EnvToMono;
 
-impl Map<Env, Mono> for EnvToMono {
+impl Map for EnvToMono {
+    type Input = Env;
+    type Output = Mono;
+
     fn eval(&self, x: Env) -> Mono {
         x.into()
     }
@@ -229,7 +247,7 @@ pub type EnvGen<S> = MapSgn<S, Mono, EnvToMono>;
 
 impl<S: Signal<Sample = Env>> EnvGen<S> {
     /// Initializes a new [`EnvGen`].
-    pub fn new_env(sgn: S) -> Self {
+    pub const fn new_env(sgn: S) -> Self {
         Self::new_generic(sgn, EnvToMono)
     }
 }

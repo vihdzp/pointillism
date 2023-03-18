@@ -4,53 +4,127 @@
 //!
 //! By a curve, we mean any struct implementing `Map<f64, f64>`.
 
-use std::marker::PhantomData;
-
-use crate::Map;
+use crate::{map::Map, prelude::Comp};
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct ToPos<C: Map<f64, f64>>(pub C);
+pub struct Pos;
 
-impl<C: Map<f64, f64>> Map<f64, f64> for ToPos<C> {
+impl Pos {
+    /// The [`crate::pos`] function.
+    pub const fn new() -> Self {
+        Self
+    }
+}
+
+impl Map for Pos {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
-        crate::to_pos(self.0.eval(x))
+        crate::pos(x)
+    }
+}
+
+/// Composes a function with [`Pos`]
+pub type PosComp<F> = Comp<F, Pos>;
+
+impl<F: Map<Output = f64>> PosComp<F> {
+    /// Initializes a new [`PosComp`].
+    pub const fn new_pos(f: F) -> Self {
+        Self::new_generic(f, Pos)
     }
 }
 
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct ToSgn<C: Map<f64, f64>>(pub C);
+pub struct Sgn;
 
-impl<C: Map<f64, f64>> Map<f64, f64> for ToSgn<C> {
+impl Sgn {
+    /// The [`crate::sgn`] function.
+    ///
+    /// Note that [`Saw`] is an alias for [`Sgn`].
+    pub const fn new() -> Self {
+        Self
+    }
+}
+
+impl Map for Sgn {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
-        crate::to_sgn(self.0.eval(x))
+        crate::sgn(x)
     }
 }
 
-/// A constant function `X → Y`.
+/// Composes a function with [`Sgn`]
+pub type SgnComp<F> = Comp<F, Sgn>;
+
+impl<F: Map<Output = f64>> SgnComp<F> {
+    /// Initializes a new [`SgnComp`].
+    pub const fn new_sgn(f: F) -> Self {
+        Self::new_generic(f, Sgn)
+    }
+}
+
+/// Negates a floating point value.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Const<X, Y: Clone> {
-    /// The constant value attained by the function.
-    pub val: Y,
+pub struct Neg;
 
-    /// Dummy variable.
-    phantom: PhantomData<X>,
-}
-
-impl<X, Y: Clone> Const<X, Y> {
-    /// Initializes a new constant function.
-    pub const fn new(val: Y) -> Self {
-        Self {
-            val,
-            phantom: PhantomData,
-        }
+impl Neg {
+    /// The negation function.
+    pub const fn new() -> Self {
+        Self
     }
 }
 
-impl<X, Y: Clone> Map<X, Y> for Const<X, Y> {
-    fn eval(&self, _: X) -> Y {
-        self.val.clone()
+impl Map for Neg {
+    type Input = f64;
+    type Output = f64;
+
+    fn eval(&self, x: f64) -> f64 {
+        -x
+    }
+}
+
+/// Composes a function with [`Neg`]
+pub type NegComp<F> = Comp<F, Neg>;
+
+impl<F: Map<Output = f64>> NegComp<F> {
+    /// Initializes a new [`NegComp`].
+    pub const fn new_neg(f: F) -> Self {
+        Self::new_generic(f, Neg)
+    }
+}
+
+/// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
+///
+/// Note that this is a type alias for [`Sgn`].
+pub type Saw = Sgn;
+
+/// A right-to-left saw wave, taking values from `-1.0` to `1.0`.
+pub type InvSaw = NegComp<Saw>;
+
+impl InvSaw {
+    /// Initializes a new [`InvSaw`].
+    pub const fn new() -> Self {
+        Self::new_neg(Saw::new())
+    }
+}
+
+/// A left-to-right saw wave, taking values from `0.0` to `1.0`.
+///
+/// Note that this is a type alias for [`Id`](crate::Id).
+pub type PosSaw = crate::Id<f64>;
+
+/// A right-to-left saw wave, taking values from `0.0` to `1.0`.
+pub type PosInvSaw = PosComp<InvSaw>;
+
+impl PosInvSaw {
+    /// Initializes a new [`PosInvSaw`].
+    pub const fn new() -> Self {
+        Self::new_pos(InvSaw::new())
     }
 }
 
@@ -81,7 +155,10 @@ impl Sin {
     }
 }
 
-impl Map<f64, f64> for Sin {
+impl Map for Sin {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         ((x + self.phase) * std::f64::consts::TAU).sin()
     }
@@ -114,7 +191,10 @@ impl Default for Pulse {
     }
 }
 
-impl Map<f64, f64> for Pulse {
+impl Map for Pulse {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         if x < self.shape {
             1.0
@@ -123,32 +203,6 @@ impl Map<f64, f64> for Pulse {
         }
     }
 }
-
-/// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Saw;
-
-impl Map<f64, f64> for Saw {
-    fn eval(&self, x: f64) -> f64 {
-        x
-    }
-}
-
-/// A right-to-left saw wave, taking values from `-1.0` to `1.0`.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct InvSaw;
-
-impl Map<f64, f64> for InvSaw {
-    fn eval(&self, x: f64) -> f64 {
-        -x
-    }
-}
-
-/// A left-to-right saw wave, taking values from `0.0` to `1.0`.
-pub type PosSaw = ToPos<Saw>;
-
-/// A right-to-left saw wave, taking values from `0.0` to `1.0`.
-pub type PosInvSaw = ToPos<InvSaw>;
 
 /// A curve interpolating between a saw and a triangle.
 ///
@@ -187,7 +241,10 @@ impl SawTri {
     }
 }
 
-impl Map<f64, f64> for SawTri {
+impl Map for SawTri {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         // We must do some size checks to avoid division by 0.
         if x < self.shape {

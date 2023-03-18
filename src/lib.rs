@@ -25,16 +25,17 @@
 //! trait for your own structs, giving you vast control over the samples you're
 //! producing.
 
-mod basic;
 pub mod effects;
+pub mod freq;
 pub mod generators;
+pub mod map;
 pub mod prelude;
 pub mod sample;
 pub mod signal;
+pub mod time;
 
-pub use basic::*;
 use hound::*;
-use sample::AudioSample;
+use prelude::*;
 
 /// The sample rate for the audio file, in samples per second.
 pub const SAMPLE_RATE: u32 = 44100;
@@ -47,6 +48,16 @@ const fn spec(channels: u8) -> WavSpec {
         bits_per_sample: 32,
         sample_format: SampleFormat::Float,
     }
+}
+
+/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
+pub fn pos(x: f64) -> f64 {
+    (x + 1.0) / 2.0
+}
+
+/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
+pub fn sgn(x: f64) -> f64 {
+    2.0 * x - 1.0
 }
 
 /// Pitch for the base note A4.

@@ -1,6 +1,6 @@
 //! Different kinds of signal distortion.
 
-use crate::{prelude::Signal, signal::PointwiseMapSgn, Map};
+use crate::{map::Map, prelude::Signal, signal::PointwiseMapSgn};
 
 /// Infinite clipping distortion.
 ///
@@ -8,7 +8,10 @@ use crate::{prelude::Signal, signal::PointwiseMapSgn, Map};
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InfClip;
 
-impl Map<f64, f64> for InfClip {
+impl Map for InfClip {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         x.signum()
     }
@@ -46,7 +49,10 @@ impl Default for Clip {
     }
 }
 
-impl Map<f64, f64> for Clip {
+impl Map for Clip {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         x.clamp(-self.threshold, self.threshold) / self.threshold
     }
@@ -84,7 +90,10 @@ impl Default for Atan {
     }
 }
 
-impl Map<f64, f64> for Atan {
+impl Map for Atan {
+    type Input = f64;
+    type Output = f64;
+
     fn eval(&self, x: f64) -> f64 {
         (self.shape * x).atan() / std::f64::consts::FRAC_PI_2
     }
@@ -99,5 +108,53 @@ impl<S: Signal> Arctangent<S> {
         Self::new_pointwise(sgn, Atan::new(shape))
     }
 }
+
+/// The function `x^n`, renormalized for even exponents.
+#[derive(Clone, Copy, Debug)]
+pub struct Pow {
+    /// Exponent to raise a number to.
+    pub exponent: u16,
+}
+
+impl Pow {
+    /// Initializes a new [`Pow`].
+    pub const fn new(exponent: u16) -> Self {
+        Self { exponent }
+    }
+
+    /// No distortion.
+    pub const fn linear() -> Self {
+        Self::new(1)
+    }
+
+    /// Cubic distortion.
+    pub const fn cubic() -> Self {
+        Self::new(3)
+    }
+}
+
+impl Default for Pow {
+    fn default() -> Self {
+        Self::linear()
+    }
+}
+
+impl Map for Pow {
+    type Input = f64;
+    type Output = f64;
+
+    fn eval(&self, x: f64) -> f64 {
+        let res = x.powi(self.exponent as i32);
+
+        if self.exponent % 2 == 0 {
+            crate::sgn(res)
+        } else {
+            res
+        }
+    }
+}
+
+/// Applies [`Pow`] distortion to a signal.
+pub type Power<S> = PointwiseMapSgn<S, Pow>;
 
 // Todo: bitcrusher effect.

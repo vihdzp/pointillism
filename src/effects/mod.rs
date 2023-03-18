@@ -4,8 +4,9 @@ pub mod adsr;
 pub mod distortion;
 pub mod pan;
 pub mod sequence;
+pub mod vol;
 
-use crate::{prelude::StopSignal, sample::*, signal::Signal, MapMut};
+use crate::prelude::*;
 
 /// Modifies a signal according to a given envelope.
 #[derive(Clone, Debug)]
@@ -88,7 +89,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Gate<S, E> {
         if self.env.get().0 >= self.threshold {
             self.sgn.get()
         } else {
-            S::Sample::zero()
+            S::Sample::ZERO
         }
     }
 

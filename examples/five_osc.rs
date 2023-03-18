@@ -21,7 +21,7 @@ fn main() {
             LoopCurveEnv::new(Sin::new(phase), (NUM_OSC as f64 * TIME).into()),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
-            FnWrapper(|sgn: &mut CurveGen<_>, val| {
+            FnWrapper::new(|sgn: &mut CurveGen<_>, val| {
                 *sgn.freq_mut() = BASE * (val / 2.0 + 1.0);
             }),
         )

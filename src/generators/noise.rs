@@ -1,4 +1,4 @@
-use crate::{sample::Sample, signal::Signal, Freq, SAMPLE_RATE};
+use crate::prelude::*;
 
 /// Generates random data.
 #[derive(Clone, Copy, Debug)]

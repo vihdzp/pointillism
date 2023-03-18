@@ -58,6 +58,9 @@ pub trait Sample:
     /// The number of values stored in the sample.
     const CHANNELS: u8;
 
+    /// The zero sample.
+    const ZERO: Self;
+
     /// Gets the value from channel `idx`. Reads the last channel if out of
     /// bounds.
     fn get_unchecked(&self, idx: u8) -> f64;
@@ -92,55 +95,51 @@ pub trait Sample:
         self.get_mut_unchecked(idx)
     }
 
+    /// Executes a function for each channel index.
+    fn for_each<F: FnMut(u8)>(mut f: F) {
+        for idx in 0..Self::CHANNELS {
+            f(idx);
+        }
+    }
+
+    /// Initializes a new sample by calling `f(idx)` on each index.
+    fn from_fn<F: FnMut(u8) -> f64>(mut f: F) -> Self {
+        let mut res = Self::default();
+        Self::for_each(|idx| *res.get_mut_unchecked(idx) = f(idx));
+        res
+    }
+
     /// Applies a function `f` to all entries of the sample.
     fn map<F: FnMut(f64) -> f64>(&self, mut f: F) -> Self {
-        let mut res = Self::default();
-        for idx in 0..Self::CHANNELS {
-            *res.get_mut(idx) = f(self.get(idx));
-        }
-        res
+        Self::from_fn(|idx| f(self.get(idx)))
     }
 
     /// Mutably applies a function `f` to all entries of the sample.
     fn map_mut<F: FnMut(&mut f64)>(&mut self, mut f: F) {
-        for idx in 0..Self::CHANNELS {
-            f(self.get_mut(idx));
-        }
+        Self::for_each(|idx| f(self.get_mut_unchecked(idx)));
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
     fn pairwise<F: FnMut(f64, f64) -> f64>(&self, rhs: Self, mut f: F) -> Self {
-        let mut res = Self::default();
-        for idx in 0..Self::CHANNELS {
-            *res.get_mut(idx) = f(self.get(idx), rhs.get(idx));
-        }
-        res
+        Self::from_fn(|idx| f(self.get(idx), rhs.get(idx)))
     }
 
     /// Mutably applies a function `f` to pairs of entries of the samples.
     fn pairwise_mut<F: FnMut(&mut f64, f64)>(&mut self, rhs: Self, mut f: F) {
-        for idx in 0..Self::CHANNELS {
-            f(self.get_mut(idx), rhs.get(idx));
-        }
-    }
-
-    /// The zero sample.
-    fn zero() -> Self {
-        Self::default()
+        Self::for_each(|idx| f(self.get_mut(idx), rhs.get(idx)));
     }
 
     /// Generates a random sample.
     fn rand() -> Self {
-        Self::default().map(|_| super::to_sgn(rand::thread_rng().gen::<f64>()))
+        Self::from_fn(|_| crate::sgn(rand::thread_rng().gen::<f64>()))
     }
 
+    /// A default implementation of the [`Sum`] trait.
     fn _sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        let mut res = Self::zero();
-
+        let mut res = Self::ZERO;
         for sample in iter {
             res += sample;
         }
-
         res
     }
 }
@@ -168,6 +167,7 @@ pub trait AudioSample: Sample {
 
 impl Sample for Mono {
     const CHANNELS: u8 = 1;
+    const ZERO: Self = Self(0.0);
 
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0
@@ -182,6 +182,7 @@ impl AudioSample for Mono {}
 
 impl Sample for Stereo {
     const CHANNELS: u8 = 2;
+    const ZERO: Self = Self(0.0, 0.0);
 
     fn get_unchecked(&self, idx: u8) -> f64 {
         if idx == 0 {
@@ -204,6 +205,7 @@ impl AudioSample for Stereo {}
 
 impl Sample for Env {
     const CHANNELS: u8 = 1;
+    const ZERO: Self = Self(0.0);
 
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0

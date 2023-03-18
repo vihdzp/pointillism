@@ -1,12 +1,6 @@
 //! Implements an ADSR envelope for signals.
 
-use crate::{
-    sample::Env,
-    signal::{Signal, StopSignal},
-    MapMut, Time, Vol,
-};
-
-use super::{pan::Volume, Envelope};
+use crate::prelude::*;
 
 /// Any of the stages in an ADSR envelope.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -170,7 +164,7 @@ impl<S: Signal> AdsrEnvelope<S> {
     /// Initializes a new ADSR envelope.
     pub fn new(sgn: S, env: Adsr) -> Self {
         Self {
-            env: Envelope::new_generic(Volume::new(sgn, Vol::zero()), env, VolFn::new()),
+            env: Envelope::new_generic(Volume::new(sgn, Vol::ZERO), env, VolFn::new()),
         }
     }
 

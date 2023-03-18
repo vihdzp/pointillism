@@ -28,9 +28,9 @@ fn main() {
                     // ADSR envelope with long attack, very long release.
                     Adsr::new(NOTE_LEN, Time::zero(), 1.0, RELEASE_LEN),
                 ),
-                CurveEnv::new(InvSaw, NOTE_LEN),
+                CurveEnv::new(InvSaw::new(), NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper(|sgn: &mut AdsrEnvelope<CurveGen<SawTri>>, val: f64| {
+                FnWrapper::new(|sgn: &mut AdsrEnvelope<CurveGen<SawTri>>, val: f64| {
                     sgn.sgn_mut().curve_mut().shape = val / 4.0 + 0.75;
                 }),
             ),
@@ -59,7 +59,7 @@ fn main() {
     let mut poly_loop = Loop::new(
         vec![NOTE_LEN],
         poly,
-        FnWrapper(|poly: &mut Polyphony<_>, event: Event| {
+        FnWrapper::new(|poly: &mut Polyphony<_>, event: Event| {
             // Stops the previous note.
             poly.stop(event.idx);
 

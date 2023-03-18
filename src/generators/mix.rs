@@ -1,8 +1,10 @@
 //! Functions for mixing signals together.
 
 use crate::{
+    map::Map,
+    prelude::AudioSample,
     sample::{Mono, Stereo},
-    signal::{Signal, StopSignal},
+    signal::{MapSgn, Signal, StopSignal},
 };
 
 /// Combines two [`Mono`] signals into a [`Stereo`] signal.
@@ -12,6 +14,13 @@ impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoGen<X, Y> {
     /// Initializes a new [`StereoGen`].
     pub const fn new(x: X, y: Y) -> Self {
         Self(x, y)
+    }
+}
+
+impl<X: Signal<Sample = Mono> + Clone> StereoGen<X, X> {
+    /// Duplicates a [`Mono`] signal.
+    pub fn duplicate(x: X) -> Self {
+        Self(x.clone(), x)
     }
 }
 
@@ -80,5 +89,24 @@ impl<X: StopSignal, Y: StopSignal<Sample = X::Sample>> StopSignal for Mix<X, Y> 
 
     fn is_done(&self) -> bool {
         self.0.is_done() && self.1.is_done()
+    }
+}
+
+pub struct Dup;
+
+impl Map for Dup {
+    type Input = Mono;
+    type Output = Stereo;
+
+    fn eval(&self, x: Mono) -> Stereo {
+        x.duplicate()
+    }
+}
+
+pub type Duplicate<S> = MapSgn<S, Stereo, Dup>;
+
+impl<S: Signal<Sample = Mono>> Duplicate<S> {
+    pub const fn new(sgn: S) -> Self {
+        Self::new_generic(sgn, Dup)
     }
 }

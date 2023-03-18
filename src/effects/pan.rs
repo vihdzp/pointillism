@@ -2,70 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::{
-    prelude::Env,
-    sample::{AudioSample, Stereo},
-    signal::{MapSgn, PointwiseMapSgn, Signal},
-    Map, MapMut, Vol,
-};
-
-use super::Envelope;
-
-/// Controls the volume of a signal.
-pub type Volume<S> = PointwiseMapSgn<S, Vol>;
-
-impl<S: Signal> Volume<S> {
-    /// Initializes a new signal with a given [`Vol`].
-    pub const fn new(sgn: S, vol: Vol) -> Self {
-        Self::new_pointwise(sgn, vol)
-    }
-
-    /// Volume of the signal.
-    pub const fn vol(&self) -> Vol {
-        *self.func()
-    }
-
-    /// Returns a mutable reference to the volume of the signal.
-    pub fn vol_mut(&mut self) -> &mut Vol {
-        self.func_mut()
-    }
-}
-
-/// The function that applies vibrato to a volume signal.
-pub struct Vib<S: Signal> {
-    /// Dummy variable.
-    phantom: PhantomData<S>,
-}
-
-impl<S: Signal> Default for Vib<S> {
-    fn default() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<S: Signal> Vib<S> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl<S: Signal> MapMut<Volume<S>, f64> for Vib<S> {
-    fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
-        sgn.vol_mut().gain = gain;
-    }
-}
-
-/// Applies vibrato to a signal according to an envelope.
-pub type Vibrato<S, E> = Envelope<Volume<S>, E, Vib<S>>;
-
-impl<S: Signal, E: Signal<Sample = Env>> Vibrato<S, E> {
-    /// Initializes a new [`Vibrato`].
-    pub fn new(sgn: S, env: E) -> Self {
-        Self::new_generic(Volume::new(sgn, Vol::new(1.0)), env, Vib::new())
-    }
-}
+use crate::prelude::*;
 
 /// Represents the way in which gain correlates with panning angle.
 pub trait PanLaw: Copy + Default {
@@ -176,18 +113,37 @@ impl PanLaw for Mixed {
 
 /// A wrapper for a [`PanLaw`] which converts it into a [`Map`].
 #[derive(Clone, Copy, Debug)]
-pub struct PanWrapper<P>(pub P);
+pub struct PanWrapper<A: AudioSample, P: PanLaw> {
+    /// Dummy variable.
+    phantom: PhantomData<A>,
 
-impl<A: AudioSample, P: PanLaw> Map<A, Stereo> for PanWrapper<P> {
+    /// Inner pan law.
+    pub pan_law: P,
+}
+
+impl<A: AudioSample, P: PanLaw> PanWrapper<A, P> {
+    /// Initializes a new [`PanWrapper`].
+    pub const fn new(pan_law: P) -> Self {
+        Self {
+            phantom: PhantomData,
+            pan_law,
+        }
+    }
+}
+
+impl<A: AudioSample, P: PanLaw> Map for PanWrapper<A, P> {
+    type Input = A;
+    type Output = Stereo;
+
     fn eval(&self, sample: A) -> Stereo {
         let Stereo(sl, sr) = sample.duplicate();
-        let (gl, gr) = self.0.gain();
+        let (gl, gr) = self.pan_law.gain();
         Stereo(sl * gl, sr * gr)
     }
 }
 
 /// Applies a pan effect, using the specified [`PanLaw`].
-pub type Panner<S, P> = MapSgn<S, Stereo, PanWrapper<P>>;
+pub type Panner<S, P> = MapSgn<S, Stereo, PanWrapper<<S as Signal>::Sample, P>>;
 
 impl<S: Signal, P: PanLaw> Panner<S, P>
 where
@@ -195,17 +151,17 @@ where
 {
     /// Initializes a new [`Panner`] for a given signal and angle.
     pub fn new_pan(sgn: S, angle: f64) -> Self {
-        Self::new_generic(sgn, PanWrapper(P::new(angle)))
+        Self::new_generic(sgn, PanWrapper::new(P::new(angle)))
     }
 
     /// Returns the current panning angle.
     pub fn angle(&self) -> f64 {
-        self.map.0.angle()
+        self.map.pan_law.angle()
     }
 
     /// Returns a mutable reference to the current panning angle.
     pub fn angle_mut(&mut self) -> &mut f64 {
-        self.map.0.angle_mut()
+        self.map.pan_law.angle_mut()
     }
 }
 

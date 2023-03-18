@@ -1,6 +1,6 @@
 //! Declares sequences and loops.
 
-use crate::{signal::Signal, MapMut, Time};
+use crate::prelude::*;
 
 /// An indexed point in time.
 #[derive(Clone, Copy, Debug)]
