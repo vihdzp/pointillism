@@ -22,8 +22,10 @@ use std::marker::PhantomData;
 /// Due to orphan rules, this trait can't be implemented for Rust functions. In
 /// order to use it in this case, wrap your function in [`FnWrapper`].
 pub trait Map {
+    /// Input type for the map.
     type Input;
 
+    /// Output type for the map.
     type Output;
 
     /// Evaluates the function.
@@ -36,6 +38,7 @@ pub trait Map {
 /// Due to orphan rules, this trait can't be implemented for Rust functions. In
 /// order to use it in this case, wrap your function in [`FnWrapper`].
 pub trait MapMut<X, Y> {
+    /// Modifies `x` according to `y`.
     fn modify(&mut self, x: &mut X, y: Y);
 }
 
@@ -46,8 +49,13 @@ pub trait MapMut<X, Y> {
 /// the function.
 #[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<X, Y, F> {
+    /// Dummy variable.
     phantom_x: PhantomData<X>,
+
+    /// Dummy variable.
     phantom_y: PhantomData<Y>,
+
+    /// Wrapped function.
     pub func: F,
 }
 
