@@ -117,7 +117,16 @@ impl Linear {
     /// Initializes the linear map that rescales an interval to another.
     pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
         let slope = (end_hi - end_lo) / (init_hi - init_lo);
-        Self::new(slope, init_hi - slope * init_lo)
+        Self::new(slope, end_lo - slope * init_lo)
+    }
+}
+
+impl Map for Linear {
+    type Input = f64;
+    type Output = f64;
+
+    fn eval(&self, x: f64) -> f64 {
+        x * self.slope + self.intercept
     }
 }
 

@@ -18,6 +18,9 @@ fn main() {
     // Number of notes in song.
     const NOTE_COUNT: u16 = 200;
 
+    // Envelope for the wave shape.
+    let shape_env = Comp::new_generic(Saw::new(), Linear::rescale(-1.0, 1.0, 0.75, 0.5));
+
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
         pointillism::effects::pan::MixedPanner::new(
@@ -28,10 +31,10 @@ fn main() {
                     // ADSR envelope with long attack, very long release.
                     Adsr::new(NOTE_LEN, Time::zero(), 1.0, RELEASE_LEN),
                 ),
-                CurveEnv::new(InvSaw::new(), NOTE_LEN),
+                CurveEnv::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
                 FnWrapper::new(|sgn: &mut AdsrEnvelope<CurveGen<SawTri>>, val: f64| {
-                    sgn.sgn_mut().curve_mut().shape = val / 4.0 + 0.75;
+                    sgn.sgn_mut().curve_mut().shape = val;
                 }),
             ),
             angle,
