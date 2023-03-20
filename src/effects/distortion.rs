@@ -22,7 +22,7 @@ pub type InfClipping<S> = PointwiseMapSgn<S, InfClip>;
 
 impl<S: Signal> InfClipping<S> {
     /// Initializes a new [`InfClipping`].
-    pub fn new(sgn: S) -> Self {
+    pub const fn new(sgn: S) -> Self {
         Self::new_pointwise(sgn, InfClip)
     }
 }
@@ -38,7 +38,7 @@ pub struct Clip {
 
 impl Clip {
     /// Initializes a new [`Clip`] struct.
-    pub fn new(threshold: f64) -> Self {
+    pub const fn new(threshold: f64) -> Self {
         Self { threshold }
     }
 }
@@ -63,7 +63,7 @@ pub type Clipping<S> = PointwiseMapSgn<S, Clip>;
 
 impl<S: Signal> Clipping<S> {
     /// Initializes a new [`Clipping`].
-    pub fn new(sgn: S, threshold: f64) -> Self {
+    pub const fn new(sgn: S, threshold: f64) -> Self {
         Self::new_pointwise(sgn, Clip::new(threshold))
     }
 }
@@ -79,7 +79,7 @@ pub struct Atan {
 
 impl Atan {
     /// Initializes a new [`Atan`] struct.
-    pub fn new(shape: f64) -> Self {
+    pub const fn new(shape: f64) -> Self {
         Self { shape }
     }
 }
@@ -104,7 +104,7 @@ pub type Arctangent<S> = PointwiseMapSgn<S, Atan>;
 
 impl<S: Signal> Arctangent<S> {
     /// Initializes a new [`Arctangent`].
-    pub fn new(sgn: S, shape: f64) -> Self {
+    pub const fn new(sgn: S, shape: f64) -> Self {
         Self::new_pointwise(sgn, Atan::new(shape))
     }
 }
@@ -156,5 +156,22 @@ impl Map for Pow {
 
 /// Applies [`Pow`] distortion to a signal.
 pub type Power<S> = PointwiseMapSgn<S, Pow>;
+
+impl<S: Signal> Power<S> {
+    /// Initializes a new [`Power`].
+    pub const fn new(sgn: S, exponent: u16) -> Self {
+        Self::new_pointwise(sgn, Pow::new(exponent))
+    }
+
+    /// No distortion.
+    pub const fn linear(sgn: S) -> Self {
+        Self::new(sgn, 1)
+    }
+
+    /// Cubic distortion.
+    pub const fn cubic(sgn: S) -> Self {
+        Self::new(sgn, 3)
+    }
+}
 
 // Todo: bitcrusher effect.

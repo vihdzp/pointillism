@@ -1,4 +1,7 @@
 //! Testing out polyphonic signals.
+//!
+//! We play various random 5-EDO notes in succession, and apply heavy distortion
+//! to the output for fun effects.
 
 use pointillism::prelude::*;
 use rand::Rng;
@@ -43,8 +46,8 @@ fn main() {
         }),
     );
 
-    // We add some arctangent distortion for extra warmth.
-    let mut dist = pointillism::effects::distortion::Arctangent::new(poly_loop, 2.0);
+    // This gives a really weird effect.
+    let mut dist = pointillism::effects::distortion::Power::cubic(poly_loop);
 
-    pointillism::create("examples/poly_5edo.wav", 10.0 * NOTE_LEN, |_| dist.next())
+    pointillism::create("examples/poly_5edo.wav", 10.0 * NOTE_LEN, |_| dist.next()).unwrap();
 }

@@ -1,4 +1,5 @@
-//! Structures that generate signals, be they envelope or audio data.
+//! Structures that generate signals on their own, be they envelope or audio 
+//! data.
 
 use crate::prelude::*;
 
@@ -7,9 +8,15 @@ pub mod mix;
 pub mod noise;
 pub mod poly;
 
+/// A trait for a signal with a "main" frequency.
+///
+/// This is implemented both for signals that have a frequency parameter such as
+/// [`LoopCurveEnv`], as well as straightforward wrappers for these signals.
 pub trait HasFreq: Signal {
+    /// The "main" frequency of the signal.
     fn freq(&self) -> Freq;
 
+    /// A mutable reference to the "main" frequency of the signal.
     fn freq_mut(&mut self) -> &mut Freq;
 }
 
@@ -62,7 +69,10 @@ impl<C: Map<Input = f64, Output = f64>> Signal for CurveEnv<C> {
 }
 
 /// Loops a curve at a specified frequency.
-#[derive(Clone, Copy, Debug)]
+///
+/// This is an envelope, meaning it returns [`Env`] data. See [`CurveGen`] if
+/// you want to generate mono audio instead.
+#[derive(Clone, Copy, Debug, Default)]
 pub struct LoopCurveEnv<C: Map<Input = f64, Output = f64>> {
     /// The curve being played.
     pub curve: C,

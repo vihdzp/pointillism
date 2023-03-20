@@ -91,4 +91,5 @@ fn main() {
             poly_loop.next() / 10.0
         },
     )
+    .unwrap();
 }

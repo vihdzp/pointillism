@@ -11,6 +11,20 @@ pub struct Freq {
     pub hz: f64,
 }
 
+/// We use `A4` as a default frequency. This means that, for instance,
+///
+/// ```
+/// # use pointillism::prelude::*;
+/// let osc = CurveGen::<Sin>::default();
+/// ```
+///
+/// will result in a 440 Hz sine wave.
+impl Default for Freq {
+    fn default() -> Self {
+        crate::A4
+    }
+}
+
 /// Converts a letter to a numeric note, from 0 to 11.
 ///
 /// Returns `None` if anything other than a letter `A` - `G` is passed.
@@ -94,15 +108,15 @@ impl Freq {
     /// ## Example
     ///
     /// ```
-    /// # use pointillism::Freq;
+    /// # use pointillism::prelude::*;
     /// // C5 is 3 semitones above A4.
-    /// let C5 = Freq::new_edo_note(pointillism::A4, 12, 3.0);
+    /// let C5 = Freq::new_edo_note(A4, 12, 3.0);
     /// ```
     pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
         edo_note(edo, note) * base
     }
 
-    /// Initializes a frequency in 12-EDO, a certain amount of `note`s above or
+    /// Initializes a frequency in 12-EDO, a certain amount of `notes` above or
     /// below a `base` pitch (usually [`A4`](crate::A4)).
     ///
     /// See also [`Freq::new_edo_note`].
@@ -110,9 +124,9 @@ impl Freq {
     /// ## Example
     ///
     /// ```
-    /// # use pointillism::Freq;
+    /// # use pointillism::prelude::*;
     /// // C5 is 3 semitones above A4.
-    /// let C5 = Freq::new_note(pointillism::A4, 3.0);
+    /// let C5 = Freq::new_note(A4, 3.0);
     /// ```
     pub fn new_note(base: Freq, note: f64) -> Self {
         Self::new_edo_note(base, 12, note)

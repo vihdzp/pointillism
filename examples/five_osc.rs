@@ -1,4 +1,7 @@
-//! A simple example testing out basic functions of the library.
+//! A basic example.
+//!
+//! We play five triangle waves on top of each other, in pitches that vary with
+//! time.
 
 use pointillism::prelude::*;
 
@@ -7,7 +10,7 @@ fn main() {
     const NUM_OSC: u8 = 5;
 
     // Base frequency.
-    const BASE: Freq = Freq::new(300.0);
+    const BASE: Freq = Freq::new(400.0);
 
     // Time to complete a cycle.
     const TIME: Time = Time::new(10.0);
@@ -35,5 +38,6 @@ fn main() {
 
     pointillism::create("examples/five_osc.wav", 2.0 * TIME, |_| {
         oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
-    });
+    })
+    .unwrap();
 }

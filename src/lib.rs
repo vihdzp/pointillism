@@ -70,18 +70,23 @@ pub fn sgn(x: f64) -> f64 {
 pub const A4: Freq = Freq::new(440.0);
 
 /// Creates a song with a given duration, writing down each sample as it comes.
+///
+/// The resulting WAV file will be mono or stereo, depending on whether the
+/// passed function returns [`Mono`] or [`Stereo`].
+///
+/// See the `examples` folder for example creations.
 pub fn create<P: AsRef<std::path::Path>, A: AudioSample, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
     mut song: F,
-) {
+) -> Result<()> {
     let mut timer = Time::zero();
     let mut writer = WavWriter::create(filename, spec(A::CHANNELS)).unwrap();
 
     while timer < length {
-        song(timer).write(&mut writer).unwrap();
+        song(timer).write(&mut writer)?;
         timer.advance();
     }
 
-    writer.finalize().unwrap();
+    writer.finalize()
 }
