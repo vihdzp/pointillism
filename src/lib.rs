@@ -80,7 +80,7 @@ pub fn create<P: AsRef<std::path::Path>, A: AudioSample, F: FnMut(Time) -> A>(
     length: Time,
     mut song: F,
 ) -> Result<()> {
-    let mut timer = Time::zero();
+    let mut timer = Time::ZERO;
     let mut writer = WavWriter::create(filename, spec(A::CHANNELS)).unwrap();
 
     while timer < length {

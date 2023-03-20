@@ -1,9 +1,9 @@
 //! Generative ambient music.
-//! 
-//! Layering multiple notes like this leads to interesting emergent effects, 
-//! such as constructive and destructive interference, and beating from the 
-//! [septimal comma](https://en.wikipedia.org/wiki/Septimal_comma) 64/63 = 4/3 × 
-//! 4/3 × 4/7. 
+//!
+//! Layering multiple notes like this leads to interesting emergent effects,
+//! such as constructive and destructive interference, and beating from the
+//! [septimal comma](https://en.wikipedia.org/wiki/Septimal_comma) 64/63 = 4/3 ×
+//! 4/3 × 4/7.
 //!
 //! Sounds even smoother after some post-processing reverb.
 
@@ -34,7 +34,7 @@ fn main() {
                     // Saw-triangle wave with specified frequency.
                     CurveGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
-                    Adsr::new(NOTE_LEN, Time::zero(), 1.0, RELEASE_LEN),
+                    Adsr::new(NOTE_LEN, Time::ZERO, 1.0, RELEASE_LEN),
                 ),
                 CurveEnv::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.

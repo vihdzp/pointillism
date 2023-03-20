@@ -3,8 +3,9 @@
 pub use crate::{
     effects::{
         adsr::{Adsr, AdsrEnvelope},
+        freq::*,
         sequence::{Event, Loop, Sequence},
-        vol::{Vol, Volume},
+        vol::*,
         Envelope,
     },
     freq::*,

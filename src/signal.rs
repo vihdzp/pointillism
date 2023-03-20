@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::{generators::HasFreq, map::*, sample::*};
+use crate::prelude::*;
 
 /// A trait for a stream of data [`Sample`]s, generated every frame.
 ///
@@ -75,8 +75,12 @@ pub trait StopSignal: Signal {
     fn is_done(&self) -> bool;
 }
 
-/// A trailing signal. It can be stopped, but won't actually stop producing an
-/// output.
+/// A trailing signal.
+///
+/// It can be stopped, but won't actually stop producing an output.
+///
+/// **Important note**: Using this is somewhat of a hack. If used repeatedly in
+/// a [`Polyphony`] struct, it will greatly slow down the code.
 pub struct Trailing<S: Signal> {
     /// The inner signal.
     pub sgn: S,

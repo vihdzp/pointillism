@@ -214,3 +214,13 @@ impl<S: Signal> StopSignal for AdsrEnvelope<S> {
         self.adsr().is_done()
     }
 }
+
+impl<S: HasFreq> HasFreq for AdsrEnvelope<S> {
+    fn freq(&self) -> Freq {
+        self.sgn().freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.sgn_mut().freq_mut()
+    }
+}

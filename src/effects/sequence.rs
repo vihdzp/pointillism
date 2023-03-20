@@ -49,8 +49,8 @@ impl<S: Signal, F: MapMut<S, Event>> Sequence<S, F> {
             sgn,
             func,
             idx: 0,
-            since: Time::zero(),
-            total: Time::zero(),
+            since: Time::ZERO,
+            total: Time::ZERO,
         }
     }
 
@@ -128,8 +128,8 @@ impl<S: Signal, F: MapMut<S, Event>> Signal for Sequence<S, F> {
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.idx = 0;
-        self.since = Time::zero();
-        self.total = Time::zero();
+        self.since = Time::ZERO;
+        self.total = Time::ZERO;
     }
 }
 
@@ -163,8 +163,8 @@ impl<S: Signal, F: MapMut<S, Event>> Loop<S, F> {
             sgn,
             func,
             idx: 0,
-            since: Time::zero(),
-            total: Time::zero(),
+            since: Time::ZERO,
+            total: Time::ZERO,
         }
     }
 
@@ -237,7 +237,7 @@ impl<S: Signal, F: MapMut<S, Event>> Signal for Loop<S, F> {
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.idx = 0;
-        self.since = Time::zero();
-        self.total = Time::zero();
+        self.since = Time::ZERO;
+        self.total = Time::ZERO;
     }
 }

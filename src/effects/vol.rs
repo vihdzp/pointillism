@@ -1,3 +1,5 @@
+//! Structures for changing the volume of an audio signal.
+
 use std::marker::PhantomData;
 
 use crate::{prelude::*, signal::PointwiseMapSgn};
@@ -70,17 +72,17 @@ pub struct Trem<S: Signal> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Signal> Default for Trem<S> {
-    fn default() -> Self {
+impl<S: Signal> Trem<S> {
+    pub const fn new() -> Self {
         Self {
             phantom: PhantomData,
         }
     }
 }
 
-impl<S: Signal> Trem<S> {
-    pub fn new() -> Self {
-        Self::default()
+impl<S: Signal> Default for Trem<S> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -98,4 +100,53 @@ impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     pub fn new(sgn: S, env: E) -> Self {
         Self::new_generic(Volume::new(sgn, Vol::new(1.0)), env, Trem::new())
     }
+
+    pub fn sgn(&self) -> &S {
+        self.sgn.sgn()
+    }
+
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.sgn.sgn_mut()
+    }
 }
+
+/// Applies tremolo to a signal according to a curve envelope.
+///
+/// Contrast to [`Tremolo`], this signal stops when the curve does.
+pub struct StopTremolo<S: Signal, C: Map<Input = f64, Output = f64>> {
+    pub sgn: Tremolo<S, CurveEnv<C>>,
+}
+
+impl<S: Signal, C: Map<Input = f64, Output = f64>> StopTremolo<S, C> {
+    pub fn new(sgn: S, curve_env: CurveEnv<C>) -> Self {
+        Self {
+            sgn: Tremolo::new(sgn, curve_env),
+        }
+    }
+}
+
+impl<S: Signal, C: Map<Input = f64, Output = f64>> Signal for StopTremolo<S, C> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> Self::Sample {
+        self.sgn.get()
+    }
+
+    fn advance(&mut self) {
+        self.sgn.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.sgn.retrigger();
+    }
+}
+
+impl<S: Signal, C: Map<Input = f64, Output = f64>> StopSignal for StopTremolo<S, C> {
+    fn stop(&mut self) {}
+
+    fn is_done(&self) -> bool {
+       self.sgn.env.val() == 1.0
+    }
+}
+
+// Todo: fade-in/fade-out

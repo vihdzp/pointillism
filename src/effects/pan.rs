@@ -1,4 +1,4 @@
-//! Structures that modify volume and panning.
+//! Structures for panning an audio signal.
 
 use std::marker::PhantomData;
 
@@ -80,8 +80,8 @@ impl PanLaw for Power {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
-        let angle = std::f64::consts::FRAC_PI_2 * self.angle;
-        (angle.cos(), angle.sin())
+        let (r, l) = (std::f64::consts::FRAC_PI_2 * self.angle).sin_cos();
+        (l, r)
     }
 }
 
@@ -105,8 +105,8 @@ impl PanLaw for Mixed {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
-        let linear = Linear { angle: self.angle }.gain();
-        let power = Power { angle: self.angle }.gain();
+        let linear = Linear::new(self.angle).gain();
+        let power = Power::new(self.angle).gain();
         ((linear.0 * power.0).sqrt(), (linear.1 * power.1).sqrt())
     }
 }

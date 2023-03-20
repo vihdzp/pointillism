@@ -12,6 +12,18 @@ pub struct Time {
 }
 
 impl Time {
+    /// Zero time.
+    pub const ZERO: Self = Self::new(0.0);
+
+    /// A second.
+    pub const SEC: Self = Self::new(1.0);
+
+    /// A minute.
+    pub const MIN: Self = Self::new(60.0);
+
+    /// An hour.
+    pub const HR: Self = Self::new(3600.0);
+
     /// Initializes a time variable for the number of seconds.
     pub const fn new(seconds: f64) -> Self {
         Self { seconds }
@@ -30,11 +42,6 @@ impl Time {
     /// Time to frequency.
     pub fn freq(&self) -> Freq {
         Freq::new(1.0 / self.seconds())
-    }
-
-    /// Zero seconds.
-    pub const fn zero() -> Self {
-        Self::new(0.0)
     }
 
     /// The time in seconds.

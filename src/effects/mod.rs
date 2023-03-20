@@ -2,6 +2,7 @@
 
 pub mod adsr;
 pub mod distortion;
+pub mod freq;
 pub mod pan;
 pub mod sequence;
 pub mod vol;
@@ -57,8 +58,9 @@ impl<S: StopSignal, E: Signal<Sample = Env>, F: MapMut<S, f64>> StopSignal for E
     }
 }
 
-/// Gates a signal through an envelope. Output will only come through when the
-/// envelope is above the threshold.
+/// Gates a signal through an envelope.
+///
+/// Output will only come through when the envelope is above the threshold.
 #[derive(Clone, Debug)]
 pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
     /// The gated signal.

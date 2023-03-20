@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use crate::signal::{Signal, StopSignal};
 
+// Todo: use a generic hashmap instead.
+
 /// A polyphonic signal.
 ///
 /// This stores multiple instances of a signal `S`, which can be added and
