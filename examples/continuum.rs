@@ -2,7 +2,8 @@
 //! 
 //! Layering multiple notes like this leads to interesting emergent effects, 
 //! such as constructive and destructive interference, and beating from the 
-//! septimal comma 64/63. 
+//! [septimal comma](https://en.wikipedia.org/wiki/Septimal_comma) 64/63 = 4/3 × 
+//! 4/3 × 4/7. 
 //!
 //! Sounds even smoother after some post-processing reverb.
 
@@ -30,7 +31,7 @@ fn main() {
         pointillism::effects::pan::MixedPanner::new(
             Envelope::new_generic(
                 AdsrEnvelope::new(
-                    // Sine wave with specified frequency.
+                    // Saw-triangle wave with specified frequency.
                     CurveGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     Adsr::new(NOTE_LEN, Time::zero(), 1.0, RELEASE_LEN),
@@ -58,7 +59,7 @@ fn main() {
         4.0 / 7.0,
     ];
 
-    // Initializes a new `Polyphony` object, plays a single note.
+    // Initializes a new `Polyphony` object, plays a single note, centered.
     let mut poly = Polyphony::new();
     poly.add(osc(freq, 0.5));
 
@@ -73,7 +74,7 @@ fn main() {
             // Changes the frequency randomly.
             freq *= mults[rand::thread_rng().gen_range(0..mults.len())];
 
-            // Cramps the frequency between two octaves.
+            // Clamps the frequency between two octaves.
             if freq >= 2.0 * BASE {
                 freq /= 2.0;
             } else if freq <= BASE / 2.0 {

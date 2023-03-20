@@ -1,7 +1,6 @@
 //! A basic example.
 //!
-//! We play five triangle waves on top of each other, in pitches that vary with
-//! time.
+//! We play five triangle waves on top of each other, in oscillating pitches.
 
 use pointillism::prelude::*;
 
