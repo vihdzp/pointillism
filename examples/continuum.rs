@@ -1,4 +1,8 @@
 //! Generative ambient music.
+//! 
+//! Layering multiple notes like this leads to interesting emergent effects, 
+//! such as constructive and destructive interference, and beating from the 
+//! septimal comma 64/63. 
 //!
 //! Sounds even smoother after some post-processing reverb.
 
