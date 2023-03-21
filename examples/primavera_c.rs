@@ -1,3 +1,10 @@
+//! Source code for
+//! [`https://viiii.bandcamp.com/track/primavera-c`](viiii – Primavera C).
+//!
+//! Post-processing: ≈ 1kHz lowpass, field recording noise.
+
+// Todo: comment and clean up code.
+
 use pointillism::{generators::mix::StereoGen, prelude::*, signal::PointwiseMapSgn};
 
 const BASE: Freq = Freq::new(222.2);
