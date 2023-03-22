@@ -25,7 +25,8 @@ fn main() {
 
     // Initializes a new `Polyphony` object, plays a single note.
     let mut poly = Polyphony::new();
-    poly.add(osc(BASE));
+    let mut idx = 0;
+    poly.add(idx, osc(BASE));
 
     // The song loop.
     let poly_loop = Loop::new(
@@ -33,16 +34,20 @@ fn main() {
         vec![NOTE_LEN],
         // we modify the signal `poly`,
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_>, event: Event| {
+        FnWrapper::new(|poly: &mut Polyphony<_, _>, _| {
             // by stopping the note we just played,
-            poly.stop(event.idx);
+            poly.stop(&idx);
+            idx += 1;
 
             // and adding a new one.
-            poly.add(osc(Freq::new_edo_note(
-                BASE,
-                5,
-                rand::thread_rng().gen_range(0..=7) as f64,
-            )));
+            poly.add(
+                idx,
+                osc(Freq::new_edo_note(
+                    BASE,
+                    5,
+                    rand::thread_rng().gen_range(0..=7) as f64,
+                )),
+            );
         }),
     );
 

@@ -6,7 +6,7 @@ pub use crate::{
         adsr::{Adsr, Envelope},
         freq::*,
         mix::*,
-        sequence::{Event, Loop, Sequence},
+        sequence::{Loop, Sequence},
         vol::*,
         MutSgn,
     },

@@ -1,4 +1,7 @@
-use std::collections::BTreeMap;
+//! Declares the [`Polyphony`] struct, which allows for multiple signals of the
+//! same type to play at the same time.
+
+use std::{collections::HashMap, hash::Hash};
 
 use crate::prelude::*;
 
@@ -9,24 +12,24 @@ use crate::prelude::*;
 /// This stores multiple instances of a signal `S`, which can be added and
 /// stopped. Signals are internally removed as they are done.
 #[derive(Clone, Debug)]
-pub struct Polyphony<S: Stop> {
+pub struct Polyphony<K: Eq + Hash + Clone, S: Stop> {
     /// The signals currently playing.
-    signals: BTreeMap<usize, S>,
+    signals: HashMap<K, S>,
 
     /// The number of signals that have been added in total.
     idx: usize,
 }
 
-impl<S: Stop> Default for Polyphony<S> {
+impl<K: Eq + Hash + Clone, S: Stop> Default for Polyphony<K, S> {
     fn default() -> Self {
         Self {
-            signals: BTreeMap::default(),
+            signals: HashMap::default(),
             idx: 0,
         }
     }
 }
 
-impl<S: Stop> Polyphony<S> {
+impl<K: Eq + Hash + Clone, S: Stop> Polyphony<K, S> {
     /// Initializes a new polyphonic signal, playing nothing.
     #[must_use]
     pub fn new() -> Self {
@@ -35,32 +38,32 @@ impl<S: Stop> Polyphony<S> {
 
     /// Returns a reference to the structure of currently played signals.
     #[must_use]
-    pub fn signals(&self) -> &BTreeMap<usize, S> {
+    pub fn signals(&self) -> &HashMap<K, S> {
         &self.signals
     }
 
-    /// Adds a signal, returns its index.
-    pub fn add(&mut self, sgn: S) -> usize {
+    /// Adds a signal, using a given key.
+    pub fn add(&mut self, key: K, sgn: S) -> usize {
         let idx = self.idx;
-        self.signals.insert(idx, sgn);
+        self.signals.insert(key, sgn);
         self.idx += 1;
         idx
     }
 
     /// Gets a reference to a particular signal.
     #[must_use]
-    pub fn get(&self, idx: usize) -> Option<&S> {
-        self.signals.get(&idx)
+    pub fn get(&self, key: &K) -> Option<&S> {
+        self.signals.get(key)
     }
 
     /// Gets a mutable reference to a particular signal.
-    pub fn get_mut(&mut self, idx: usize) -> Option<&mut S> {
-        self.signals.get_mut(&idx)
+    pub fn get_mut(&mut self, key: &K) -> Option<&mut S> {
+        self.signals.get_mut(key)
     }
 
     /// Stops a given signal, returns whether it was successful.
-    pub fn stop(&mut self, idx: usize) -> bool {
-        if let Some(sgn) = self.get_mut(idx) {
+    pub fn stop(&mut self, key: &K) -> bool {
+        if let Some(sgn) = self.get_mut(key) {
             sgn.stop();
             true
         } else {
@@ -69,7 +72,7 @@ impl<S: Stop> Polyphony<S> {
     }
 }
 
-impl<S: Stop> Signal for Polyphony<S> {
+impl<K: Eq + Hash + Clone, S: Stop> Signal for Polyphony<K, S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -80,11 +83,11 @@ impl<S: Stop> Signal for Polyphony<S> {
         // Generators to clear.
         let mut clear = Vec::new();
 
-        for (&idx, sgn) in &mut self.signals {
+        for (idx, sgn) in &mut self.signals {
             sgn.advance();
 
             if sgn.is_done() {
-                clear.push(idx);
+                clear.push(idx.clone());
             }
         }
 
@@ -98,7 +101,7 @@ impl<S: Stop> Signal for Polyphony<S> {
     }
 }
 
-impl<S: Stop> HasBase for Polyphony<S> {
+impl<K: Eq + Hash + Clone, S: Stop> HasBase for Polyphony<K, S> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {

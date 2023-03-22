@@ -1,6 +1,17 @@
-//! Curve generators.
+//! Declares [`CurveEnv`], [`LoopCurveEnv`], and [`CurveGen`].
+//!
+//! These structures allow one to generate [`Signals`](Signal) from a curve,
+//! meaning a struct implementing `Map<Input = f64, Output = f64>`.
+//!
+//! See also [`crate::curves`], where many basic curves are defined.
 
-use crate::prelude::*;
+use crate::{
+    freq::Freq,
+    map::Map,
+    sample::{Env, Mono, Sample},
+    signal::{HasBase, HasFreq, MapSgn, Signal},
+    time::Time,
+};
 
 /// A map which converts an envelope into mono audio.
 #[derive(Clone, Copy, Debug, Default)]

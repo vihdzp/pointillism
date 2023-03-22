@@ -65,13 +65,15 @@ fn melody() -> impl Signal<Sample = Mono> {
     };
 
     let poly = Polyphony::new();
+    let mut idx = 0;
 
     Loop::new(
         vec![Time::new(4.0)],
         poly,
-        FnWrapper::new(move |poly: &mut Polyphony<_>, event: Event| {
-            freq *= notes[event.idx % notes.len()];
-            poly.add(trem(freq));
+        FnWrapper::new(move |poly: &mut Polyphony<_, _>, _| {
+            freq *= notes[idx % notes.len()];
+            poly.add(idx, trem(freq));
+            idx += 1;
         }),
     )
 }

@@ -2,29 +2,9 @@
 
 use crate::prelude::*;
 
-// todo: no need for this, just use time.
-
-/// An indexed point in time.
-#[derive(Clone, Copy, Debug)]
-pub struct Event {
-    /// Index.
-    pub idx: usize,
-
-    /// Time.
-    pub time: Time,
-}
-
-impl Event {
-    /// Initializes a new event.
-    #[must_use]
-    pub fn new(idx: usize, time: Time) -> Self {
-        Self { idx, time }
-    }
-}
-
 /// Changes a signal according to a specified function, at specified times.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: Signal, F: Mut<S, Event>> {
+pub struct Sequence<S: Signal, F: Mut<S, Time>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,
 
@@ -44,7 +24,7 @@ pub struct Sequence<S: Signal, F: Mut<S, Event>> {
     total: Time,
 }
 
-impl<S: Signal, F: Mut<S, Event>> Sequence<S, F> {
+impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
     /// Initializes a new sequence.
     pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -96,8 +76,7 @@ impl<S: Signal, F: Mut<S, Event>> Sequence<S, F> {
 
                 if read {
                     self.since -= event_time;
-                    let event = Event::new(self.idx(), self.total());
-                    self.func.modify(&mut self.sgn, event);
+                    self.func.modify(&mut self.sgn, self.total);
                     self.idx += 1;
                 }
 
@@ -114,7 +93,7 @@ impl<S: Signal, F: Mut<S, Event>> Sequence<S, F> {
     }
 }
 
-impl<S: Signal, F: Mut<S, Event>> Signal for Sequence<S, F> {
+impl<S: Signal, F: Mut<S, Time>> Signal for Sequence<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -138,7 +117,7 @@ impl<S: Signal, F: Mut<S, Event>> Signal for Sequence<S, F> {
 
 /// Loops a list of events.
 #[derive(Clone, Debug)]
-pub struct Loop<S: Signal, F: Mut<S, Event>> {
+pub struct Loop<S: Signal, F: Mut<S, Time>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,
 
@@ -158,7 +137,7 @@ pub struct Loop<S: Signal, F: Mut<S, Event>> {
     total: Time,
 }
 
-impl<S: Signal, F: Mut<S, Event>> Loop<S, F> {
+impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
     /// Initializes a new sequence.
     pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -209,8 +188,7 @@ impl<S: Signal, F: Mut<S, Event>> Loop<S, F> {
 
         if read {
             self.since -= event_time;
-            let event = Event::new(self.idx(), self.total());
-            self.func.modify(&mut self.sgn, event);
+            self.func.modify(&mut self.sgn, self.total);
             self.idx += 1;
         }
 
@@ -223,7 +201,7 @@ impl<S: Signal, F: Mut<S, Event>> Loop<S, F> {
     }
 }
 
-impl<S: Signal, F: Mut<S, Event>> Signal for Loop<S, F> {
+impl<S: Signal, F: Mut<S, Time>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {

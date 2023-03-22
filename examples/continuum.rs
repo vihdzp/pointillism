@@ -61,15 +61,17 @@ fn main() {
 
     // Initializes a new `Polyphony` object, plays a single note, centered.
     let mut poly = Polyphony::new();
-    poly.add(osc(freq, 0.5));
+    let mut idx = 0;
+    poly.add(idx, osc(freq, 0.5));
 
     // The song loop.
     let mut poly_loop = Loop::new(
         vec![NOTE_LEN],
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_>, event: Event| {
+        FnWrapper::new(|poly: &mut Polyphony<_, _>, time: Time| {
             // Stops the previous note.
-            poly.stop(event.idx);
+            poly.stop(&idx);
+            idx += 1;
 
             // Changes the frequency randomly.
             freq *= mults[rand::thread_rng().gen_range(0..mults.len())];
@@ -82,8 +84,8 @@ fn main() {
             }
 
             // Plays a new note, as long as the song isn't about to end.
-            if event.time < (NOTE_COUNT as f64 - 1.0) * NOTE_LEN - RELEASE_LEN {
-                poly.add(osc(freq, rand::thread_rng().gen()));
+            if time < (NOTE_COUNT as f64 - 1.0) * NOTE_LEN - RELEASE_LEN {
+                poly.add(idx, osc(freq, rand::thread_rng().gen()));
             }
         }),
     );

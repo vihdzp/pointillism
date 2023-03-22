@@ -2,7 +2,8 @@
 //! [`CurveEnv`](crate::prelude::CurveEnv), or to generate audio
 //! [`CurveGen`](crate::prelude::CurveGen).
 //!
-//! By a curve, we mean any struct implementing `Map<f64, f64>`.
+//! By a curve, we mean any struct implementing 
+//! `Map<Input = f64, Output = f64>`.
 
 use crate::map::{Comp, Map};
 
