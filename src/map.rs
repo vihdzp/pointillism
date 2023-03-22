@@ -19,8 +19,8 @@ use std::marker::PhantomData;
 
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
-/// Due to orphan rules, this trait can't be implemented for Rust functions. In
-/// order to use it in this case, wrap your function in [`FnWrapper`].
+/// Due to orphan rules, this trait can't be implemented directly for Rust
+/// functions. Instead, you must wrap your function in an [`FnWrapper`].
 pub trait Map {
     /// Input type for the map.
     type Input;
@@ -35,8 +35,8 @@ pub trait Map {
 /// An abstract trait for a structure representing a function taking `&mut X`
 /// and `Y`.
 ///
-/// Due to orphan rules, this trait can't be implemented for Rust functions. In
-/// order to use it in this case, wrap your function in [`FnWrapper`].
+/// Due to orphan rules, this trait can't be implemented directly for Rust
+/// functions. Instead, you must wrap your function in an [`FnWrapper`].
 pub trait Mut<X, Y> {
     /// Modifies `x` according to `y`.
     fn modify(&mut self, x: &mut X, y: Y);

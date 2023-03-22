@@ -188,7 +188,7 @@ impl<C: Map<Input = f64, Output = f64>> HasBase for LoopCurveEnv<C> {
 /// Plays a curve as a [`Mono`] audio file.
 ///
 /// For very low-frequency curves, this might lead to undesirable sounds.
-pub type CurveGen<C> = crate::EnvGen<LoopCurveEnv<C>>;
+pub type CurveGen<C> = crate::prelude::EnvGen<LoopCurveEnv<C>>;
 
 impl<C: Map<Input = f64, Output = f64>> CurveGen<C> {
     /// Initializes a [`CurveGen`] from a [`LoopCurveEnv`].

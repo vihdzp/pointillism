@@ -2,7 +2,7 @@
 //! [`CurveEnv`](crate::prelude::CurveEnv), or to generate audio
 //! [`CurveGen`](crate::prelude::CurveGen).
 //!
-//! By a curve, we mean any struct implementing 
+//! By a curve, we mean any struct implementing
 //! `Map<Input = f64, Output = f64>`.
 
 use crate::map::{Comp, Map};
@@ -154,8 +154,8 @@ impl InvSaw {
 
 /// A left-to-right saw wave, taking values from `0.0` to `1.0`.
 ///
-/// Note that this is a type alias for [`Id`](crate::Id).
-pub type PosSaw = crate::Id<f64>;
+/// Note that this is a type alias for [`Id<f64>`](crate::prelude::Id).
+pub type PosSaw = crate::prelude::Id<f64>;
 
 /// A right-to-left saw wave, taking values from `0.0` to `1.0`.
 pub type PosInvSaw = PosComp<InvSaw>;

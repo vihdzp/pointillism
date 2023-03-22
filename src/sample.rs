@@ -159,7 +159,7 @@ pub trait Audio: Sample {
     ///
     /// ## Errors
     ///
-    /// This should only error in case of an IO error.
+    /// This should only return an error in case of an IO error.
     fn write<W: std::io::Write + std::io::Seek>(
         &self,
         writer: &mut WavWriter<W>,

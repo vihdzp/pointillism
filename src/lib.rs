@@ -30,18 +30,19 @@
 //! The library has been coded in very large generality, and many types - even
 //! "basic" ones, are actually type aliases. As such, many constructors `new`
 //! are suffixed, to avoid ambiguity.
-//! 
+//!
 //! ## Versions
-//! 
+//!
 //! The following versions of `pointillism` exist:
 //!
 //! - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
 //! - 0.2.0 - 0.2.3: more stable versions, but still subject to drastic change.
 //!
-//! Once the basic structure of `pointillism` stabilizes, the version will 
+//! Once the basic structure of `pointillism` stabilizes, the version will
 //! advance to 0.3.0, and a changelog will be made.
 
 #![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
 
 pub mod curves;
 pub mod effects;
@@ -53,8 +54,10 @@ pub mod sample;
 pub mod signal;
 pub mod time;
 
+use freq::Freq;
 use hound::{Result, SampleFormat, WavSpec, WavWriter};
-use prelude::*;
+use sample::Audio;
+use time::Time;
 
 /// The sample rate for the audio file, in samples per second.
 pub const SAMPLE_RATE: u32 = 44100;
@@ -90,13 +93,14 @@ pub const A4: Freq = Freq::new(440.0);
 /// Creates a song with a given duration, writing down each sample as it comes.
 ///
 /// The resulting WAV file will be mono or stereo, depending on whether the
-/// passed function returns [`Mono`] or [`Stereo`].
+/// passed function returns [`Mono`](crate::prelude::Mono) or
+/// [`Stereo`](crate::prelude::Stereo).
 ///
 /// See the `examples` folder for example creations.
 ///
 /// ## Errors
 ///
-/// This should only error in case of an IO error.
+/// This should only return an error in case of an IO error.
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,

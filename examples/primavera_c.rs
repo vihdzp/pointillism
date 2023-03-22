@@ -1,5 +1,5 @@
 //! Source code for
-//! [`https://viiii.bandcamp.com/track/primavera-c`](viiii – Primavera C).
+//! [viiii – Primavera C](https://viiii.bandcamp.com/track/primavera-c).
 //!
 //! Post-processing: ≈ 1kHz lowpass, field recording noise.
 
