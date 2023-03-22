@@ -175,7 +175,7 @@ impl<S: Signal, F: Mut<S, Time>> Signal for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
-        if self.seq.idx > self.len() {
+        if self.seq.idx >= self.len() {
             self.seq.idx = 0;
         }
     }
