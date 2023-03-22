@@ -5,7 +5,7 @@ description = "A compositional library for musical composition."
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/vihdzp/pointillism"
-version = "0.2.1"
+version = "0.2.2"
 
 [dependencies]
 hound = "3.5.0"
