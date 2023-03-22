@@ -1,6 +1,6 @@
 //! Different kinds of signal distortion.
 
-use crate::{prelude::*, signal::PointwiseMapSgn};
+use crate::prelude::*;
 
 /// Infinite clipping distortion.
 ///
@@ -38,6 +38,7 @@ pub struct Clip {
 
 impl Clip {
     /// Initializes a new [`Clip`] struct.
+    #[must_use]
     pub const fn new(threshold: f64) -> Self {
         Self { threshold }
     }
@@ -79,6 +80,7 @@ pub struct Atan {
 
 impl Atan {
     /// Initializes a new [`Atan`] struct.
+    #[must_use]
     pub const fn new(shape: f64) -> Self {
         Self { shape }
     }
@@ -118,16 +120,19 @@ pub struct Pow {
 
 impl Pow {
     /// Initializes a new [`Pow`].
+    #[must_use]
     pub const fn new(exponent: u16) -> Self {
         Self { exponent }
     }
 
     /// No distortion.
+    #[must_use]
     pub const fn linear() -> Self {
         Self::new(1)
     }
 
     /// Cubic distortion.
+    #[must_use]
     pub const fn cubic() -> Self {
         Self::new(3)
     }
@@ -144,7 +149,7 @@ impl Map for Pow {
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        let res = x.powi(self.exponent as i32);
+        let res = x.powi(i32::from(self.exponent));
 
         if self.exponent % 2 == 0 {
             crate::sgn(res)

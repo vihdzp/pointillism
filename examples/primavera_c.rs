@@ -5,7 +5,7 @@
 
 // Todo: comment and clean up code.
 
-use pointillism::{generators::mix::StereoGen, prelude::*, signal::PointwiseMapSgn};
+use pointillism::prelude::*;
 
 const BASE: Freq = Freq::new(222.2);
 const FADE: Time = Time::new(20.0);
@@ -49,7 +49,7 @@ fn melody() -> impl Signal<Sample = Mono> {
 
     let wave = |freq| CurveGen::new(SawTri::tri(), freq);
     let shape = move |freq| {
-        Envelope::new_generic(
+        MutSgn::new_generic(
             wave(freq),
             CurveEnv::new(PosSaw::new(), Time::new(5.0)),
             FnWrapper::new(|sgn: &mut CurveGen<SawTri>, val: f64| {

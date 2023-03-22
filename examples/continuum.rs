@@ -29,8 +29,8 @@ fn main() {
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
         pointillism::effects::pan::MixedPanner::new(
-            Envelope::new_generic(
-                AdsrEnvelope::new(
+            MutSgn::new_generic(
+                Envelope::new(
                     // Saw-triangle wave with specified frequency.
                     CurveGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
@@ -38,7 +38,7 @@ fn main() {
                 ),
                 CurveEnv::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper::new(|sgn: &mut AdsrEnvelope<CurveGen<SawTri>>, val: f64| {
+                FnWrapper::new(|sgn: &mut Envelope<CurveGen<SawTri>>, val: f64| {
                     sgn.sgn_mut().curve_mut().shape = val;
                 }),
             ),

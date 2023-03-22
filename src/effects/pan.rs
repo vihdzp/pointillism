@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use crate::prelude::*;
 
 /// Represents the way in which gain correlates with panning angle.
-pub trait PanLaw: Copy + Default {
+pub trait Law: Copy + Default {
     /// Initializes a new struct with the specified angle.
     fn new(angle: f64) -> Self;
 
@@ -26,7 +26,7 @@ pub trait PanLaw: Copy + Default {
 /// The left and right channel gains scale linearly with the angle.
 #[derive(Clone, Copy, Debug)]
 pub struct Linear {
-    /// Panning angle. See [`PanLaw::angle`] for more info.
+    /// Panning angle. See [`Law::angle`] for more info.
     pub angle: f64,
 }
 
@@ -53,7 +53,7 @@ macro_rules! pan_boilerplate {
     };
 }
 
-impl PanLaw for Linear {
+impl Law for Linear {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
@@ -66,7 +66,7 @@ impl PanLaw for Linear {
 /// The left and right channel gains are the cosine and sine of the angle.
 #[derive(Clone, Copy, Debug)]
 pub struct Power {
-    /// Panning angle. See [`PanLaw::angle`] for more info.
+    /// Panning angle. See [`Law::angle`] for more info.
     pub angle: f64,
 }
 
@@ -76,7 +76,7 @@ impl Default for Power {
     }
 }
 
-impl PanLaw for Power {
+impl Law for Power {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
@@ -91,7 +91,7 @@ impl PanLaw for Power {
 /// [`Power`].
 #[derive(Clone, Copy, Debug)]
 pub struct Mixed {
-    /// Panning angle. See [`PanLaw::angle`] for more info.
+    /// Panning angle. See [`Law::angle`] for more info.
     pub angle: f64,
 }
 
@@ -101,7 +101,7 @@ impl Default for Mixed {
     }
 }
 
-impl PanLaw for Mixed {
+impl Law for Mixed {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
@@ -111,9 +111,9 @@ impl PanLaw for Mixed {
     }
 }
 
-/// A wrapper for a [`PanLaw`] which converts it into a [`Map`].
+/// A wrapper for a pan [`Law`] which converts it into a [`Map`].
 #[derive(Clone, Copy, Debug)]
-pub struct PanWrapper<A: AudioSample, P: PanLaw> {
+pub struct Wrapper<A: Audio, P: Law> {
     /// Dummy variable.
     phantom: PhantomData<A>,
 
@@ -121,8 +121,8 @@ pub struct PanWrapper<A: AudioSample, P: PanLaw> {
     pub pan_law: P,
 }
 
-impl<A: AudioSample, P: PanLaw> PanWrapper<A, P> {
-    /// Initializes a new [`PanWrapper`].
+impl<A: Audio, P: Law> Wrapper<A, P> {
+    /// Initializes a new [`Wrapper`].
     pub const fn new(pan_law: P) -> Self {
         Self {
             phantom: PhantomData,
@@ -131,7 +131,7 @@ impl<A: AudioSample, P: PanLaw> PanWrapper<A, P> {
     }
 }
 
-impl<A: AudioSample, P: PanLaw> Map for PanWrapper<A, P> {
+impl<A: Audio, P: Law> Map for Wrapper<A, P> {
     type Input = A;
     type Output = Stereo;
 
@@ -142,16 +142,16 @@ impl<A: AudioSample, P: PanLaw> Map for PanWrapper<A, P> {
     }
 }
 
-/// Applies a pan effect, using the specified [`PanLaw`].
-pub type Panner<S, P> = MapSgn<S, Stereo, PanWrapper<<S as Signal>::Sample, P>>;
+/// Applies a pan effect, using the specified pan [`Law`].
+pub type Panner<S, P> = MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
 
-impl<S: Signal, P: PanLaw> Panner<S, P>
+impl<S: Signal, P: Law> Panner<S, P>
 where
-    S::Sample: AudioSample,
+    S::Sample: Audio,
 {
     /// Initializes a new [`Panner`] for a given signal and angle.
     pub fn new_pan(sgn: S, angle: f64) -> Self {
-        Self::new_generic(sgn, PanWrapper::new(P::new(angle)))
+        Self::new_generic(sgn, Wrapper::new(P::new(angle)))
     }
 
     /// Returns the current panning angle.
@@ -170,7 +170,7 @@ pub type LinearPanner<S> = Panner<S, Linear>;
 
 impl<S: Signal> LinearPanner<S>
 where
-    S::Sample: AudioSample,
+    S::Sample: Audio,
 {
     /// Initializes a new [`LinearPanner`] for a given signal and angle.
     pub fn new(sgn: S, angle: f64) -> Self {
@@ -183,7 +183,7 @@ pub type PowerPanner<S> = Panner<S, Power>;
 
 impl<S: Signal> PowerPanner<S>
 where
-    S::Sample: AudioSample,
+    S::Sample: Audio,
 {
     /// Initializes a new [`PowerPanner`] for a given signal and angle.
     pub fn new(sgn: S, angle: f64) -> Self {
@@ -196,7 +196,7 @@ pub type MixedPanner<S> = Panner<S, Mixed>;
 
 impl<S: Signal> MixedPanner<S>
 where
-    S::Sample: AudioSample,
+    S::Sample: Audio,
 {
     /// Initializes a new [`MixedPanner`] for a given signal and angle.
     pub fn new(sgn: S, angle: f64) -> Self {

@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::{prelude::*, signal::PointwiseMapSgn};
+use crate::prelude::*;
 
 /// Represents the gain of some signal.
 #[derive(Clone, Copy, Debug)]
@@ -16,16 +16,19 @@ impl Vol {
     pub const ZERO: Self = Self::new(0.0);
 
     /// Initializes a new volume variable.
+    #[must_use]
     pub const fn new(gain: f64) -> Self {
         Self { gain }
     }
 
     /// Gain measured in decibels.
+    #[must_use]
     pub fn new_db(db: f64) -> Self {
         Self::new(10f64.powf(db / 20.0))
     }
 
     /// The gain in decibels.
+    #[must_use]
     pub fn db(&self) -> f64 {
         20.0 * self.gain.log10()
     }
@@ -73,6 +76,8 @@ pub struct Trem<S: Signal> {
 }
 
 impl<S: Signal> Trem<S> {
+    /// Initializes a new [`Trem`].
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             phantom: PhantomData,
@@ -86,14 +91,14 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> MapMut<Volume<S>, f64> for Trem<S> {
+impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
     fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
         sgn.vol_mut().gain = gain;
     }
 }
 
 /// Applies tremolo to a signal according to an envelope.
-pub type Tremolo<S, E> = Envelope<Volume<S>, E, Trem<S>>;
+pub type Tremolo<S, E> = MutSgn<Volume<S>, E, Trem<S>>;
 
 impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
@@ -112,7 +117,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
 
 /// Applies tremolo to a signal according to a curve envelope.
 ///
-/// Contrast to [`Tremolo`], this signal stops when the curve does.
+/// In contrast to [`Tremolo`], this signal stops when the curve does.
 pub struct StopTremolo<S: Signal, C: Map<Input = f64, Output = f64>> {
     pub sgn: Tremolo<S, CurveEnv<C>>,
 }
@@ -141,11 +146,59 @@ impl<S: Signal, C: Map<Input = f64, Output = f64>> Signal for StopTremolo<S, C> 
     }
 }
 
-impl<S: Signal, C: Map<Input = f64, Output = f64>> StopSignal for StopTremolo<S, C> {
+impl<S: Signal, C: Map<Input = f64, Output = f64>> Stop for StopTremolo<S, C> {
     fn stop(&mut self) {}
 
     fn is_done(&self) -> bool {
-       self.sgn.env.val() == 1.0
+        self.sgn.env.val() >= 1.0
+    }
+}
+
+/// Gates a signal through an envelope.
+///
+/// Output will only come through when the envelope is above the threshold.
+#[derive(Clone, Debug)]
+pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
+    /// The gated signal.
+    pub sgn: S,
+
+    /// The envelope for the gating.
+    pub env: E,
+
+    /// The threshold for the gate.
+    pub threshold: f64,
+}
+
+impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
+    /// Initializes a new gate.
+    pub fn new(sgn: S, env: E, threshold: f64) -> Self {
+        Self {
+            sgn,
+            env,
+            threshold,
+        }
+    }
+}
+
+impl<S: Signal, E: Signal<Sample = Env>> Signal for Gate<S, E> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        if self.env.get().0 >= self.threshold {
+            self.sgn.get()
+        } else {
+            S::Sample::ZERO
+        }
+    }
+
+    fn advance(&mut self) {
+        self.sgn.advance();
+        self.env.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.sgn.retrigger();
+        self.env.retrigger();
     }
 }
 

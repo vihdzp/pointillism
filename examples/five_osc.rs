@@ -16,7 +16,7 @@ fn main() {
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
-        Envelope::new_generic(
+        MutSgn::new_generic(
             // A triangle wave with a placeholder frequency.
             CurveGen::new(SawTri::tri(), BASE),
             // A sine wave, which controls the pitch of the triangle wave.

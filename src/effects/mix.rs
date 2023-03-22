@@ -2,9 +2,8 @@
 
 use crate::{
     map::Map,
-    prelude::AudioSample,
+    prelude::*,
     sample::{Mono, Stereo},
-    signal::{MapSgn, Signal, StopSignal},
 };
 
 /// Combines two [`Mono`] signals into a [`Stereo`] signal.
@@ -12,15 +11,15 @@ pub struct StereoGen<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, 
 
 impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoGen<X, Y> {
     /// Initializes a new [`StereoGen`].
-    pub const fn new(x: X, y: Y) -> Self {
-        Self(x, y)
+    pub const fn new(sgn1: X, sgn2: Y) -> Self {
+        Self(sgn1, sgn2)
     }
 }
 
-impl<X: Signal<Sample = Mono> + Clone> StereoGen<X, X> {
+impl<Z: Signal<Sample = Mono> + Clone> StereoGen<Z, Z> {
     /// Duplicates a [`Mono`] signal.
-    pub fn duplicate(x: X) -> Self {
-        Self(x.clone(), x)
+    pub fn duplicate(sgn: Z) -> Self {
+        Self(sgn.clone(), sgn)
     }
 }
 
@@ -42,7 +41,7 @@ impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoGen<X,
     }
 }
 
-impl<X: StopSignal<Sample = Mono>, Y: StopSignal<Sample = Mono>> StopSignal for StereoGen<X, Y> {
+impl<X: Stop<Sample = Mono>, Y: Stop<Sample = Mono>> Stop for StereoGen<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
@@ -54,6 +53,9 @@ impl<X: StopSignal<Sample = Mono>, Y: StopSignal<Sample = Mono>> StopSignal for 
 }
 
 /// Adds two signals together.
+///
+/// If you want to mix more signals together (e.g. an entire song), it might be
+/// easier to manually add the samples instead.
 pub struct Mix<X: Signal, Y: Signal<Sample = X::Sample>>(pub X, pub Y);
 
 impl<X: Signal, Y: Signal<Sample = X::Sample>> Mix<X, Y> {
@@ -81,7 +83,7 @@ impl<X: Signal, Y: Signal<Sample = X::Sample>> Signal for Mix<X, Y> {
     }
 }
 
-impl<X: StopSignal, Y: StopSignal<Sample = X::Sample>> StopSignal for Mix<X, Y> {
+impl<X: Stop, Y: Stop<Sample = X::Sample>> Stop for Mix<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
@@ -92,6 +94,8 @@ impl<X: StopSignal, Y: StopSignal<Sample = X::Sample>> StopSignal for Mix<X, Y> 
     }
 }
 
+/// The function that duplicates a [`Mono`] sample in both channels.
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Dup;
 
 impl Map for Dup {
@@ -103,9 +107,11 @@ impl Map for Dup {
     }
 }
 
-pub type Duplicate<S> = MapSgn<S, Stereo, Dup>;
+/// Duplicates a [`Mono`] signal in both channels.
+pub type Duplicate<S> = MapSgn<S, Dup>;
 
 impl<S: Signal<Sample = Mono>> Duplicate<S> {
+    /// Initializes a new [`Duplicate`].
     pub const fn new(sgn: S) -> Self {
         Self::new_generic(sgn, Dup)
     }

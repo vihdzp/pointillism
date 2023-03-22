@@ -2,6 +2,8 @@
 
 use crate::prelude::*;
 
+// todo: no need for this, just use time.
+
 /// An indexed point in time.
 #[derive(Clone, Copy, Debug)]
 pub struct Event {
@@ -14,6 +16,7 @@ pub struct Event {
 
 impl Event {
     /// Initializes a new event.
+    #[must_use]
     pub fn new(idx: usize, time: Time) -> Self {
         Self { idx, time }
     }
@@ -21,7 +24,7 @@ impl Event {
 
 /// Changes a signal according to a specified function, at specified times.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: Signal, F: MapMut<S, Event>> {
+pub struct Sequence<S: Signal, F: Mut<S, Event>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,
 
@@ -41,7 +44,7 @@ pub struct Sequence<S: Signal, F: MapMut<S, Event>> {
     total: Time,
 }
 
-impl<S: Signal, F: MapMut<S, Event>> Sequence<S, F> {
+impl<S: Signal, F: Mut<S, Event>> Sequence<S, F> {
     /// Initializes a new sequence.
     pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -111,7 +114,7 @@ impl<S: Signal, F: MapMut<S, Event>> Sequence<S, F> {
     }
 }
 
-impl<S: Signal, F: MapMut<S, Event>> Signal for Sequence<S, F> {
+impl<S: Signal, F: Mut<S, Event>> Signal for Sequence<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -135,7 +138,7 @@ impl<S: Signal, F: MapMut<S, Event>> Signal for Sequence<S, F> {
 
 /// Loops a list of events.
 #[derive(Clone, Debug)]
-pub struct Loop<S: Signal, F: MapMut<S, Event>> {
+pub struct Loop<S: Signal, F: Mut<S, Event>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<Time>,
 
@@ -155,7 +158,7 @@ pub struct Loop<S: Signal, F: MapMut<S, Event>> {
     total: Time,
 }
 
-impl<S: Signal, F: MapMut<S, Event>> Loop<S, F> {
+impl<S: Signal, F: Mut<S, Event>> Loop<S, F> {
     /// Initializes a new sequence.
     pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -220,7 +223,7 @@ impl<S: Signal, F: MapMut<S, Event>> Loop<S, F> {
     }
 }
 
-impl<S: Signal, F: MapMut<S, Event>> Signal for Loop<S, F> {
+impl<S: Signal, F: Mut<S, Event>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {

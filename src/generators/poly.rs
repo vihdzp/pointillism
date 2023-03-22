@@ -1,15 +1,15 @@
 use std::collections::BTreeMap;
 
-use crate::signal::{Signal, StopSignal};
+use crate::prelude::*;
 
 // Todo: use a generic hashmap instead.
 
 /// A polyphonic signal.
 ///
 /// This stores multiple instances of a signal `S`, which can be added and
-/// stopped.
+/// stopped. Signals are internally removed as they are done.
 #[derive(Clone, Debug)]
-pub struct Polyphony<S: StopSignal> {
+pub struct Polyphony<S: Stop> {
     /// The signals currently playing.
     signals: BTreeMap<usize, S>,
 
@@ -17,7 +17,7 @@ pub struct Polyphony<S: StopSignal> {
     idx: usize,
 }
 
-impl<S: StopSignal> Default for Polyphony<S> {
+impl<S: Stop> Default for Polyphony<S> {
     fn default() -> Self {
         Self {
             signals: BTreeMap::default(),
@@ -26,13 +26,15 @@ impl<S: StopSignal> Default for Polyphony<S> {
     }
 }
 
-impl<S: StopSignal> Polyphony<S> {
+impl<S: Stop> Polyphony<S> {
     /// Initializes a new polyphonic signal, playing nothing.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Returns a reference to the structure of currently played signals.
+    #[must_use]
     pub fn signals(&self) -> &BTreeMap<usize, S> {
         &self.signals
     }
@@ -46,6 +48,7 @@ impl<S: StopSignal> Polyphony<S> {
     }
 
     /// Gets a reference to a particular signal.
+    #[must_use]
     pub fn get(&self, idx: usize) -> Option<&S> {
         self.signals.get(&idx)
     }
@@ -66,7 +69,7 @@ impl<S: StopSignal> Polyphony<S> {
     }
 }
 
-impl<S: StopSignal> Signal for Polyphony<S> {
+impl<S: Stop> Signal for Polyphony<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -77,7 +80,7 @@ impl<S: StopSignal> Signal for Polyphony<S> {
         // Generators to clear.
         let mut clear = Vec::new();
 
-        for (&idx, sgn) in self.signals.iter_mut() {
+        for (&idx, sgn) in &mut self.signals {
             sgn.advance();
 
             if sgn.is_done() {
@@ -92,5 +95,17 @@ impl<S: StopSignal> Signal for Polyphony<S> {
 
     fn retrigger(&mut self) {
         self.signals.clear();
+    }
+}
+
+impl<S: Stop> HasBase for Polyphony<S> {
+    type Base = Self;
+
+    fn base(&self) -> &Self::Base {
+        self
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self
     }
 }

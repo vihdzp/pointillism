@@ -1,14 +1,14 @@
-//! Defines the traits [`Map`] and [`MapMut`].
+//! Defines the traits [`Map`] and [`Mut`].
 //!
 //! These traits serve two main purposes:
 //!
 //! - Implementing custom curves, either for envelopes via
-//! [`CurveEnv`](crate::generators::CurveEnv), or waveforms via
-//! [`CurveGen`](crate::generators::CurveGen). See also the
+//! [`CurveEnv`](crate::prelude::CurveEnv), or waveforms via
+//! [`CurveGen`](crate::prelude::CurveGen). See also the
 //! [`crate::generators::curves`] module for more info.
 //! - Create signals that modify others, either sample-wise via
-//! [`MapSgn`](crate::signal::MapSgn), or by directly tweaking parameters via
-//! [`Envelope`](crate::effects::Envelope).
+//! [`MapSgn`](crate::prelude::MapSgn), or by directly tweaking
+//! parameters via [`MutSgn`](crate::prelude::MutSgn).
 //!
 //! In many cases, one can use a Rust function, wrapped in an [`FnWrapper`]
 //! struct. However, in cases where one wants control over this function, or to
@@ -37,13 +37,13 @@ pub trait Map {
 ///
 /// Due to orphan rules, this trait can't be implemented for Rust functions. In
 /// order to use it in this case, wrap your function in [`FnWrapper`].
-pub trait MapMut<X, Y> {
+pub trait Mut<X, Y> {
     /// Modifies `x` according to `y`.
     fn modify(&mut self, x: &mut X, y: Y);
 }
 
 /// A wrapper for a Rust function which converts it into a [`Map`] or
-/// [`MapMut`].
+/// [`Mut`].
 ///
 /// It may be necessary to explicitly write down the types of the arguments to
 /// the function.
@@ -79,7 +79,7 @@ impl<X, Y, F: Fn(X) -> Y> Map for FnWrapper<X, Y, F> {
     }
 }
 
-impl<X, Y, F: FnMut(&mut X, Y)> MapMut<X, Y> for FnWrapper<X, Y, F> {
+impl<X, Y, F: FnMut(&mut X, Y)> Mut<X, Y> for FnWrapper<X, Y, F> {
     fn modify(&mut self, x: &mut X, y: Y) {
         (self.func)(x, y);
     }
@@ -94,6 +94,7 @@ pub struct Id<X> {
 
 impl<X> Id<X> {
     /// Initializes the identity function.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             phantom: PhantomData,

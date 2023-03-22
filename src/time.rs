@@ -1,8 +1,8 @@
 //! Defines [`Time`] and its basic methods.
 
-use crate::prelude::*;
+use crate::{freq::Freq, SAMPLE_RATE_F64};
 
-use std::ops::*;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
 
 /// Represents an amount of time.
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
@@ -24,39 +24,48 @@ impl Time {
     /// An hour.
     pub const HR: Self = Self::new(3600.0);
 
+    /// A day.
+    pub const DAY: Self = Self::new(86400.0);
+
     /// Initializes a time variable for the number of seconds.
+    #[must_use]
     pub const fn new(seconds: f64) -> Self {
         Self { seconds }
     }
 
     /// Initializes a time variable for the number of frames.
+    #[must_use]
     pub fn new_frames(frames: f64) -> Self {
-        Self::new(frames / SAMPLE_RATE as f64)
+        Self::new(frames / SAMPLE_RATE_F64)
     }
 
     /// The time for a single beat at a given BPM.
+    #[must_use]
     pub fn new_beat(bpm: f64) -> Self {
         Self::new(60.0 / bpm)
     }
 
     /// Time to frequency.
+    #[must_use]
     pub fn freq(&self) -> Freq {
         Freq::new(1.0 / self.seconds())
     }
 
     /// The time in seconds.
+    #[must_use]
     pub const fn seconds(&self) -> f64 {
         self.seconds
     }
 
     /// The time in frames.
+    #[must_use]
     pub fn frames(&self) -> f64 {
-        self.seconds() * SAMPLE_RATE as f64
+        self.seconds() * SAMPLE_RATE_F64
     }
 
     /// Advances the time by one frame.
     pub fn advance(&mut self) {
-        self.seconds += 1.0 / SAMPLE_RATE as f64;
+        self.seconds += 1.0 / SAMPLE_RATE_F64;
     }
 }
 

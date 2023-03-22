@@ -1,9 +1,15 @@
 //! Defines the [`Sample`] trait, and implements it for types [`Mono`],
 //! [`Stereo`], and [`Env`].
+//!
+//! This
 
 use hound::WavWriter;
 use rand::Rng;
-use std::{fmt::Debug, iter::Sum, ops::*};
+use std::{
+    fmt::Debug,
+    iter::Sum,
+    ops::{Add, AddAssign, Div, DivAssign, FnMut, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 /// A sample of mono audio, typically holding a value between `-1.0` and `1.0`.
 ///
@@ -75,10 +81,7 @@ pub trait Sample:
     ///
     /// Panics if the index is greater than the number of channels.
     fn get(&self, idx: u8) -> f64 {
-        if idx >= Self::CHANNELS {
-            panic!("index {idx} out of bounds");
-        }
-
+        assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
         self.get_unchecked(idx)
     }
 
@@ -88,10 +91,7 @@ pub trait Sample:
     ///
     /// Panics if the index is greater than the number of channels.
     fn get_mut(&mut self, idx: u8) -> &mut f64 {
-        if idx >= Self::CHANNELS {
-            panic!("index {idx} out of bounds");
-        }
-
+        assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
         self.get_mut_unchecked(idx)
     }
 
@@ -110,6 +110,7 @@ pub trait Sample:
     }
 
     /// Applies a function `f` to all entries of the sample.
+    #[must_use]
     fn map<F: FnMut(f64) -> f64>(&self, mut f: F) -> Self {
         Self::from_fn(|idx| f(self.get(idx)))
     }
@@ -120,6 +121,7 @@ pub trait Sample:
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
+    #[must_use]
     fn pairwise<F: FnMut(f64, f64) -> f64>(&self, rhs: Self, mut f: F) -> Self {
         Self::from_fn(|idx| f(self.get(idx), rhs.get(idx)))
     }
@@ -130,6 +132,7 @@ pub trait Sample:
     }
 
     /// Generates a random sample.
+    #[must_use]
     fn rand() -> Self {
         Self::from_fn(|_| crate::sgn(rand::thread_rng().gen::<f64>()))
     }
@@ -145,7 +148,7 @@ pub trait Sample:
 }
 
 /// A [`Sample`] specifically for audio, meaning [`Mono`] or [`Stereo`].
-pub trait AudioSample: Sample {
+pub trait Audio: Sample {
     /// Duplicates a mono signal to convert it into stereo. Leaves a stereo
     /// signal unchanged.
     fn duplicate(&self) -> Stereo {
@@ -153,11 +156,17 @@ pub trait AudioSample: Sample {
     }
 
     /// Writes the sample to a WAV file.
+    ///
+    /// ## Errors
+    ///
+    /// This should only error in case of an IO error.
     fn write<W: std::io::Write + std::io::Seek>(
         &self,
         writer: &mut WavWriter<W>,
     ) -> Result<(), hound::Error> {
         for idx in 0..Self::CHANNELS {
+            // In practice, truncation should never occur.
+            #[allow(clippy::cast_possible_truncation)]
             writer.write_sample(self.get(idx) as f32)?;
         }
 
@@ -178,7 +187,7 @@ impl Sample for Mono {
     }
 }
 
-impl AudioSample for Mono {}
+impl Audio for Mono {}
 
 impl Sample for Stereo {
     const CHANNELS: u8 = 2;
@@ -201,7 +210,7 @@ impl Sample for Stereo {
     }
 }
 
-impl AudioSample for Stereo {}
+impl Audio for Stereo {}
 
 impl Sample for Env {
     const CHANNELS: u8 = 1;

@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 /// Any of the stages in an ADSR envelope.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AdsrStage {
+pub enum Stage {
     /// Start to peak.
     Attack,
 
@@ -37,26 +37,29 @@ pub struct Adsr {
     pub release: Time,
 
     /// Current stage of the envelope.
-    stage: AdsrStage,
+    stage: Stage,
 
     /// A value from `0.0` to `1.0` representing how far along the phase we are.
     val: f64,
 }
 
 impl Adsr {
+    /// Initializes a new [`Adsr`] envelope.
+    #[must_use]
     pub fn new(attack: Time, decay: Time, sustain: f64, release: Time) -> Self {
         Self {
             attack,
             decay,
             sustain,
             release,
-            stage: AdsrStage::Attack,
+            stage: Stage::Attack,
             val: 0.0,
         }
     }
 
     /// Current stage of the envelope.
-    pub fn stage(&self) -> AdsrStage {
+    #[must_use]
+    pub fn stage(&self) -> Stage {
         self.stage
     }
 }
@@ -66,11 +69,11 @@ impl Signal for Adsr {
 
     fn get(&self) -> Env {
         Env(match self.stage() {
-            AdsrStage::Attack => self.val,
-            AdsrStage::Decay => 1.0 + (self.sustain - 1.0) * self.val,
-            AdsrStage::Sustain => self.sustain,
-            AdsrStage::Release => self.sustain * (1.0 - self.val),
-            AdsrStage::Done => 0.0,
+            Stage::Attack => self.val,
+            Stage::Decay => 1.0 + (self.sustain - 1.0) * self.val,
+            Stage::Sustain => self.sustain,
+            Stage::Release => self.sustain * (1.0 - self.val),
+            Stage::Done => 0.0,
         })
     }
 
@@ -78,51 +81,51 @@ impl Signal for Adsr {
         // Note that `self.val` can end up infinite. This isn't a problem
         // though, as it will simply skip the ADSR stage in the next frame.
         match self.stage() {
-            AdsrStage::Attack => {
+            Stage::Attack => {
                 self.val += 1.0 / self.attack.frames();
 
                 if self.val > 1.0 {
-                    self.stage = AdsrStage::Decay;
+                    self.stage = Stage::Decay;
                     self.val -= 1.0;
                 }
             }
 
-            AdsrStage::Decay => {
+            Stage::Decay => {
                 self.val += 1.0 / self.decay.frames();
 
                 if self.val > 1.0 {
-                    self.stage = AdsrStage::Sustain;
+                    self.stage = Stage::Sustain;
                     self.val = 0.0;
                 }
             }
 
-            AdsrStage::Release => {
+            Stage::Release => {
                 self.val += 1.0 / self.release.frames();
 
                 if self.val > 1.0 {
-                    self.stage = AdsrStage::Done;
+                    self.stage = Stage::Done;
                 }
             }
 
-            AdsrStage::Sustain | AdsrStage::Done => {}
+            Stage::Sustain | Stage::Done => {}
         }
     }
 
     fn retrigger(&mut self) {
-        self.stage = AdsrStage::Attack;
+        self.stage = Stage::Attack;
         self.val = 0.0;
     }
 }
 
-impl StopSignal for Adsr {
+impl Stop for Adsr {
     fn stop(&mut self) {
         self.sustain = self.get().0;
         self.val = 0.0;
-        self.stage = AdsrStage::Release;
+        self.stage = Stage::Release;
     }
 
     fn is_done(&self) -> bool {
-        self.stage == AdsrStage::Done
+        self.stage == Stage::Done
     }
 }
 
@@ -133,21 +136,23 @@ pub struct VolFn<S: Signal> {
     phantom: std::marker::PhantomData<S>,
 }
 
-impl<S: Signal> Default for VolFn<S> {
-    fn default() -> Self {
+impl<S: Signal> VolFn<S> {
+    /// Initializes a new [`VolFn`].
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<S: Signal> VolFn<S> {
-    pub fn new() -> Self {
-        Self::default()
+impl<S: Signal> Default for VolFn<S> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
-impl<S: Signal> MapMut<Volume<S>, f64> for VolFn<S> {
+impl<S: Signal> Mut<Volume<S>, f64> for VolFn<S> {
     fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
         *sgn.vol_mut() = Vol::new(gain);
     }
@@ -155,16 +160,16 @@ impl<S: Signal> MapMut<Volume<S>, f64> for VolFn<S> {
 
 /// A stoppable signal, hooked to an ADSR envelope.
 #[derive(Clone, Debug)]
-pub struct AdsrEnvelope<S: Signal> {
+pub struct Envelope<S: Signal> {
     /// The inner envelope.
-    pub env: Envelope<Volume<S>, Adsr, VolFn<S>>,
+    pub env: MutSgn<Volume<S>, Adsr, VolFn<S>>,
 }
 
-impl<S: Signal> AdsrEnvelope<S> {
+impl<S: Signal> Envelope<S> {
     /// Initializes a new ADSR envelope.
     pub fn new(sgn: S, env: Adsr) -> Self {
         Self {
-            env: Envelope::new_generic(Volume::new(sgn, Vol::ZERO), env, VolFn::new()),
+            env: MutSgn::new_generic(Volume::new(sgn, Vol::ZERO), env, VolFn::new()),
         }
     }
 
@@ -189,7 +194,7 @@ impl<S: Signal> AdsrEnvelope<S> {
     }
 }
 
-impl<S: Signal> Signal for AdsrEnvelope<S> {
+impl<S: Signal> Signal for Envelope<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -205,7 +210,7 @@ impl<S: Signal> Signal for AdsrEnvelope<S> {
     }
 }
 
-impl<S: Signal> StopSignal for AdsrEnvelope<S> {
+impl<S: Signal> Stop for Envelope<S> {
     fn stop(&mut self) {
         self.adsr_mut().stop();
     }
@@ -215,7 +220,7 @@ impl<S: Signal> StopSignal for AdsrEnvelope<S> {
     }
 }
 
-impl<S: HasFreq> HasFreq for AdsrEnvelope<S> {
+impl<S: HasFreq> HasFreq for Envelope<S> {
     fn freq(&self) -> Freq {
         self.sgn().freq()
     }

@@ -16,12 +16,12 @@
 //! into a `.wav` file. The output is hardcoded to use 32-bit floating point,
 //! although calculations are internally done using 64-bit, for extra precision.
 //!
-//! For convenience, the [`Signal`](crate::signal::Signal) trait is provided.
+//! For convenience, the [`Signal`](crate::prelude::Signal) trait is provided.
 //! Structs implementing this trait generate sample data frame by frame, which
 //! can be advanced, or retriggered.
 //!
 //! Signals may be composed to create more complex signals, using for instance
-//! an [`Envelope`](crate::effects::Envelope). Moreover, you can implement the
+//! a [`MutSgn`](crate::prelude::MutSgn). Moreover, you can implement the
 //! trait for your own structs, giving you vast control over the samples you're
 //! producing.
 //!
@@ -31,6 +31,9 @@
 //! "basic" ones, are actually type aliases. As such, many constructors `new`
 //! are suffixed, to avoid ambiguity.
 
+#![warn(clippy::pedantic)]
+
+pub mod curves;
 pub mod effects;
 pub mod freq;
 pub mod generators;
@@ -40,11 +43,14 @@ pub mod sample;
 pub mod signal;
 pub mod time;
 
-use hound::*;
+use hound::{Result, SampleFormat, WavSpec, WavWriter};
 use prelude::*;
 
 /// The sample rate for the audio file, in samples per second.
 pub const SAMPLE_RATE: u32 = 44100;
+
+/// The sample rate for the audio file, in samples per second.
+pub const SAMPLE_RATE_F64: f64 = SAMPLE_RATE as f64;
 
 /// The specification for the output file.
 const fn spec(channels: u8) -> WavSpec {
@@ -57,11 +63,13 @@ const fn spec(channels: u8) -> WavSpec {
 }
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
+#[must_use]
 pub fn pos(x: f64) -> f64 {
     (x + 1.0) / 2.0
 }
 
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
+#[must_use]
 pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
@@ -75,13 +83,17 @@ pub const A4: Freq = Freq::new(440.0);
 /// passed function returns [`Mono`] or [`Stereo`].
 ///
 /// See the `examples` folder for example creations.
-pub fn create<P: AsRef<std::path::Path>, A: AudioSample, F: FnMut(Time) -> A>(
+///
+/// ## Errors
+///
+/// This should only error in case of an IO error.
+pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
     mut song: F,
 ) -> Result<()> {
     let mut timer = Time::ZERO;
-    let mut writer = WavWriter::create(filename, spec(A::CHANNELS)).unwrap();
+    let mut writer = WavWriter::create(filename, spec(A::CHANNELS))?;
 
     while timer < length {
         song(timer).write(&mut writer)?;

@@ -1,20 +1,22 @@
 //! Imports the most commmon traits and structures.
 
 pub use crate::{
+    curves::*,
     effects::{
-        adsr::{Adsr, AdsrEnvelope},
+        adsr::{Adsr, Envelope},
         freq::*,
+        mix::*,
         sequence::{Event, Loop, Sequence},
         vol::*,
-        Envelope,
+        MutSgn,
     },
     freq::*,
-    generators::{curves::*, poly::Polyphony, CurveEnv, CurveGen, LoopCurveEnv},
+    generators::{curves::*, poly::Polyphony},
     map::*,
     pos,
-    sample::{AudioSample, Env, Mono, Sample, Stereo},
+    sample::{Audio, Env, Mono, Sample, Stereo},
     sgn,
-    signal::{MapSgn, Signal, StopSignal},
+    signal::*,
     time::*,
-    A4, SAMPLE_RATE,
+    A4, SAMPLE_RATE, SAMPLE_RATE_F64,
 };
