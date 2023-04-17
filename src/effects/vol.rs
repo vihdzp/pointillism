@@ -99,11 +99,11 @@ impl<S: Signal> Signal for Volume<S> {
     }
 
     fn advance(&mut self) {
-        self.inner.advance()
+        self.inner.advance();
     }
 
     fn retrigger(&mut self) {
-        self.inner.retrigger()
+        self.inner.retrigger();
     }
 }
 
@@ -223,11 +223,11 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
     }
 
     fn advance(&mut self) {
-        self.inner.advance()
+        self.inner.advance();
     }
 
     fn retrigger(&mut self) {
-        self.inner.retrigger()
+        self.inner.retrigger();
     }
 }
 
@@ -261,13 +261,13 @@ impl<S: Done, E: Signal<Sample = Env>> Done for Tremolo<S, E> {
 
 impl<S: Stop, E: Signal<Sample = Env>> Stop for Tremolo<S, E> {
     fn stop(&mut self) {
-        self.inner.stop()
+        self.inner.stop();
     }
 }
 
 impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
     fn panic(&mut self) {
-        self.inner.panic()
+        self.inner.panic();
     }
 }
 
@@ -314,11 +314,11 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for StopTremolo<S, E> {
     }
 
     fn advance(&mut self) {
-        self.inner.advance()
+        self.inner.advance();
     }
 
     fn retrigger(&mut self) {
-        self.inner.retrigger()
+        self.inner.retrigger();
     }
 }
 

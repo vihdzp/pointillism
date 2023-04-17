@@ -471,6 +471,6 @@ impl<S: Signal, E: Done<Sample = Env>, F: Mut<S, f64>> Done for ModSgn<S, E, F> 
 
 impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> Stop for ModSgn<S, E, F> {
     fn stop(&mut self) {
-        self.env_mut().stop()
+        self.env_mut().stop();
     }
 }

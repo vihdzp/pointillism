@@ -131,6 +131,7 @@ pub struct Saw;
 
 impl Saw {
     /// Initializes a new [`Saw`].
+    #[must_use]
     pub const fn new() -> Self {
         Self
     }

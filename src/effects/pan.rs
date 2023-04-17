@@ -54,6 +54,7 @@ macro_rules! pan_boilerplate {
 }
 
 /// Gain formula for a linear panning law.
+#[must_use]
 pub fn linear_gain(angle: f64) -> (f64, f64) {
     (1.0 - angle, angle)
 }
@@ -82,6 +83,7 @@ impl Default for Power {
 }
 
 /// Gain formula for a power panning law.
+#[must_use]
 pub fn power_gain(angle: f64) -> (f64, f64) {
     let (r, l) = (std::f64::consts::FRAC_PI_2 * angle).sin_cos();
     (l, r)
@@ -112,6 +114,7 @@ impl Default for Mixed {
 }
 
 /// Gain formula for a mixed panning law.
+#[must_use]
 pub fn mixed_gain(angle: f64) -> (f64, f64) {
     let linear = linear_gain(angle);
     let power = power_gain(angle);
