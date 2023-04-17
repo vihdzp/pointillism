@@ -25,6 +25,9 @@
 //! trait for your own structs, giving you vast control over the samples you're
 //! producing.
 //!
+//! You can think of pointillism as a run-time modular synthesizer, where every
+//! new struct is its own module.
+//!
 //! ## Versions
 //!
 //! The following versions of `pointillism` exist:
