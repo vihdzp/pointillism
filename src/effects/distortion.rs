@@ -17,13 +17,10 @@ impl Map for InfClip {
     }
 }
 
-/// Applies [`InfClip`] distortion to a signal.
-pub type InfClipping<S> = PointwiseMapSgn<S, InfClip>;
-
-impl<S: Signal> InfClipping<S> {
-    /// Initializes a new [`InfClipping`].
-    pub const fn new(sgn: S) -> Self {
-        Self::new_pointwise(sgn, InfClip)
+impl<S: Signal> PwMapSgn<S, InfClip> {
+    /// Applies [`InfClip`] distortion to a signal.
+    pub const fn inf_clip(sgn: S) -> Self {
+        Self::new(sgn, InfClip)
     }
 }
 
@@ -59,13 +56,10 @@ impl Map for Clip {
     }
 }
 
-/// Applies [`Clip`] distortion to a signal.
-pub type Clipping<S> = PointwiseMapSgn<S, Clip>;
-
-impl<S: Signal> Clipping<S> {
-    /// Initializes a new [`Clipping`].
-    pub const fn new(sgn: S, threshold: f64) -> Self {
-        Self::new_pointwise(sgn, Clip::new(threshold))
+impl<S: Signal> PwMapSgn<S, Clip> {
+    /// Applies [`Clip`] distortion to a signal.
+    pub const fn clip(sgn: S, threshold: f64) -> Self {
+        Self::new(sgn, Clip::new(threshold))
     }
 }
 
@@ -101,13 +95,10 @@ impl Map for Atan {
     }
 }
 
-/// Applies [`Atan`] distortion to a signal.
-pub type Arctangent<S> = PointwiseMapSgn<S, Atan>;
-
-impl<S: Signal> Arctangent<S> {
-    /// Initializes a new [`Arctangent`].
-    pub const fn new(sgn: S, shape: f64) -> Self {
-        Self::new_pointwise(sgn, Atan::new(shape))
+impl<S: Signal> PwMapSgn<S, Atan> {
+    /// Applies [`Atan`] distortion to a signal.
+    pub const fn atan(sgn: S, shape: f64) -> Self {
+        Self::new(sgn, Atan::new(shape))
     }
 }
 
@@ -159,23 +150,15 @@ impl Map for Pow {
     }
 }
 
-/// Applies [`Pow`] distortion to a signal.
-pub type Power<S> = PointwiseMapSgn<S, Pow>;
-
-impl<S: Signal> Power<S> {
-    /// Initializes a new [`Power`].
-    pub const fn new(sgn: S, exponent: u16) -> Self {
-        Self::new_pointwise(sgn, Pow::new(exponent))
-    }
-
-    /// No distortion.
-    pub const fn linear(sgn: S) -> Self {
-        Self::new(sgn, 1)
+impl<S: Signal> PwMapSgn<S, Pow> {
+    /// Applies [`Pow`] distortion to a signal.
+    pub const fn pow(sgn: S, exponent: u16) -> Self {
+        Self::new(sgn, Pow::new(exponent))
     }
 
     /// Cubic distortion.
     pub const fn cubic(sgn: S) -> Self {
-        Self::new(sgn, 3)
+        Self::pow(sgn, 3)
     }
 }
 

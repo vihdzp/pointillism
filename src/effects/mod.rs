@@ -1,33 +1,324 @@
-//! Various simple effects one can use to modify signals.
+//! Implements many effects one can use to modify signals.
+//!
+//! The distinction between an effect and a generator is blurry. Roughly, an
+//! effect alters parameters of a sound, while a generator produces a new sound
+//! altogether.
+//!
+//! The module file implements the most basic structures for transforming a
+//! signal, including [`MapSgn`], [`MutSgn`], and [`ModSgn`].
 
 pub mod adsr;
 pub mod distortion;
 pub mod freq;
 pub mod mix;
 pub mod pan;
-pub mod sequence;
+pub mod trailing;
 pub mod vol;
+
+use std::marker::PhantomData;
 
 use crate::prelude::*;
 
+/// Maps a signal to another via a specified map.
+///
+/// This map should send in most cases send the zero sample to itself. That
+/// ensures that there is no DC offset if the signal stops.
+///
+/// Note that the map here takes in a sample and outputs a sample. If you
+/// instead want to map the floating point values of the sample pointwise, use
+/// [`PwMapSgn`].
+#[derive(Clone, Copy, Debug, Default)]
+pub struct MapSgn<S: Signal, F: Map<Input = S::Sample>>
+where
+    F::Output: Sample,
+{
+    /// The signal being mapped.
+    sgn: S,
+
+    /// The map being applied.
+    map: F,
+}
+
+impl<S: Signal, F: Map<Input = S::Sample>> MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    /// Initializes a generic [`MapSgn`].
+    ///
+    /// There are many type aliases for specific subtypes of [`MapSgn`], and
+    /// these will often provide more convenient instantiations via `new`.
+    pub const fn new(sgn: S, map: F) -> Self {
+        Self { sgn, map }
+    }
+
+    /// Returns a reference to the original signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the original signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the map modifying the signal.
+    pub const fn map(&self) -> &F {
+        &self.map
+    }
+
+    /// Returns a mutable reference to the map modifying the signal.
+    pub fn map_mut(&mut self) -> &mut F {
+        &mut self.map
+    }
+}
+
+impl<S: Signal, F: Map<Input = S::Sample>> Signal for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    type Sample = F::Output;
+
+    fn get(&self) -> F::Output {
+        self.map().eval(self.sgn.get())
+    }
+
+    fn advance(&mut self) {
+        self.sgn_mut().advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.sgn_mut().retrigger();
+    }
+}
+
+impl<S: Frequency, F: Map<Input = S::Sample>> Frequency for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    fn freq(&self) -> crate::Freq {
+        self.sgn().freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut crate::Freq {
+        self.sgn_mut().freq_mut()
+    }
+}
+
+impl<S: Base, F: Map<Input = S::Sample>> Base for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.sgn().base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.sgn_mut().base_mut()
+    }
+}
+
+impl<S: Stop, F: Map<Input = S::Sample>> Stop for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    fn stop(&mut self) {
+        self.sgn_mut().stop();
+    }
+}
+
+impl<S: Done, F: Map<Input = S::Sample>> Done for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    fn is_done(&self) -> bool {
+        self.sgn().is_done()
+    }
+}
+
+impl<S: Panic, F: Map<Input = S::Sample>> Panic for MapSgn<S, F>
+where
+    F::Output: Sample,
+{
+    fn panic(&mut self) {
+        self.sgn_mut().panic();
+    }
+}
+
+/// Converts a function into one applied pointwise to the entries of a
+/// [`Sample`].
+#[derive(Clone, Debug, Default)]
+pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
+    /// The function to apply.
+    pub func: F,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
+}
+
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
+    /// Initializes a new [`Pw`] function.
+    pub const fn new(func: F) -> Self {
+        Self {
+            func,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
+    type Input = S;
+    type Output = S;
+
+    fn eval(&self, x: S) -> S {
+        x.map(|y| self.func.eval(y))
+    }
+}
+
+/// Maps a signal through a pointwise function.
+#[derive(Clone, Debug, Default)]
+pub struct PwMapSgn<S: Signal, F: Map<Input = f64, Output = f64>> {
+    /// Inner data.
+    inner: MapSgn<S, Pw<S::Sample, F>>,
+}
+
+impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
+    /// Initializes a new [`PwMapSgn`].
+    pub const fn new(sgn: S, func: F) -> Self {
+        Self {
+            inner: MapSgn::new(sgn, Pw::new(func)),
+        }
+    }
+
+    /// Returns a reference to the inner signal.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn()
+    }
+
+    /// Returns a mutable reference to the inner signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut()
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.inner.map.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.inner.map.func
+    }
+}
+
+impl<S: Signal, F: Map<Input = f64, Output = f64>> Signal for PwMapSgn<S, F> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        self.inner.get()
+    }
+
+    fn advance(&mut self) {
+        self.inner.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.inner.retrigger();
+    }
+}
+
+impl<S: Frequency, F: Map<Input = f64, Output = f64>> Frequency for PwMapSgn<S, F> {
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
+    }
+}
+
+impl<S: Base, F: Map<Input = f64, Output = f64>> Base for PwMapSgn<S, F> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Done, F: Map<Input = f64, Output = f64>> Done for PwMapSgn<S, F> {
+    fn is_done(&self) -> bool {
+        self.inner.is_done()
+    }
+}
+
+impl<S: Stop, F: Map<Input = f64, Output = f64>> Stop for PwMapSgn<S, F> {
+    fn stop(&mut self) {
+        self.inner.stop();
+    }
+}
+
+impl<S: Panic, F: Map<Input = f64, Output = f64>> Panic for PwMapSgn<S, F> {
+    fn panic(&mut self) {
+        self.inner.panic();
+    }
+}
+
 /// Modifies a signal according to a given envelope.
+///
+/// This signal stops whenever the original signal does. If you instead want a
+/// signal that stops when the envelope does, use [`ModSgn`].
 #[derive(Clone, Debug)]
 pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
     /// The signal to modify.
-    pub sgn: S,
+    sgn: S,
 
     /// The envelope modifying the signal.
-    pub env: E,
+    env: E,
 
     /// The function to modify the signal.
-    pub func: F,
+    func: F,
 }
 
 impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> MutSgn<S, E, F> {
     /// Initializes a new [`MutSgn`].
-    pub fn new_generic(mut sgn: S, env: E, mut func: F) -> Self {
+    pub fn new(mut sgn: S, env: E, mut func: F) -> Self {
         func.modify(&mut sgn, env.get().0);
         Self { sgn, env, func }
+    }
+
+    /// Returns a reference to the original signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the original signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the envelope controlling the signal.
+    pub const fn env(&self) -> &E {
+        &self.env
+    }
+
+    /// Returns a mutable reference to the envelope controlling the signal.
+    pub fn env_mut(&mut self) -> &mut E {
+        &mut self.env
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.func
     }
 }
 
@@ -35,7 +326,7 @@ impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> Signal for MutSgn<S, E,
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.sgn.get()
+        self.sgn().get()
     }
 
     fn advance(&mut self) {
@@ -44,17 +335,142 @@ impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> Signal for MutSgn<S, E,
     }
 
     fn retrigger(&mut self) {
-        self.sgn.retrigger();
-        self.env.retrigger();
+        self.sgn_mut().retrigger();
+        self.env_mut().retrigger();
+    }
+}
+
+impl<S: Frequency, E: Signal<Sample = Env>, F: Mut<S, f64>> Frequency for MutSgn<S, E, F> {
+    fn freq(&self) -> Freq {
+        self.sgn().freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.sgn_mut().freq_mut()
+    }
+}
+
+impl<S: Base, E: Signal<Sample = Env>, F: Mut<S, f64>> Base for MutSgn<S, E, F> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.sgn().base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.sgn_mut().base_mut()
+    }
+}
+
+impl<S: Done, E: Signal<Sample = Env>, F: Mut<S, f64>> Done for MutSgn<S, E, F> {
+    fn is_done(&self) -> bool {
+        self.sgn().is_done()
     }
 }
 
 impl<S: Stop, E: Signal<Sample = Env>, F: Mut<S, f64>> Stop for MutSgn<S, E, F> {
     fn stop(&mut self) {
-        self.sgn.stop();
+        self.sgn_mut().stop();
+    }
+}
+
+impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f64>> Panic for MutSgn<S, E, F> {
+    fn panic(&mut self) {
+        self.sgn_mut().panic();
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ModSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
+    /// Inner data.
+    inner: MutSgn<S, E, F>,
+}
+
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> ModSgn<S, E, F> {
+    /// Initializes a new [`ModSgn`].
+    pub fn new(sgn: S, env: E, func: F) -> Self {
+        Self {
+            inner: MutSgn::new(sgn, env, func),
+        }
     }
 
+    /// Returns a reference to the original signal.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn()
+    }
+
+    /// Returns a mutable reference to the original signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut()
+    }
+
+    /// Returns a reference to the envelope controlling the signal.
+    pub const fn env(&self) -> &E {
+        self.inner.env()
+    }
+
+    /// Returns a mutable reference to the envelope controlling the signal.
+    pub fn env_mut(&mut self) -> &mut E {
+        self.inner.env_mut()
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        self.inner.func()
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        self.inner.func_mut()
+    }
+}
+
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> Signal for ModSgn<S, E, F> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        self.inner.get()
+    }
+
+    fn advance(&mut self) {
+        self.inner.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.inner.retrigger();
+    }
+}
+
+impl<S: Frequency, E: Signal<Sample = Env>, F: Mut<S, f64>> Frequency for ModSgn<S, E, F> {
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
+    }
+}
+
+impl<S: Base, E: Signal<Sample = Env>, F: Mut<S, f64>> Base for ModSgn<S, E, F> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Signal, E: Done<Sample = Env>, F: Mut<S, f64>> Done for ModSgn<S, E, F> {
     fn is_done(&self) -> bool {
-        self.sgn.is_done()
+        self.env().is_done()
+    }
+}
+
+impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> Stop for ModSgn<S, E, F> {
+    fn stop(&mut self) {
+        self.env_mut().stop()
     }
 }

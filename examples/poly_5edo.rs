@@ -17,7 +17,7 @@ fn main() {
     let osc = |freq| {
         Envelope::new(
             // Sine wave with specified frequency.
-            CurveGen::new(Sin::sin(), freq),
+            LoopGen::<Stereo, _>::new(Sin::sin(), freq),
             // ADSR envelope with long attack, long release.
             Adsr::new(0.8 * NOTE_LEN, 0.2 * NOTE_LEN, 0.8, 1.5 * NOTE_LEN),
         )
@@ -52,7 +52,7 @@ fn main() {
     );
 
     // This gives a really weird effect.
-    let mut dist = pointillism::effects::distortion::Power::cubic(poly_loop);
+    let mut dist = PwMapSgn::cubic(poly_loop);
 
     pointillism::create("examples/poly_5edo.wav", 10.0 * NOTE_LEN, |_| dist.next()).unwrap();
 }

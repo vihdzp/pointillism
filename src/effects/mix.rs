@@ -41,14 +41,23 @@ impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoGen<X,
     }
 }
 
+impl<X: Done<Sample = Mono>, Y: Done<Sample = Mono>> Done for StereoGen<X, Y> {
+    fn is_done(&self) -> bool {
+        self.0.is_done() && self.1.is_done()
+    }
+}
+
 impl<X: Stop<Sample = Mono>, Y: Stop<Sample = Mono>> Stop for StereoGen<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
     }
+}
 
-    fn is_done(&self) -> bool {
-        self.0.is_done() && self.1.is_done()
+impl<X: Panic<Sample = Mono>, Y: Panic<Sample = Mono>> Panic for StereoGen<X, Y> {
+    fn panic(&mut self) {
+        self.0.panic();
+        self.1.panic();
     }
 }
 
@@ -83,14 +92,23 @@ impl<X: Signal, Y: Signal<Sample = X::Sample>> Signal for Mix<X, Y> {
     }
 }
 
+impl<X: Done, Y: Done<Sample = X::Sample>> Done for Mix<X, Y> {
+    fn is_done(&self) -> bool {
+        self.0.is_done() && self.1.is_done()
+    }
+}
+
 impl<X: Stop, Y: Stop<Sample = X::Sample>> Stop for Mix<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
     }
+}
 
-    fn is_done(&self) -> bool {
-        self.0.is_done() && self.1.is_done()
+impl<X: Panic, Y: Panic<Sample = X::Sample>> Panic for Mix<X, Y> {
+    fn panic(&mut self) {
+        self.0.panic();
+        self.1.panic();
     }
 }
 
@@ -107,12 +125,9 @@ impl Map for Dup {
     }
 }
 
-/// Duplicates a [`Mono`] signal in both channels.
-pub type Duplicate<S> = MapSgn<S, Dup>;
-
-impl<S: Signal<Sample = Mono>> Duplicate<S> {
-    /// Initializes a new [`Duplicate`].
-    pub const fn new(sgn: S) -> Self {
-        Self::new_generic(sgn, Dup)
+impl<S: Signal<Sample = Mono>> MapSgn<S, Dup> {
+    /// Duplicates a [`Mono`] signal in both channels.
+    pub const fn dup(sgn: S) -> Self {
+        Self::new(sgn, Dup)
     }
 }

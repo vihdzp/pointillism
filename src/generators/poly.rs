@@ -12,7 +12,7 @@ use crate::prelude::*;
 /// This stores multiple instances of a signal `S`, which can be added and
 /// stopped. Signals are internally removed as they are done.
 #[derive(Clone, Debug)]
-pub struct Polyphony<K: Eq + Hash + Clone, S: Stop> {
+pub struct Polyphony<K: Eq + Hash + Clone, S: Stop + Done> {
     /// The signals currently playing.
     signals: HashMap<K, S>,
 
@@ -20,7 +20,7 @@ pub struct Polyphony<K: Eq + Hash + Clone, S: Stop> {
     idx: usize,
 }
 
-impl<K: Eq + Hash + Clone, S: Stop> Default for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Stop + Done> Default for Polyphony<K, S> {
     fn default() -> Self {
         Self {
             signals: HashMap::default(),
@@ -29,7 +29,7 @@ impl<K: Eq + Hash + Clone, S: Stop> Default for Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop> Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Stop + Done> Polyphony<K, S> {
     /// Initializes a new polyphonic signal, playing nothing.
     #[must_use]
     pub fn new() -> Self {
@@ -72,7 +72,7 @@ impl<K: Eq + Hash + Clone, S: Stop> Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop> Signal for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Stop + Done> Signal for Polyphony<K, S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -101,7 +101,7 @@ impl<K: Eq + Hash + Clone, S: Stop> Signal for Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop> HasBase for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Stop + Done> Base for Polyphony<K, S> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {

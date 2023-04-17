@@ -1,17 +1,13 @@
-//! Declares [`CurveEnv`], [`LoopCurveEnv`], and [`CurveGen`].
+//! Declares [`CurveEnv`], [`LoopCurveEnv`], and [`LoopGen`].
 //!
 //! These structures allow one to generate [`Signals`](Signal) from a curve,
 //! meaning a struct implementing `Map<Input = f64, Output = f64>`.
 //!
 //! See also [`crate::curves`], where many basic curves are defined.
 
-use crate::{
-    freq::Freq,
-    map::Map,
-    sample::{Env, Mono, Sample},
-    signal::{HasBase, HasFreq, MapSgn, Signal},
-    time::Time,
-};
+use std::marker::PhantomData;
+
+use crate::prelude::*;
 
 /// A map which converts an envelope into mono audio.
 #[derive(Clone, Copy, Debug, Default)]
@@ -26,23 +22,20 @@ impl Map for EnvToMono {
     }
 }
 
-/// Plays an envelope as a [`Mono`] audio file.
-///
-/// For very low-frequency envelopes, this might lead to undesirable sounds.
-pub type EnvGen<S> = MapSgn<S, EnvToMono>;
-
-impl<S: Signal<Sample = Env>> EnvGen<S> {
-    /// Initializes a new [`EnvGen`].
-    pub const fn new_env(sgn: S) -> Self {
-        Self::new_generic(sgn, EnvToMono)
+impl<S: Signal<Sample = Env>> MapSgn<S, EnvToMono> {
+    /// Plays an envelope as a [`Mono`] audio file.
+    ///
+    /// For very low-frequency envelopes, this might lead to undesirable sounds.
+    pub const fn env_gen(sgn: S) -> Self {
+        Self::new(sgn, EnvToMono)
     }
 }
 
 /// Plays a curve at a specified speed, until it reaches the right endpoint.
 ///
-/// See also [`LoopCurveEnv`].
+/// See also [`LoopGen`].
 #[derive(Clone, Copy, Debug)]
-pub struct CurveEnv<C: Map<Input = f64, Output = f64>> {
+pub struct OneshotGen<S: Sample, C: Map<Input = f64, Output = f64>> {
     /// The curve being played.
     pub curve: C,
 
@@ -52,15 +45,19 @@ pub struct CurveEnv<C: Map<Input = f64, Output = f64>> {
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
     val: f64,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
 }
 
-impl<C: Map<Input = f64, Output = f64>> CurveEnv<C> {
+impl<S: Sample, C: Map<Input = f64, Output = f64>> OneshotGen<S, C> {
     /// Initializes a new [`CurveEnv`].
     pub const fn new(curve: C, time: Time) -> Self {
         Self {
             curve,
             time,
             val: 0.0,
+            phantom: PhantomData,
         }
     }
 
@@ -71,11 +68,11 @@ impl<C: Map<Input = f64, Output = f64>> CurveEnv<C> {
     }
 }
 
-impl<C: Map<Input = f64, Output = f64>> Signal for CurveEnv<C> {
-    type Sample = Env;
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for OneshotGen<S, C> {
+    type Sample = S;
 
-    fn get(&self) -> Env {
-        Env(self.curve.eval(self.val))
+    fn get(&self) -> S {
+        S::from_val(self.curve.eval(self.val))
     }
 
     fn advance(&mut self) {
@@ -88,7 +85,7 @@ impl<C: Map<Input = f64, Output = f64>> Signal for CurveEnv<C> {
     }
 }
 
-impl<C: Map<Input = f64, Output = f64>> HasBase for CurveEnv<C> {
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Base for OneshotGen<S, C> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -100,14 +97,26 @@ impl<C: Map<Input = f64, Output = f64>> HasBase for CurveEnv<C> {
     }
 }
 
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Done for OneshotGen<S, C> {
+    fn is_done(&self) -> bool {
+        self.val >= 1.0
+    }
+}
+
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Stop for OneshotGen<S, C> {
+    fn stop(&mut self) {
+        self.val = 1.0;
+    }
+}
+
 /// Loops a curve at a specified frequency.
 ///
-/// This is an envelope, meaning it returns [`Env`] data. See [`CurveGen`] if
+/// This is an envelope, meaning it returns [`Env`] data. See [`LoopGen`] if
 /// you want to generate mono audio instead.
 ///
 /// See also [`CurveEnv`].
 #[derive(Clone, Copy, Debug, Default)]
-pub struct LoopCurveEnv<C: Map<Input = f64, Output = f64>> {
+pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
     /// The curve being played.
     pub curve: C,
 
@@ -117,25 +126,19 @@ pub struct LoopCurveEnv<C: Map<Input = f64, Output = f64>> {
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
     val: f64,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
 }
 
-impl<C: Map<Input = f64, Output = f64>> HasFreq for LoopCurveEnv<C> {
-    fn freq(&self) -> Freq {
-        self.freq
-    }
-
-    fn freq_mut(&mut self) -> &mut Freq {
-        &mut self.freq
-    }
-}
-
-impl<C: Map<Input = f64, Output = f64>> LoopCurveEnv<C> {
+impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
     /// Initializes a new [`LoopCurveEnv`].
     pub const fn new(curve: C, freq: Freq) -> Self {
         Self {
             curve,
             freq,
             val: 0.0,
+            phantom: PhantomData,
         }
     }
 
@@ -156,11 +159,11 @@ impl<C: Map<Input = f64, Output = f64>> LoopCurveEnv<C> {
     }
 }
 
-impl<C: Map<Input = f64, Output = f64>> Signal for LoopCurveEnv<C> {
-    type Sample = Env;
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for LoopGen<S, C> {
+    type Sample = S;
 
-    fn get(&self) -> Env {
-        Env(self.curve.eval(self.val))
+    fn get(&self) -> S {
+        S::from_val(self.curve.eval(self.val))
     }
 
     fn advance(&mut self) {
@@ -173,7 +176,17 @@ impl<C: Map<Input = f64, Output = f64>> Signal for LoopCurveEnv<C> {
     }
 }
 
-impl<C: Map<Input = f64, Output = f64>> HasBase for LoopCurveEnv<C> {
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Frequency for LoopGen<S, C> {
+    fn freq(&self) -> Freq {
+        self.freq
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        &mut self.freq
+    }
+}
+
+impl<S: Sample, C: Map<Input = f64, Output = f64>> Base for LoopGen<S, C> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -182,33 +195,6 @@ impl<C: Map<Input = f64, Output = f64>> HasBase for LoopCurveEnv<C> {
 
     fn base_mut(&mut self) -> &mut Self::Base {
         self
-    }
-}
-
-/// Plays a curve as a [`Mono`] audio file.
-///
-/// For very low-frequency curves, this might lead to undesirable sounds.
-pub type CurveGen<C> = crate::prelude::EnvGen<LoopCurveEnv<C>>;
-
-impl<C: Map<Input = f64, Output = f64>> CurveGen<C> {
-    /// Initializes a [`CurveGen`] from a [`LoopCurveEnv`].
-    pub const fn new_sgn(curve_sgn: LoopCurveEnv<C>) -> Self {
-        Self::new_env(curve_sgn)
-    }
-
-    /// Initializes a [`CurveGen`] from a given curve and a frequency.
-    pub const fn new(curve: C, freq: Freq) -> Self {
-        Self::new_sgn(LoopCurveEnv::new(curve, freq))
-    }
-
-    /// A reference to the curve being played.
-    pub const fn curve(&self) -> &C {
-        self.sgn().curve()
-    }
-
-    /// A mutable reference to the curve being played.
-    pub fn curve_mut(&mut self) -> &mut C {
-        self.sgn_mut().curve_mut()
     }
 }
 
@@ -249,7 +235,7 @@ impl<S: Sample> Signal for NoiseGen<S> {
     }
 }
 
-impl<S: Sample> HasBase for NoiseGen<S> {
+impl<S: Sample> Base for NoiseGen<S> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {

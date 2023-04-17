@@ -53,11 +53,16 @@ macro_rules! pan_boilerplate {
     };
 }
 
+/// Gain formula for a linear panning law.
+pub fn linear_gain(angle: f64) -> (f64, f64) {
+    (1.0 - angle, angle)
+}
+
 impl Law for Linear {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
-        (1.0 - self.angle, self.angle)
+        linear_gain(self.angle)
     }
 }
 
@@ -76,12 +81,17 @@ impl Default for Power {
     }
 }
 
+/// Gain formula for a power panning law.
+pub fn power_gain(angle: f64) -> (f64, f64) {
+    let (r, l) = (std::f64::consts::FRAC_PI_2 * angle).sin_cos();
+    (l, r)
+}
+
 impl Law for Power {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
-        let (r, l) = (std::f64::consts::FRAC_PI_2 * self.angle).sin_cos();
-        (l, r)
+        power_gain(self.angle)
     }
 }
 
@@ -101,13 +111,18 @@ impl Default for Mixed {
     }
 }
 
+/// Gain formula for a mixed panning law.
+pub fn mixed_gain(angle: f64) -> (f64, f64) {
+    let linear = linear_gain(angle);
+    let power = power_gain(angle);
+    ((linear.0 * power.0).sqrt(), (linear.1 * power.1).sqrt())
+}
+
 impl Law for Mixed {
     pan_boilerplate!();
 
     fn gain(&self) -> (f64, f64) {
-        let linear = Linear::new(self.angle).gain();
-        let power = Power::new(self.angle).gain();
-        ((linear.0 * power.0).sqrt(), (linear.1 * power.1).sqrt())
+        mixed_gain(self.angle)
     }
 }
 
@@ -143,63 +158,142 @@ impl<A: Audio, P: Law> Map for Wrapper<A, P> {
 }
 
 /// Applies a pan effect, using the specified pan [`Law`].
-pub type Panner<S, P> = MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
+pub struct Panner<S: Signal, P: Law>
+where
+    S::Sample: Audio,
+{
+    /// Inner data.
+    inner: MapSgn<S, Wrapper<S::Sample, P>>,
+}
 
 impl<S: Signal, P: Law> Panner<S, P>
 where
     S::Sample: Audio,
 {
+    /// Initializes a new [`Panner`] for a given signal and pan law.
+    pub const fn new_pan(sgn: S, pan_law: P) -> Self {
+        Self {
+            inner: MapSgn::new(sgn, Wrapper::new(pan_law)),
+        }
+    }
+
     /// Initializes a new [`Panner`] for a given signal and angle.
-    pub fn new_pan(sgn: S, angle: f64) -> Self {
-        Self::new_generic(sgn, Wrapper::new(P::new(angle)))
+    pub fn new(sgn: S, angle: f64) -> Self {
+        Self::new_pan(sgn, P::new(angle))
+    }
+
+    /// Returns a reference to the panned signal.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn()
+    }
+
+    /// Returns a mutable reference to the panned signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut()
     }
 
     /// Returns the current panning angle.
     pub fn angle(&self) -> f64 {
-        self.map.pan_law.angle()
+        self.inner.map().pan_law.angle()
     }
 
     /// Returns a mutable reference to the current panning angle.
     pub fn angle_mut(&mut self) -> &mut f64 {
-        self.map.pan_law.angle_mut()
+        self.inner.map_mut().pan_law.angle_mut()
     }
 }
 
-/// Applies a pan effect, with a [`Linear`] panning law.
-pub type LinearPanner<S> = Panner<S, Linear>;
-
-impl<S: Signal> LinearPanner<S>
+impl<S: Signal, P: Law> Signal for Panner<S, P>
 where
     S::Sample: Audio,
 {
-    /// Initializes a new [`LinearPanner`] for a given signal and angle.
-    pub fn new(sgn: S, angle: f64) -> Self {
-        Self::new_pan(sgn, angle)
+    type Sample = Stereo;
+
+    fn get(&self) -> Stereo {
+        self.inner.get()
+    }
+
+    fn advance(&mut self) {
+        self.inner.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.inner.retrigger();
     }
 }
 
-/// Applies a pan effect, with a constant [`Power`] panning law.
-pub type PowerPanner<S> = Panner<S, Power>;
-
-impl<S: Signal> PowerPanner<S>
+impl<S: Frequency, P: Law> Frequency for Panner<S, P>
 where
     S::Sample: Audio,
 {
-    /// Initializes a new [`PowerPanner`] for a given signal and angle.
-    pub fn new(sgn: S, angle: f64) -> Self {
-        Self::new_pan(sgn, angle)
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
     }
 }
 
-/// Applies a pan effect, with a [`Mixed`] panning law.
-pub type MixedPanner<S> = Panner<S, Mixed>;
-
-impl<S: Signal> MixedPanner<S>
+impl<S: Base, P: Law> Base for Panner<S, P>
 where
     S::Sample: Audio,
 {
-    /// Initializes a new [`MixedPanner`] for a given signal and angle.
-    pub fn new(sgn: S, angle: f64) -> Self {
-        Self::new_pan(sgn, angle)
+    type Base = S::Base;
+
+    fn base(&self) -> &Self::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Done, P: Law> Done for Panner<S, P>
+where
+    S::Sample: Audio,
+{
+    fn is_done(&self) -> bool {
+        self.inner.is_done()
+    }
+}
+
+impl<S: Stop, P: Law> Stop for Panner<S, P>
+where
+    S::Sample: Audio,
+{
+    fn stop(&mut self) {
+        self.inner.stop();
+    }
+}
+
+impl<S: Signal> Panner<S, Linear>
+where
+    S::Sample: Audio,
+{
+    /// Initializes a [`Linear`] panner with the specified angle.
+    pub const fn linear(sgn: S, angle: f64) -> Self {
+        Self::new_pan(sgn, Linear { angle })
+    }
+}
+
+impl<S: Signal> Panner<S, Power>
+where
+    S::Sample: Audio,
+{
+    /// Initializes a [`Power`] panner with the specified angle.
+    pub const fn power(sgn: S, angle: f64) -> Self {
+        Self::new_pan(sgn, Power { angle })
+    }
+}
+
+impl<S: Signal> Panner<S, Mixed>
+where
+    S::Sample: Audio,
+{
+    /// Initializes a [`Mixed`] panner with the specified angle.
+    pub const fn mixed(sgn: S, angle: f64) -> Self {
+        Self::new_pan(sgn, Mixed { angle })
     }
 }

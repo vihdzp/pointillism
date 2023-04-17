@@ -131,6 +131,12 @@ pub trait Sample:
         Self::for_each(|idx| f(self.get_mut(idx), rhs.get(idx)));
     }
 
+    /// Initializes a sample where all channels use the specified value.
+    #[must_use]
+    fn from_val(val: f64) -> Self {
+        Self::from_fn(|_| val)
+    }
+
     /// Generates a random sample.
     #[must_use]
     fn rand() -> Self {

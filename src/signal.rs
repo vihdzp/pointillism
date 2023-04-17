@@ -1,12 +1,6 @@
-//! Declares the [`Signal`] trait and implements it for simple types.
+//! Declares the most basic traits concerning [`Signals`](Signal).
 
-use std::marker::PhantomData;
-
-use crate::{
-    freq::Freq,
-    map::{Map, Mut},
-    sample::Sample,
-};
+use crate::{freq::Freq, sample::Sample};
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
@@ -36,10 +30,12 @@ pub trait Signal {
 
 /// A trait for a signal with a "main" frequency.
 ///
+/// Not to be confused with [`Freq`].
+///
 /// This is implemented both for signals that have a frequency parameter such as
 /// [`LoopCurveEnv`](crate::generators::curves::LoopCurveEnv), as well as
 /// straightforward wrappers for these signals.
-pub trait HasFreq: Signal {
+pub trait Frequency: Signal {
     /// The "main" frequency of the signal.
     fn freq(&self) -> Freq;
 
@@ -51,7 +47,7 @@ pub trait HasFreq: Signal {
 ///
 /// This is implemented both for basic signals that don't depend on others, as
 /// well as straightforward wrappers of these.
-pub trait HasBase: Signal {
+pub trait Base: Signal {
     /// The "base" signal type.
     type Base: Signal;
 
@@ -62,241 +58,35 @@ pub trait HasBase: Signal {
     fn base_mut(&mut self) -> &mut Self::Base;
 }
 
-/// Represents a signal that can be stopped.
-pub trait Stop: Signal {
-    /// Releases a note.
-    fn stop(&mut self);
-
+/// Represents a signal that ends.
+///
+/// Is used in [`Polyphony`](crate::prelude::Polyphony) so that a synth can be
+/// cleared from memory when it stops.
+pub trait Done: Signal {
     /// Returns whether the signal has stopped producing any sound altogether.
+    ///
+    /// If this returns `true` once, it must return `true` in all successive
+    /// times. Further, if this returns `true`, then getting a sample from the
+    /// signal must always return zero.
     fn is_done(&self) -> bool;
 }
 
-/// A trailing signal.
+/// Represents a signal that can be stopped.
 ///
-/// It can be stopped, but doing so won't actually change the output.
+/// Note that stopping a signal doesn't mean it will immediately stop producing
+/// sound. Use [`Panic`] for this purpose.
+pub trait Stop: Signal {
+    /// Releases a note.
+    fn stop(&mut self);
+}
+
+/// Represents a signal that can be stopped abruptly.
 ///
-/// **Important note**: Using this is somewhat of a hack. If used repeatedly in
-/// a [`Polyphony`](crate::prelude::Polyphony) struct, it will greatly slow down
-/// the code.
-pub struct Trailing<S: Signal> {
-    /// The inner signal.
-    pub sgn: S,
-}
-
-impl<S: Signal> Trailing<S> {
-    /// Initializes a new [`Trailing`] signal.
-    pub const fn new(sgn: S) -> Self {
-        Self { sgn }
-    }
-}
-
-impl<S: Signal> Signal for Trailing<S> {
-    type Sample = S::Sample;
-
-    fn get(&self) -> Self::Sample {
-        self.sgn.get()
-    }
-
-    fn advance(&mut self) {
-        self.sgn.advance();
-    }
-
-    fn retrigger(&mut self) {
-        self.sgn.retrigger();
-    }
-}
-
-impl<S: Signal> Stop for Trailing<S> {
-    fn stop(&mut self) {}
-
-    fn is_done(&self) -> bool {
-        false
-    }
-}
-
-/// Maps a signal to another via a specified map.
+/// All sound will stop being produced once the `panic` method is called.
 ///
-/// Note that the map here takes in a sample and outputs a sample. If you
-/// instead want to map the floating point values of the sample pointwise, use
-/// [`PointwiseMapSgn`].
-#[derive(Clone, Copy, Debug, Default)]
-pub struct MapSgn<S: Signal, F: Map<Input = S::Sample>>
-where
-    F::Output: Sample,
-{
-    /// The signal being mapped.
-    pub sgn: S,
-
-    /// The map being applied.
-    pub map: F,
-}
-
-impl<S: Signal, F: Map<Input = S::Sample>> MapSgn<S, F>
-where
-    F::Output: Sample,
-{
-    /// Initializes a generic [`MapSgn`].
-    ///
-    /// There are many type aliases for specific subtypes of [`MapSgn`], and
-    /// these will often provide more convenient instantiations via `new`.
-    pub const fn new_generic(sgn: S, map: F) -> Self {
-        Self { sgn, map }
-    }
-
-    /// Returns a reference to the original signal.
-    pub const fn sgn(&self) -> &S {
-        &self.sgn
-    }
-
-    /// Returns a mutable reference to the original signal.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        &mut self.sgn
-    }
-}
-
-impl<S: Signal, F: Map<Input = S::Sample>> Signal for MapSgn<S, F>
-where
-    F::Output: Sample,
-{
-    type Sample = F::Output;
-
-    fn get(&self) -> F::Output {
-        self.map.eval(self.sgn.get())
-    }
-
-    fn advance(&mut self) {
-        self.sgn.advance();
-    }
-
-    fn retrigger(&mut self) {
-        self.sgn.retrigger();
-    }
-}
-
-impl<S: Stop, F: Map<Input = S::Sample>> Stop for MapSgn<S, F>
-where
-    F::Output: Sample,
-{
-    fn stop(&mut self) {
-        self.sgn.stop();
-    }
-
-    fn is_done(&self) -> bool {
-        self.sgn.is_done()
-    }
-}
-
-impl<S: HasFreq, F: Map<Input = S::Sample>> HasFreq for MapSgn<S, F>
-where
-    F::Output: Sample,
-{
-    fn freq(&self) -> crate::Freq {
-        self.sgn().freq()
-    }
-
-    fn freq_mut(&mut self) -> &mut crate::Freq {
-        self.sgn_mut().freq_mut()
-    }
-}
-
-impl<S: HasBase, F: Map<Input = S::Sample>> HasBase for MapSgn<S, F>
-where
-    F::Output: Sample,
-{
-    type Base = S::Base;
-
-    fn base(&self) -> &S::Base {
-        self.sgn().base()
-    }
-
-    fn base_mut(&mut self) -> &mut S::Base {
-        self.sgn_mut().base_mut()
-    }
-}
-
-/// Applies a function pointwise to the entries of a [`Sample`].
-#[derive(Clone, Debug)]
-pub struct Pointwise<S: Sample, F: Map<Input = f64, Output = f64>> {
-    /// The function to apply.
-    pub func: F,
-
-    /// Dummy value.
-    phantom: PhantomData<S>,
-}
-
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Pointwise<S, F> {
-    /// Initializes a new [`Pointwise`] function.
-    pub const fn new(func: F) -> Self {
-        Self {
-            func,
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pointwise<S, F> {
-    type Input = S;
-    type Output = S;
-
-    fn eval(&self, x: S) -> S {
-        x.map(|y| self.func.eval(y))
-    }
-}
-
-/// Maps a signal through a pointwise function.
-pub type PointwiseMapSgn<S, F> = MapSgn<S, Pointwise<<S as Signal>::Sample, F>>;
-
-impl<S: Signal, F: Map<Input = f64, Output = f64>> PointwiseMapSgn<S, F> {
-    /// Initializes a new [`PointwiseMapSgn`].
-    pub const fn new_pointwise(sgn: S, func: F) -> Self {
-        Self::new_generic(sgn, Pointwise::new(func))
-    }
-
-    /// Returns a reference to the function modifying the signal.
-    pub const fn func(&self) -> &F {
-        &self.map.func
-    }
-
-    /// Returns a mutable reference to the function modifying the signal.
-    pub fn func_mut(&mut self) -> &mut F {
-        &mut self.map.func
-    }
-}
-
-/// Represents the function that retriggers a signal.
-///
-/// This exists for convenience use in loops or sequences, such as:
-///
-/// ```
-/// # use pointillism::{prelude::*, signal::Retrigger};
-/// # let osc = CurveGen::<Sin>::default();
-/// // Retriggers the oscillator `osc` once per second.
-/// let mut song_loop = Loop::new(vec![Time::new(1.0)], osc, Retrigger::new());
-/// ```
-#[derive(Clone, Copy, Debug)]
-pub struct Retrigger<Y> {
-    /// Dummy value.
-    phantom: PhantomData<Y>,
-}
-
-impl<Y> Retrigger<Y> {
-    /// Initializes the [`Retrigger`] function.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<Y> Default for Retrigger<Y> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<S: Signal, Y> Mut<S, Y> for Retrigger<Y> {
-    fn modify(&mut self, sgn: &mut S, _: Y) {
-        sgn.retrigger();
-    }
+/// Depending on how your code is structured, it might be easier to simply stop
+/// calling `next` on your signal.
+pub trait Panic: Signal {
+    /// Stops all subsequent sound.
+    fn panic(&mut self);
 }

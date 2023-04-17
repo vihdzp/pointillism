@@ -10,6 +10,8 @@ use std::{
 };
 
 /// Represents a frequency.
+///
+/// Not to be confused with [`Frequency`].
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in hertz.
@@ -20,7 +22,7 @@ pub struct Freq {
 ///
 /// ```
 /// # use pointillism::prelude::*;
-/// let osc = CurveGen::<Sin>::default();
+/// let osc = LoopGen::<Sin>::default();
 /// ```
 ///
 /// will result in a 440 Hz sine wave.
@@ -189,12 +191,6 @@ impl Freq {
         } else {
             Err(NameError::Short)
         }
-    }
-}
-
-impl From<Freq> for Time {
-    fn from(value: Freq) -> Self {
-        value.period()
     }
 }
 

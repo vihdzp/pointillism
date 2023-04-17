@@ -69,12 +69,6 @@ impl Time {
     }
 }
 
-impl From<Time> for Freq {
-    fn from(value: Time) -> Self {
-        value.freq()
-    }
-}
-
 impl Mul<Freq> for f64 {
     type Output = Freq;
 

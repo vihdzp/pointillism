@@ -16,14 +16,14 @@ fn main() {
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
-        MutSgn::new_generic(
+        MutSgn::new(
             // A triangle wave with a placeholder frequency.
-            CurveGen::new(SawTri::tri(), BASE),
+            LoopGen::new(SawTri::tri(), BASE),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopCurveEnv::new(Sin::new(phase), (NUM_OSC as f64 * TIME).into()),
+            LoopGen::new(Sin::new(phase), (NUM_OSC as f64 * TIME).freq()),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
-            FnWrapper::new(|sgn: &mut CurveGen<_>, val| {
+            FnWrapper::new(|sgn: &mut LoopGen<_, _>, val| {
                 *sgn.freq_mut() = BASE * (val / 2.0 + 1.0);
             }),
         )

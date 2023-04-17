@@ -4,11 +4,12 @@
 //!
 //! - Implementing custom curves, either for envelopes via
 //! [`CurveEnv`](crate::prelude::CurveEnv), or waveforms via
-//! [`CurveGen`](crate::prelude::CurveGen). See also the
+//! [`LoopGen`](crate::prelude::LoopGen). See also the
 //! [`crate::generators::curves`] module for more info.
 //! - Create signals that modify others, either sample-wise via
 //! [`MapSgn`](crate::prelude::MapSgn), or by directly tweaking
-//! parameters via [`MutSgn`](crate::prelude::MutSgn).
+//! parameters via [`MutSgn`](crate::prelude::MutSgn) or
+//! [`ModSgn`](crate::prelude::ModSgn).
 //!
 //! In many cases, one can use a Rust function, wrapped in an [`FnWrapper`]
 //! struct. However, in cases where one wants control over this function, or to
@@ -160,7 +161,7 @@ pub struct Comp<F: Map, G: Map<Input = F::Output>> {
 
 impl<F: Map, G: Map<Input = F::Output>> Comp<F, G> {
     /// Composes two functions.
-    pub const fn new_generic(inner: F, outer: G) -> Self {
+    pub const fn new(inner: F, outer: G) -> Self {
         Self { inner, outer }
     }
 }

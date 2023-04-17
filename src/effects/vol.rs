@@ -5,6 +5,9 @@ use std::marker::PhantomData;
 use crate::prelude::*;
 
 /// Represents the gain of some signal.
+///
+/// This also implements the [`Map`] trait, thus doubling as a function that
+/// multiplies the volume of a signal.
 #[derive(Clone, Copy, Debug)]
 pub struct Vol {
     /// Gain factor.
@@ -12,14 +15,17 @@ pub struct Vol {
 }
 
 impl Vol {
-    /// Silence.
-    pub const ZERO: Self = Self::new(0.0);
-
     /// Initializes a new volume variable.
     #[must_use]
     pub const fn new(gain: f64) -> Self {
         Self { gain }
     }
+
+    /// Silence.
+    pub const ZERO: Self = Self::new(0.0);
+
+    /// Full volume.
+    pub const FULL: Self = Self::new(1.0);
 
     /// Gain measured in decibels.
     #[must_use]
@@ -50,26 +56,99 @@ impl Map for Vol {
 }
 
 /// Controls the volume of a signal.
-pub type Volume<S> = PointwiseMapSgn<S, Vol>;
+#[derive(Clone, Debug, Default)]
+pub struct Volume<S: Signal> {
+    /// Inner data.
+    inner: PwMapSgn<S, Vol>,
+}
 
 impl<S: Signal> Volume<S> {
     /// Initializes a new signal with a given [`Vol`].
     pub const fn new(sgn: S, vol: Vol) -> Self {
-        Self::new_pointwise(sgn, vol)
+        Self {
+            inner: PwMapSgn::new(sgn, vol),
+        }
+    }
+
+    /// Returns a reference to the signal whose volume is modified.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn()
+    }
+
+    /// Returns a mutable reference to the signal whose volume is modified.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut()
     }
 
     /// Volume of the signal.
     pub const fn vol(&self) -> Vol {
-        *self.func()
+        *self.inner.func()
     }
 
     /// Returns a mutable reference to the volume of the signal.
     pub fn vol_mut(&mut self) -> &mut Vol {
-        self.func_mut()
+        self.inner.func_mut()
+    }
+}
+
+impl<S: Signal> Signal for Volume<S> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        self.inner.get()
+    }
+
+    fn advance(&mut self) {
+        self.inner.advance()
+    }
+
+    fn retrigger(&mut self) {
+        self.inner.retrigger()
+    }
+}
+
+impl<S: Frequency> Frequency for Volume<S> {
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
+    }
+}
+
+impl<S: Base> Base for Volume<S> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Done> Done for Volume<S> {
+    fn is_done(&self) -> bool {
+        self.inner.is_done()
+    }
+}
+
+impl<S: Stop> Stop for Volume<S> {
+    fn stop(&mut self) {
+        self.inner.stop();
+    }
+}
+
+impl<S: Panic> Panic for Volume<S> {
+    fn panic(&mut self) {
+        self.inner.panic();
     }
 }
 
 /// The function that applies tremolo to a volume signal.
+#[derive(Clone, Copy, Debug)]
 pub struct Trem<S: Signal> {
     /// Dummy variable.
     phantom: PhantomData<S>,
@@ -98,59 +177,182 @@ impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
 }
 
 /// Applies tremolo to a signal according to an envelope.
-pub type Tremolo<S, E> = MutSgn<Volume<S>, E, Trem<S>>;
+///
+/// This signal stops whenever the original signal does. If you instead want a
+/// signal that stops when the envelope does, use [`StopTremolo`].
+#[derive(Clone, Debug)]
+pub struct Tremolo<S: Signal, E: Signal<Sample = Env>> {
+    /// Inner data.
+    inner: MutSgn<Volume<S>, E, Trem<S>>,
+}
 
 impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
-    pub fn new(sgn: S, env: E) -> Self {
-        Self::new_generic(Volume::new(sgn, Vol::new(1.0)), env, Trem::new())
-    }
-
-    pub fn sgn(&self) -> &S {
-        self.sgn.sgn()
-    }
-
-    pub fn sgn_mut(&mut self) -> &mut S {
-        self.sgn.sgn_mut()
-    }
-}
-
-/// Applies tremolo to a signal according to a curve envelope.
-///
-/// In contrast to [`Tremolo`], this signal stops when the curve does.
-pub struct StopTremolo<S: Signal, C: Map<Input = f64, Output = f64>> {
-    pub sgn: Tremolo<S, CurveEnv<C>>,
-}
-
-impl<S: Signal, C: Map<Input = f64, Output = f64>> StopTremolo<S, C> {
-    pub fn new(sgn: S, curve_env: CurveEnv<C>) -> Self {
+    pub fn new(sgn: S, env: E, vol: Vol) -> Self {
         Self {
-            sgn: Tremolo::new(sgn, curve_env),
+            inner: MutSgn::new(Volume::new(sgn, vol), env, Trem::new()),
         }
     }
+
+    /// Returns a reference to the signal whose volume is modified.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn().sgn()
+    }
+
+    /// Returns a mutable reference to the signal whose volume is modified.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut().sgn_mut()
+    }
+
+    /// Returns a reference to the envelope controlling the volume.
+    pub const fn env(&self) -> &E {
+        self.inner.env()
+    }
+
+    /// Returns a mutable reference to the envelope controlling the volume.
+    pub fn env_mut(&mut self) -> &mut E {
+        self.inner.env_mut()
+    }
 }
 
-impl<S: Signal, C: Map<Input = f64, Output = f64>> Signal for StopTremolo<S, C> {
+impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
     type Sample = S::Sample;
 
-    fn get(&self) -> Self::Sample {
-        self.sgn.get()
+    fn get(&self) -> S::Sample {
+        self.inner.get()
     }
 
     fn advance(&mut self) {
-        self.sgn.advance();
+        self.inner.advance()
     }
 
     fn retrigger(&mut self) {
-        self.sgn.retrigger();
+        self.inner.retrigger()
     }
 }
 
-impl<S: Signal, C: Map<Input = f64, Output = f64>> Stop for StopTremolo<S, C> {
-    fn stop(&mut self) {}
+impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Tremolo<S, E> {
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
 
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
+    }
+}
+
+impl<S: Base, E: Signal<Sample = Env>> Base for Tremolo<S, E> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Done, E: Signal<Sample = Env>> Done for Tremolo<S, E> {
     fn is_done(&self) -> bool {
-        self.sgn.env.val() >= 1.0
+        self.inner.is_done()
+    }
+}
+
+impl<S: Stop, E: Signal<Sample = Env>> Stop for Tremolo<S, E> {
+    fn stop(&mut self) {
+        self.inner.stop()
+    }
+}
+
+impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
+    fn panic(&mut self) {
+        self.inner.panic()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct StopTremolo<S: Signal, E: Signal<Sample = Env>> {
+    /// Inner data.
+    inner: ModSgn<Volume<S>, E, Trem<S>>,
+}
+
+impl<S: Signal, E: Signal<Sample = Env>> StopTremolo<S, E> {
+    /// Initializes a new [`Tremolo`].
+    pub fn new(sgn: S, env: E, vol: Vol) -> Self {
+        Self {
+            inner: ModSgn::new(Volume::new(sgn, vol), env, Trem::new()),
+        }
+    }
+
+    /// Returns a reference to the signal whose volume is modified.
+    pub const fn sgn(&self) -> &S {
+        self.inner.sgn().sgn()
+    }
+
+    /// Returns a mutable reference to the signal whose volume is modified.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        self.inner.sgn_mut().sgn_mut()
+    }
+
+    /// Returns a reference to the envelope controlling the volume.
+    pub const fn env(&self) -> &E {
+        self.inner.env()
+    }
+
+    /// Returns a mutable reference to the envelope controlling the volume.
+    pub fn env_mut(&mut self) -> &mut E {
+        self.inner.env_mut()
+    }
+}
+
+impl<S: Signal, E: Signal<Sample = Env>> Signal for StopTremolo<S, E> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        self.inner.get()
+    }
+
+    fn advance(&mut self) {
+        self.inner.advance()
+    }
+
+    fn retrigger(&mut self) {
+        self.inner.retrigger()
+    }
+}
+
+impl<S: Frequency, E: Signal<Sample = Env>> Frequency for StopTremolo<S, E> {
+    fn freq(&self) -> Freq {
+        self.inner.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.inner.freq_mut()
+    }
+}
+
+impl<S: Base, E: Signal<Sample = Env>> Base for StopTremolo<S, E> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.inner.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.inner.base_mut()
+    }
+}
+
+impl<S: Signal, E: Done<Sample = Env>> Done for StopTremolo<S, E> {
+    fn is_done(&self) -> bool {
+        self.env().is_done()
+    }
+}
+
+impl<S: Signal, E: Stop<Sample = Env>> Stop for StopTremolo<S, E> {
+    fn stop(&mut self) {
+        self.env_mut().stop();
     }
 }
 

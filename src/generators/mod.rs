@@ -3,3 +3,4 @@
 
 pub mod curves;
 pub mod poly;
+pub mod sequence;

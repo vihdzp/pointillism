@@ -7,12 +7,24 @@
 
 use pointillism::prelude::*;
 
+// Base note for binaural beats.
 const BASE: Freq = Freq::new(222.2);
+
+// Fade-in / fade-out time for instruments.
 const FADE: Time = Time::new(20.0);
-const VIB_TIME: Time = Time::new(40.0);
+
+// Period for the vibrato.
+const VIB_FREQ: Freq = Freq::new(1.0 / 40.0);
+
+// Time until the melody starts.
 const MELODY_TIME: Time = Time::new(120.0);
+
+// Length of the song.
 const LENGTH: Time = Time::new(5.0 * 60.0);
 
+/// A fade-in and fade-out effect.
+///
+/// TODO: implement this directly in pointillism.
 fn fade(time: Time, length: Time, fade: Time) -> f64 {
     if time < fade {
         time.seconds / fade.seconds
@@ -25,15 +37,15 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
 
 fn binaural() -> impl Signal<Sample = Stereo> {
     // A sine wave.
-    let wave = |freq| CurveGen::new(Sin::sin(), freq);
+    let wave = |freq| LoopGen::new(Sin::sin(), freq);
 
     // Vibrato sine wave.
     let vib = |freq| {
         Vibrato::new(
             wave(freq),
             freq,
-            PointwiseMapSgn::new_pointwise(
-                LoopCurveEnv::new(Sin::sin(), VIB_TIME.into()),
+            PwMapSgn::new(
+                LoopGen::new(Sin::sin(), VIB_FREQ),
                 Linear::rescale(-1.0, 1.0, 0.99, 1.01),
             ),
         )
@@ -44,15 +56,16 @@ fn binaural() -> impl Signal<Sample = Stereo> {
 }
 
 fn melody() -> impl Signal<Sample = Mono> {
+    // The melody is lowered by a chromatic semitone 24/25 every repetition.
     let mut freq = 2.0 * A4;
     let notes = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
-    let wave = |freq| CurveGen::new(SawTri::tri(), freq);
+    let wave = |freq| LoopGen::new(SawTri::tri(), freq);
     let shape = move |freq| {
-        MutSgn::new_generic(
+        MutSgn::new(
             wave(freq),
-            CurveEnv::new(PosSaw::new(), Time::new(5.0)),
-            FnWrapper::new(|sgn: &mut CurveGen<SawTri>, val: f64| {
+            OneshotGen::new(PosSaw::new(), Time::new(5.0)),
+            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: f64| {
                 sgn.curve_mut().shape = 1.0 - val.powf(0.2) / 2.0;
             }),
         )
@@ -60,7 +73,8 @@ fn melody() -> impl Signal<Sample = Mono> {
     let trem = move |freq| {
         StopTremolo::new(
             shape(freq),
-            CurveEnv::new(PosInvSaw::new(), Time::new(10.0)),
+            OneshotGen::new(PosInvSaw::new(), Time::new(10.0)),
+            Vol::FULL,
         )
     };
 

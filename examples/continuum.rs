@@ -24,21 +24,21 @@ fn main() {
     const NOTE_COUNT: u16 = 200;
 
     // Envelope for the wave shape.
-    let shape_env = Comp::new_generic(Saw::new(), Linear::rescale(-1.0, 1.0, 0.75, 0.5));
+    let shape_env = Comp::new(Saw::new(), Linear::rescale(-1.0, 1.0, 0.75, 0.5));
 
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
-        pointillism::effects::pan::MixedPanner::new(
-            MutSgn::new_generic(
+        pointillism::effects::pan::Panner::mixed(
+            MutSgn::new(
                 Envelope::new(
                     // Saw-triangle wave with specified frequency.
-                    CurveGen::new(SawTri::saw(), freq),
+                    LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     Adsr::new(NOTE_LEN, Time::ZERO, 1.0, RELEASE_LEN),
                 ),
-                CurveEnv::new(shape_env, NOTE_LEN),
+                OneshotGen::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper::new(|sgn: &mut Envelope<CurveGen<SawTri>>, val: f64| {
+                FnWrapper::new(|sgn: &mut Envelope<LoopGen<Stereo, SawTri>>, val: f64| {
                     sgn.sgn_mut().curve_mut().shape = val;
                 }),
             ),
