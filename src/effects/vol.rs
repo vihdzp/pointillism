@@ -272,12 +272,12 @@ impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
 }
 
 #[derive(Clone, Debug)]
-pub struct StopTremolo<S: Signal, E: Signal<Sample = Env>> {
+pub struct StopTremolo<S: Signal, E: Stop<Sample = Env>> {
     /// Inner data.
     inner: ModSgn<Volume<S>, E, Trem<S>>,
 }
 
-impl<S: Signal, E: Signal<Sample = Env>> StopTremolo<S, E> {
+impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, env: E, vol: Vol) -> Self {
         Self {
@@ -306,7 +306,7 @@ impl<S: Signal, E: Signal<Sample = Env>> StopTremolo<S, E> {
     }
 }
 
-impl<S: Signal, E: Signal<Sample = Env>> Signal for StopTremolo<S, E> {
+impl<S: Signal, E: Stop<Sample = Env>> Signal for StopTremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -322,7 +322,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for StopTremolo<S, E> {
     }
 }
 
-impl<S: Frequency, E: Signal<Sample = Env>> Frequency for StopTremolo<S, E> {
+impl<S: Frequency, E: Stop<Sample = Env>> Frequency for StopTremolo<S, E> {
     fn freq(&self) -> Freq {
         self.inner.freq()
     }
@@ -332,7 +332,7 @@ impl<S: Frequency, E: Signal<Sample = Env>> Frequency for StopTremolo<S, E> {
     }
 }
 
-impl<S: Base, E: Signal<Sample = Env>> Base for StopTremolo<S, E> {
+impl<S: Base, E: Stop<Sample = Env>> Base for StopTremolo<S, E> {
     type Base = S::Base;
 
     fn base(&self) -> &S::Base {
@@ -344,7 +344,7 @@ impl<S: Base, E: Signal<Sample = Env>> Base for StopTremolo<S, E> {
     }
 }
 
-impl<S: Signal, E: Done<Sample = Env>> Done for StopTremolo<S, E> {
+impl<S: Signal, E: Stop<Sample = Env> + Done> Done for StopTremolo<S, E> {
     fn is_done(&self) -> bool {
         self.env().is_done()
     }
@@ -353,6 +353,12 @@ impl<S: Signal, E: Done<Sample = Env>> Done for StopTremolo<S, E> {
 impl<S: Signal, E: Stop<Sample = Env>> Stop for StopTremolo<S, E> {
     fn stop(&mut self) {
         self.env_mut().stop();
+    }
+}
+
+impl<S: Signal, E: Stop<Sample = Env> + Panic> Panic for StopTremolo<S, E> {
+    fn panic(&mut self) {
+        self.env_mut().panic();
     }
 }
 
