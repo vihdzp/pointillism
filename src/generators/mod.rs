@@ -1,3 +1,5 @@
+//! Implements generators of all kinds.
+//!
 //! Generators are structures that generate [`Signals`](crate::prelude::Signal)
 //! on their own, be they envelope or audio data.
 //!
@@ -110,7 +112,7 @@ pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
 }
 
 impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
-    /// Initializes a new [`LoopCurveEnv`].
+    /// Initializes a new [`LoopGen`].
     pub const fn new(curve: C, freq: Freq) -> Self {
         Self {
             curve,

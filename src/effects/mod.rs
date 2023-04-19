@@ -1,8 +1,7 @@
 //! Implements many effects one can use to modify signals.
 //!
-//! The distinction between an effect and a generator is blurry. Roughly, an
-//! effect alters parameters of a sound, while a generator produces a new sound
-//! altogether.
+//! Effects are structures that wrap around [`Signals`](crate::prelude::Signal)
+//! and modify the samples they produce, be they envelope or audio data.
 //!
 //! The module file implements the most basic structures for transforming a
 //! signal, including [`MapSgn`], [`MutSgn`], and [`ModSgn`].

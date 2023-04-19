@@ -11,7 +11,7 @@ use std::{
 
 /// Represents a frequency.
 ///
-/// Not to be confused with [`Frequency`].
+/// Not to be confused with [`Frequency`](crate::signal::Frequency).
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in hertz.

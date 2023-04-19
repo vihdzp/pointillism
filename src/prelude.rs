@@ -6,6 +6,7 @@ pub use crate::{
         adsr::{Adsr, Envelope},
         freq::*,
         mix::*,
+        trailing::*,
         vol::*,
         *,
     },

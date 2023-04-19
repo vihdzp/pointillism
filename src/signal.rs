@@ -33,8 +33,8 @@ pub trait Signal {
 /// Not to be confused with [`Freq`].
 ///
 /// This is implemented both for signals that have a frequency parameter such as
-/// [`LoopGen`](crate::generators::curves::LoopGen), as well as
-/// straightforward wrappers for these signals.
+/// [`LoopGen`](crate::generators::LoopGen), as well as straightforward wrappers
+/// for these signals.
 pub trait Frequency: Signal {
     /// The "main" frequency of the signal.
     fn freq(&self) -> Freq;
@@ -65,7 +65,7 @@ pub trait Base: Signal {
 ///
 /// If a signal never ends, it should not implement this trait. If you really
 /// want to use such a signal within a `Polyphony` object, wrap it in the
-/// [`Trailing`] structure.
+/// [`Trailing`](crate::prelude::Trailing) structure.
 pub trait Done: Signal {
     /// Returns whether the signal has stopped producing any sound altogether.
     ///

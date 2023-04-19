@@ -2,10 +2,11 @@
 //!
 //! These traits serve two main purposes:
 //!
-//! - Implementing custom curves, either for envelopes via
-//! [`CurveEnv`](crate::prelude::CurveEnv), or waveforms via
-//! [`LoopGen`](crate::prelude::LoopGen). See also the
-//! [`crate::generators::curves`] module for more info.
+//! - Implementing custom curves, that can be played back as samples via
+//! [`OneshotGen`](crate::prelude::OneshotGen) or
+//! [`LoopGen`](crate::prelude::LoopGen). See the [`crate::generators`] module
+//! for more info.
+//!
 //! - Create signals that modify others, either sample-wise via
 //! [`MapSgn`](crate::prelude::MapSgn), or by directly tweaking
 //! parameters via [`MutSgn`](crate::prelude::MutSgn) or

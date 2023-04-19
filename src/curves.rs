@@ -1,5 +1,5 @@
-//! Declares basic curves that may be used in envelopes via
-//! [`CurveEnv`](crate::prelude::CurveEnv), or to generate audio
+//! Declares basic curves that may be to generate audio via
+//! [`OneshotGen`](crate::prelude::OneshotGen) or
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
 //! By a curve, we mean any struct implementing
