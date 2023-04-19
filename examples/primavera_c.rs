@@ -52,7 +52,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
     };
 
     // Binaural beats.
-    StereoGen::new(wave(BASE * 0.985), vib(BASE))
+    StereoMix::new(wave(BASE * 0.985), vib(BASE))
 }
 
 fn melody() -> impl Signal<Sample = Mono> {

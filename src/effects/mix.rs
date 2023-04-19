@@ -6,24 +6,25 @@ use crate::{
     sample::{Mono, Stereo},
 };
 
-/// Combines two [`Mono`] signals into a [`Stereo`] signal.
-pub struct StereoGen<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, pub Y);
+/// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on
+/// each channel.
+pub struct StereoMix<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, pub Y);
 
-impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoGen<X, Y> {
-    /// Initializes a new [`StereoGen`].
+impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoMix<X, Y> {
+    /// Initializes a new [`StereoMix`].
     pub const fn new(sgn1: X, sgn2: Y) -> Self {
         Self(sgn1, sgn2)
     }
 }
 
-impl<Z: Signal<Sample = Mono> + Clone> StereoGen<Z, Z> {
+impl<Z: Signal<Sample = Mono> + Clone> StereoMix<Z, Z> {
     /// Duplicates a [`Mono`] signal.
-    pub fn duplicate(sgn: Z) -> Self {
+    pub fn dup(sgn: Z) -> Self {
         Self(sgn.clone(), sgn)
     }
 }
 
-impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoGen<X, Y> {
+impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoMix<X, Y> {
     type Sample = Stereo;
 
     fn get(&self) -> Self::Sample {
@@ -41,20 +42,20 @@ impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoGen<X,
     }
 }
 
-impl<X: Done<Sample = Mono>, Y: Done<Sample = Mono>> Done for StereoGen<X, Y> {
+impl<X: Done<Sample = Mono>, Y: Done<Sample = Mono>> Done for StereoMix<X, Y> {
     fn is_done(&self) -> bool {
         self.0.is_done() && self.1.is_done()
     }
 }
 
-impl<X: Stop<Sample = Mono>, Y: Stop<Sample = Mono>> Stop for StereoGen<X, Y> {
+impl<X: Stop<Sample = Mono>, Y: Stop<Sample = Mono>> Stop for StereoMix<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
     }
 }
 
-impl<X: Panic<Sample = Mono>, Y: Panic<Sample = Mono>> Panic for StereoGen<X, Y> {
+impl<X: Panic<Sample = Mono>, Y: Panic<Sample = Mono>> Panic for StereoMix<X, Y> {
     fn panic(&mut self) {
         self.0.panic();
         self.1.panic();

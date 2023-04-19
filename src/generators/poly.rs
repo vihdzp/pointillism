@@ -79,7 +79,7 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     where
         S: Stop,
     {
-        self.modify(key, |s| s.stop())
+        self.modify(key, S::stop)
     }
 }
 
