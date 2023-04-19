@@ -44,8 +44,7 @@ pub trait Mut<X, Y> {
     fn modify(&mut self, x: &mut X, y: Y);
 }
 
-/// A wrapper for a Rust function which converts it into a [`Map`] or
-/// [`Mut`].
+/// A wrapper for a Rust function which converts it into a [`Map`] or [`Mut`].
 ///
 /// It may be necessary to explicitly write down the types of the arguments to
 /// the function.
