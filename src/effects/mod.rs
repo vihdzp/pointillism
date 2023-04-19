@@ -19,14 +19,44 @@ use std::marker::PhantomData;
 
 use crate::prelude::*;
 
+/// Converts a function into one applied pointwise to the entries of a
+/// [`Sample`].
+#[derive(Clone, Debug, Default)]
+pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
+    /// The function to apply.
+    pub func: F,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
+}
+
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
+    /// Initializes a new [`Pw`] function.
+    pub const fn new(func: F) -> Self {
+        Self {
+            func,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
+    type Input = S;
+    type Output = S;
+
+    fn eval(&self, x: S) -> S {
+        x.map(|y| self.func.eval(y))
+    }
+}
+
 /// Maps a signal to another via a specified map.
 ///
 /// This map should send in most cases send the zero sample to itself. That
 /// ensures that there is no DC offset if the signal stops.
 ///
 /// Note that the map here takes in a sample and outputs a sample. If you
-/// instead want to map the floating point values of the sample pointwise, use
-/// [`PwMapSgn`].
+/// instead want to map the floating point values of the sample pointwise, wrap
+/// the function in [`Pw`].
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MapSgn<S: Signal, F: Map<Input = S::Sample>>
 where
@@ -44,11 +74,16 @@ where
     F::Output: Sample,
 {
     /// Initializes a generic [`MapSgn`].
-    ///
-    /// There are many type aliases for specific subtypes of [`MapSgn`], and
-    /// these will often provide more convenient instantiations via `new`.
     pub const fn new(sgn: S, map: F) -> Self {
         Self { sgn, map }
+    }
+
+    /// Initializes a [`MapSgn`] using the default constructor for the function.
+    pub fn new_default(sgn: S) -> Self
+    where
+        F: Default,
+    {
+        Self::new(sgn, F::default())
     }
 
     /// Returns a reference to the original signal.
@@ -146,125 +181,23 @@ where
     }
 }
 
-/// Converts a function into one applied pointwise to the entries of a
-/// [`Sample`].
-#[derive(Clone, Debug, Default)]
-pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
-    /// The function to apply.
-    pub func: F,
-
-    /// Dummy value.
-    phantom: PhantomData<S>,
-}
-
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
-    /// Initializes a new [`Pw`] function.
-    pub const fn new(func: F) -> Self {
-        Self {
-            func,
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
-    type Input = S;
-    type Output = S;
-
-    fn eval(&self, x: S) -> S {
-        x.map(|y| self.func.eval(y))
-    }
-}
-
-/// Maps a signal through a pointwise function.
-#[derive(Clone, Debug, Default)]
-pub struct PwMapSgn<S: Signal, F: Map<Input = f64, Output = f64>> {
-    /// Inner data.
-    inner: MapSgn<S, Pw<S::Sample, F>>,
-}
+/// A [`MapSgn`] taking in a [`Pw`] function.
+pub type PwMapSgn<S, F> = MapSgn<S, Pw<<S as Signal>::Sample, F>>;
 
 impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
-    /// Initializes a new [`PwMapSgn`].
-    pub const fn new(sgn: S, func: F) -> Self {
-        Self {
-            inner: MapSgn::new(sgn, Pw::new(func)),
-        }
+    /// Initializes a [`MapSgn`] from a pointwise function.
+    pub const fn new_pw(sgn: S, map: F) -> Self {
+        Self::new(sgn, Pw::new(map))
     }
 
-    /// Returns a reference to the inner signal.
-    pub const fn sgn(&self) -> &S {
-        self.inner.sgn()
+    /// Returns a reference to the pointwise map modifying the signal.
+    pub const fn map_pw(&self) -> &F {
+        &self.map().func
     }
 
-    /// Returns a mutable reference to the inner signal.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        self.inner.sgn_mut()
-    }
-
-    /// Returns a reference to the function modifying the signal.
-    pub const fn func(&self) -> &F {
-        &self.inner.map.func
-    }
-
-    /// Returns a mutable reference to the function modifying the signal.
-    pub fn func_mut(&mut self) -> &mut F {
-        &mut self.inner.map.func
-    }
-}
-
-impl<S: Signal, F: Map<Input = f64, Output = f64>> Signal for PwMapSgn<S, F> {
-    type Sample = S::Sample;
-
-    fn get(&self) -> S::Sample {
-        self.inner.get()
-    }
-
-    fn advance(&mut self) {
-        self.inner.advance();
-    }
-
-    fn retrigger(&mut self) {
-        self.inner.retrigger();
-    }
-}
-
-impl<S: Frequency, F: Map<Input = f64, Output = f64>> Frequency for PwMapSgn<S, F> {
-    fn freq(&self) -> Freq {
-        self.inner.freq()
-    }
-
-    fn freq_mut(&mut self) -> &mut Freq {
-        self.inner.freq_mut()
-    }
-}
-
-impl<S: Base, F: Map<Input = f64, Output = f64>> Base for PwMapSgn<S, F> {
-    type Base = S::Base;
-
-    fn base(&self) -> &S::Base {
-        self.inner.base()
-    }
-
-    fn base_mut(&mut self) -> &mut S::Base {
-        self.inner.base_mut()
-    }
-}
-
-impl<S: Done, F: Map<Input = f64, Output = f64>> Done for PwMapSgn<S, F> {
-    fn is_done(&self) -> bool {
-        self.inner.is_done()
-    }
-}
-
-impl<S: Stop, F: Map<Input = f64, Output = f64>> Stop for PwMapSgn<S, F> {
-    fn stop(&mut self) {
-        self.inner.stop();
-    }
-}
-
-impl<S: Panic, F: Map<Input = f64, Output = f64>> Panic for PwMapSgn<S, F> {
-    fn panic(&mut self) {
-        self.inner.panic();
+    /// Returns a mutable reference to the pointwise map modifying the signal.
+    pub fn map_pw_mut(&mut self) -> &mut F {
+        &mut self.map_mut().func
     }
 }
 

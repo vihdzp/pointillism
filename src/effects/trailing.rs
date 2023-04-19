@@ -1,3 +1,5 @@
+//! Defines structs that add extra trait functionality to other signals.
+
 use std::marker::PhantomData;
 
 use crate::prelude::*;
@@ -24,7 +26,7 @@ impl<S: Signal> Trailing<S> {
 impl<S: Signal> Signal for Trailing<S> {
     type Sample = S::Sample;
 
-    fn get(&self) -> Self::Sample {
+    fn get(&self) -> S::Sample {
         self.sgn.get()
     }
 
@@ -67,6 +69,80 @@ impl<S: Signal> Done for Trailing<S> {
 
 impl<S: Signal> Stop for Trailing<S> {
     fn stop(&mut self) {}
+}
+
+/// Makes a signal stop immediately.
+///
+/// After a signal is stopped, all subsequent outputs will be the zero sample.
+/// The signal will need to be retriggered in order to produce other outputs.
+pub struct Stopping<S: Signal> {
+    /// The inner signal.
+    pub sgn: S,
+
+    /// Is the signal done?
+    done: bool,
+}
+
+impl<S: Signal> Stopping<S> {
+    /// Initializes a new [`Stopping`] signal.
+    pub const fn new(sgn: S) -> Self {
+        Self { sgn, done: false }
+    }
+}
+
+impl<S: Signal> Signal for Stopping<S> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        if self.done {
+            S::Sample::ZERO
+        } else {
+            self.sgn.get()
+        }
+    }
+
+    fn advance(&mut self) {
+        self.sgn.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.sgn.retrigger();
+        self.done = false;
+    }
+}
+
+impl<S: Frequency> Frequency for Stopping<S> {
+    fn freq(&self) -> Freq {
+        self.sgn.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.sgn.freq_mut()
+    }
+}
+
+impl<S: Base> Base for Stopping<S> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.sgn.base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.sgn.base_mut()
+    }
+}
+
+impl<S: Signal> Done for Stopping<S> {
+    fn is_done(&self) -> bool {
+        self.done
+    }
+}
+
+impl<S: Signal> Stop for Stopping<S> {
+    fn stop(&mut self) {
+        self.done = true;
+    }
 }
 
 /// Represents the function that retriggers a signal.

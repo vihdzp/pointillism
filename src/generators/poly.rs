@@ -12,7 +12,7 @@ use crate::prelude::*;
 /// This stores multiple instances of a signal `S`, which can be added and
 /// stopped. Signals are internally removed as they are done.
 #[derive(Clone, Debug)]
-pub struct Polyphony<K: Eq + Hash + Clone, S: Stop + Done> {
+pub struct Polyphony<K: Eq + Hash + Clone, S: Done> {
     /// The signals currently playing.
     signals: HashMap<K, S>,
 
@@ -20,7 +20,7 @@ pub struct Polyphony<K: Eq + Hash + Clone, S: Stop + Done> {
     idx: usize,
 }
 
-impl<K: Eq + Hash + Clone, S: Stop + Done> Default for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Done> Default for Polyphony<K, S> {
     fn default() -> Self {
         Self {
             signals: HashMap::default(),
@@ -29,7 +29,7 @@ impl<K: Eq + Hash + Clone, S: Stop + Done> Default for Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop + Done> Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     /// Initializes a new polyphonic signal, playing nothing.
     #[must_use]
     pub fn new() -> Self {
@@ -37,6 +37,8 @@ impl<K: Eq + Hash + Clone, S: Stop + Done> Polyphony<K, S> {
     }
 
     /// Returns a reference to the structure of currently played signals.
+    ///
+    /// **Note that this is subject to change.**
     #[must_use]
     pub fn signals(&self) -> &HashMap<K, S> {
         &self.signals
@@ -61,18 +63,27 @@ impl<K: Eq + Hash + Clone, S: Stop + Done> Polyphony<K, S> {
         self.signals.get_mut(key)
     }
 
-    /// Stops a given signal, returns whether it was successful.
-    pub fn stop(&mut self, key: &K) -> bool {
+    /// Modifies a signal with the given key using the specified function.
+    /// Returns whether the signal was found.
+    pub fn modify<F: Fn(&mut S)>(&mut self, key: &K, f: F) -> bool {
         if let Some(sgn) = self.get_mut(key) {
-            sgn.stop();
+            f(sgn);
             true
         } else {
             false
         }
     }
+
+    /// Stops a given signal, returns whether it was successful.
+    pub fn stop(&mut self, key: &K) -> bool
+    where
+        S: Stop,
+    {
+        self.modify(key, |s| s.stop())
+    }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop + Done> Signal for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -101,7 +112,7 @@ impl<K: Eq + Hash + Clone, S: Stop + Done> Signal for Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Stop + Done> Base for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: Done> Base for Polyphony<K, S> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -110,5 +121,11 @@ impl<K: Eq + Hash + Clone, S: Stop + Done> Base for Polyphony<K, S> {
 
     fn base_mut(&mut self) -> &mut Self::Base {
         self
+    }
+}
+
+impl<K: Eq + Hash + Clone, S: Done> Panic for Polyphony<K, S> {
+    fn panic(&mut self) {
+        self.retrigger();
     }
 }

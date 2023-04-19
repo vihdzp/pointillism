@@ -1,5 +1,9 @@
-//! Structures that generate [`Signals`](crate::prelude::Signal) on their own,
-//! be they envelope or audio data.
+//! Generators are structures that generate [`Signals`](crate::prelude::Signal)
+//! on their own, be they envelope or audio data.
+//!
+//! The module file provides the most basic examples of generators, namely
+//! generators that read data from a curve. A curve in this context means a
+//! structure implementing `Map<Input = f64, Output = f64>`.
 
 use std::marker::PhantomData;
 
@@ -7,28 +11,6 @@ pub use crate::prelude::*;
 
 pub mod poly;
 pub mod sequence;
-
-/// A map which converts an envelope into mono audio.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct EnvToMono;
-
-impl Map for EnvToMono {
-    type Input = Env;
-    type Output = Mono;
-
-    fn eval(&self, x: Env) -> Mono {
-        x.into()
-    }
-}
-
-impl<S: Signal<Sample = Env>> MapSgn<S, EnvToMono> {
-    /// Plays an envelope as a [`Mono`] audio file.
-    ///
-    /// For very low-frequency envelopes, this might lead to undesirable sounds.
-    pub const fn env_gen(sgn: S) -> Self {
-        Self::new(sgn, EnvToMono)
-    }
-}
 
 /// Plays a curve at a specified speed, until it reaches the right endpoint.
 ///
@@ -50,7 +32,7 @@ pub struct OneshotGen<S: Sample, C: Map<Input = f64, Output = f64>> {
 }
 
 impl<S: Sample, C: Map<Input = f64, Output = f64>> OneshotGen<S, C> {
-    /// Initializes a new [`CurveEnv`].
+    /// Initializes a new [`OneshotGen`].
     pub const fn new(curve: C, time: Time) -> Self {
         Self {
             curve,
@@ -110,10 +92,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Stop for OneshotGen<S, C> {
 
 /// Loops a curve at a specified frequency.
 ///
-/// This is an envelope, meaning it returns [`Env`] data. See [`LoopGen`] if
-/// you want to generate mono audio instead.
-///
-/// See also [`CurveEnv`].
+/// See also [`OneshotGen`].
 #[derive(Clone, Copy, Debug, Default)]
 pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
     /// The curve being played.

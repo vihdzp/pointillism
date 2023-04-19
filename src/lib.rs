@@ -21,9 +21,13 @@
 //! can be advanced, or retriggered.
 //!
 //! Signals may be composed to create more complex signals, using for instance
-//! a [`MutSgn`](crate::prelude::MutSgn). Moreover, you can implement the
-//! trait for your own structs, giving you vast control over the samples you're
-//! producing.
+//! the [`MapSgn`](crate::prelude::MutSgn) and
+//! [`MutSgn`](crate::prelude::MutSgn) structs. Moreover, you can implement the
+//! `Signal` trait for your own structs, giving you vast control over the
+//! samples you're producing.
+//!
+//! Signals that generate audio on their own are called *generators*. Signals
+//! that modify the output from another signal are called *effects*.
 //!
 //! You can think of pointillism as a run-time modular synthesizer, where every
 //! new struct is its own module.

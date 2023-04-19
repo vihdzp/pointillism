@@ -44,7 +44,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
         Vibrato::new(
             wave(freq),
             freq,
-            PwMapSgn::new(
+            PwMapSgn::new_pw(
                 LoopGen::new(Sin::sin(), VIB_FREQ),
                 Linear::rescale(-1.0, 1.0, 0.99, 1.01),
             ),

@@ -30,18 +30,6 @@ pub struct Stereo(pub f64, pub f64);
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Env(pub f64);
 
-impl From<Env> for Mono {
-    fn from(value: Env) -> Self {
-        Self(value.0)
-    }
-}
-
-impl From<Mono> for Env {
-    fn from(value: Mono) -> Self {
-        Self(value.0)
-    }
-}
-
 /// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
 ///
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples

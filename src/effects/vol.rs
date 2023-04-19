@@ -66,7 +66,7 @@ impl<S: Signal> Volume<S> {
     /// Initializes a new signal with a given [`Vol`].
     pub const fn new(sgn: S, vol: Vol) -> Self {
         Self {
-            inner: PwMapSgn::new(sgn, vol),
+            inner: PwMapSgn::new_pw(sgn, vol),
         }
     }
 
@@ -82,12 +82,12 @@ impl<S: Signal> Volume<S> {
 
     /// Volume of the signal.
     pub const fn vol(&self) -> Vol {
-        *self.inner.func()
+        *self.inner.map_pw()
     }
 
     /// Returns a mutable reference to the volume of the signal.
     pub fn vol_mut(&mut self) -> &mut Vol {
-        self.inner.func_mut()
+        self.inner.map_pw_mut()
     }
 }
 

@@ -33,7 +33,7 @@ pub trait Signal {
 /// Not to be confused with [`Freq`].
 ///
 /// This is implemented both for signals that have a frequency parameter such as
-/// [`LoopCurveEnv`](crate::generators::curves::LoopCurveEnv), as well as
+/// [`LoopGen`](crate::generators::curves::LoopGen), as well as
 /// straightforward wrappers for these signals.
 pub trait Frequency: Signal {
     /// The "main" frequency of the signal.
@@ -62,12 +62,16 @@ pub trait Base: Signal {
 ///
 /// Is used in [`Polyphony`](crate::prelude::Polyphony) so that a synth can be
 /// cleared from memory when it stops.
+///
+/// If a signal never ends, it should not implement this trait. If you really
+/// want to use such a signal within a `Polyphony` object, wrap it in the
+/// [`Trailing`] structure.
 pub trait Done: Signal {
     /// Returns whether the signal has stopped producing any sound altogether.
     ///
     /// If this returns `true` once, it must return `true` in all successive
-    /// times. Further, if this returns `true`, then getting a sample from the
-    /// signal must always return zero.
+    /// times, unless retriggered. Further, if this returns `true`, then getting
+    /// a sample from the signal must always return zero.
     fn is_done(&self) -> bool;
 }
 

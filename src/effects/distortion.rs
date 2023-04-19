@@ -20,7 +20,7 @@ impl Map for InfClip {
 impl<S: Signal> PwMapSgn<S, InfClip> {
     /// Applies [`InfClip`] distortion to a signal.
     pub const fn inf_clip(sgn: S) -> Self {
-        Self::new(sgn, InfClip)
+        Self::new_pw(sgn, InfClip)
     }
 }
 
@@ -59,7 +59,7 @@ impl Map for Clip {
 impl<S: Signal> PwMapSgn<S, Clip> {
     /// Applies [`Clip`] distortion to a signal.
     pub const fn clip(sgn: S, threshold: f64) -> Self {
-        Self::new(sgn, Clip::new(threshold))
+        Self::new_pw(sgn, Clip::new(threshold))
     }
 }
 
@@ -98,7 +98,7 @@ impl Map for Atan {
 impl<S: Signal> PwMapSgn<S, Atan> {
     /// Applies [`Atan`] distortion to a signal.
     pub const fn atan(sgn: S, shape: f64) -> Self {
-        Self::new(sgn, Atan::new(shape))
+        Self::new_pw(sgn, Atan::new(shape))
     }
 }
 
@@ -153,7 +153,7 @@ impl Map for Pow {
 impl<S: Signal> PwMapSgn<S, Pow> {
     /// Applies [`Pow`] distortion to a signal.
     pub const fn pow(sgn: S, exponent: u16) -> Self {
-        Self::new(sgn, Pow::new(exponent))
+        Self::new_pw(sgn, Pow::new(exponent))
     }
 
     /// Cubic distortion.
