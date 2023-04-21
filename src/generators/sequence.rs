@@ -6,13 +6,13 @@ use crate::prelude::*;
 #[derive(Clone, Debug)]
 pub struct Sequence<S: Signal, F: Mut<S, Time>> {
     /// A list of time intervals between an event and the next.
-    pub times: Vec<Time>,
+    times: Vec<Time>,
 
     /// A signal being modified.
-    pub sgn: S,
+    sgn: S,
 
     /// The function modifying the signal.
-    pub func: F,
+    func: F,
 
     /// The current event being read.
     idx: usize,
@@ -37,6 +37,31 @@ impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
         }
     }
 
+    /// Returns a reference to the list of time intervals between events.
+    pub fn times(&self) -> &[Time] {
+        &self.times
+    }
+
+    /// Returns a reference to the modified signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the modified signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.func
+    }
+
     /// The current event index.
     pub const fn idx(&self) -> usize {
         self.idx
@@ -50,16 +75,6 @@ impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
     /// Time since instantiation.
     pub const fn total(&self) -> Time {
         self.total
-    }
-
-    /// Returns a reference to the modified signal.
-    pub const fn sgn(&self) -> &S {
-        &self.sgn
-    }
-
-    /// Returns a mutable reference to the modified signal.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        &mut self.sgn
     }
 
     /// The number of events.
@@ -119,18 +134,43 @@ impl<S: Signal, F: Mut<S, Time>> Signal for Sequence<S, F> {
 #[derive(Clone, Debug)]
 pub struct Loop<S: Signal, F: Mut<S, Time>> {
     /// The internal sequence.
-    pub seq: Sequence<S, F>,
+    seq: Sequence<S, F>,
 }
 
 impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
     /// Initializes a new loop from a sequence.
-    pub const fn new_seq(seq: Sequence<S, F>) -> Self {
+    const fn new_seq(seq: Sequence<S, F>) -> Self {
         Self { seq }
     }
 
     /// Initializes a new loop.
     pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self::new_seq(Sequence::new(times, sgn, func))
+    }
+
+    /// Returns a reference to the list of time intervals between events.
+    pub fn times(&self) -> &[Time] {
+        self.seq.times()
+    }
+
+    /// Returns a reference to the modified signal.
+    pub const fn sgn(&self) -> &S {
+        &self.seq.sgn
+    }
+
+    /// Returns a mutable reference to the modified signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.seq.sgn
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.seq.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.seq.func
     }
 
     /// The current event index.
@@ -146,16 +186,6 @@ impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
     /// Time since instantiation.
     pub const fn total(&self) -> Time {
         self.seq.total
-    }
-
-    /// Returns a reference to the modified signal.
-    pub const fn sgn(&self) -> &S {
-        &self.seq.sgn
-    }
-
-    /// Returns a mutable reference to the modified signal.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        &mut self.seq.sgn
     }
 
     /// The number of events in the loop.
