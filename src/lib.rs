@@ -43,8 +43,9 @@
 //! Once the basic structure of `pointillism` stabilizes, the version will
 //! advance to 0.3.0, and a changelog will be made.
 
-#![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
+#![warn(clippy::missing_docs_in_private_items)]
+#![warn(clippy::pedantic)]
 
 pub mod curves;
 pub mod effects;

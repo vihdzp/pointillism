@@ -271,6 +271,10 @@ impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
     }
 }
 
+/// Applies tremolo to a signal according to an envelope.
+///
+/// This signal stops whenever the envelope does. If you instead want a signal
+/// that stops when the original signal does, use [`Tremolo`].
 #[derive(Clone, Debug)]
 pub struct StopTremolo<S: Signal, E: Stop<Sample = Env>> {
     /// Inner data.

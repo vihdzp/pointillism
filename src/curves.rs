@@ -387,7 +387,7 @@ impl SawTri {
 /// `1.0` and `-1.0` for `x ≥ shape`.
 #[must_use]
 pub fn saw_tri(x: f64, shape: f64) -> f64 {
-    // We must do some size checks to avoid division by 0.
+    /// We must do some size checks to avoid division by 0.
     const EPS: f64 = 1e-7;
 
     if x < shape {

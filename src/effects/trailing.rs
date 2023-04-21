@@ -150,8 +150,8 @@ impl<S: Signal> Stop for Stopping<S> {
 /// This exists for convenience use in loops or sequences, such as:
 ///
 /// ```
-/// # use pointillism::{prelude::*, signal::Retrigger};
-/// # let osc = LoopGen::<Sin>::default();
+/// # use pointillism::{prelude::*, effects::trailing::Retrigger};
+/// # let osc = LoopGen::<Mono, Sin>::default();
 /// // Retriggers the oscillator `osc` once per second.
 /// let mut song_loop = Loop::new(vec![Time::new(1.0)], osc, Retrigger::new());
 /// ```

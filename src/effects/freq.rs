@@ -38,6 +38,7 @@ impl<S: Frequency> Mut<S, f64> for Vib<S> {
 
 /// Applies tremolo to a signal according to an envelope.
 pub struct Vibrato<S: Frequency, E: Signal<Sample = Env>> {
+    /// Inner data.
     inner: MutSgn<S, E, Vib<S>>,
 }
 
