@@ -82,12 +82,6 @@ impl Time {
         1e3 * self.seconds()
     }
 
-    /// The time in microseconds.
-    #[must_use]
-    pub fn microseconds(&self) -> f64 {
-        1e6 * self.seconds()
-    }
-
     /// The time in frames.
     #[must_use]
     pub fn frames(&self) -> f64 {
@@ -108,7 +102,7 @@ impl From<Duration> for Time {
 
 impl From<Time> for Duration {
     fn from(value: Time) -> Self {
-        Self::from_micros(value.microseconds() as u64)
+        Self::from_secs_f64(value.seconds())
     }
 }
 
