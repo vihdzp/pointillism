@@ -372,13 +372,13 @@ impl<S: Signal, E: Stop<Sample = Env> + Panic> Panic for StopTremolo<S, E> {
 #[derive(Clone, Debug)]
 pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
     /// The gated signal.
-    pub sgn: S,
+    sgn: S,
 
     /// The envelope for the gating.
-    pub env: E,
+    env: E,
 
     /// The threshold for the gate.
-    pub threshold: f64,
+    threshold: f64,
 }
 
 impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
@@ -389,6 +389,36 @@ impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
             env,
             threshold,
         }
+    }
+
+    /// Returns a reference to the signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the envelope.
+    pub const fn env(&self) -> &E {
+        &self.env
+    }
+
+    /// Returns a mutable reference to the envelope.
+    pub fn env_mut(&mut self) -> &mut E {
+        &mut self.env
+    }
+
+    /// Returns the threshold.
+    pub const fn threshold(&self) -> f64 {
+        self.threshold
+    }
+
+    /// Returns a mutable reference to the threshold.
+    pub fn threshold_mut(&mut self) -> &mut f64 {
+        &mut self.threshold
     }
 }
 
@@ -411,6 +441,46 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Gate<S, E> {
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.env.retrigger();
+    }
+}
+
+impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Gate<S, E> {
+    fn freq(&self) -> Freq {
+        self.sgn.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        self.sgn_mut().freq_mut()
+    }
+}
+
+impl<S: Base, E: Signal<Sample = Env>> Base for Gate<S, E> {
+    type Base = S::Base;
+
+    fn base(&self) -> &S::Base {
+        self.sgn().base()
+    }
+
+    fn base_mut(&mut self) -> &mut S::Base {
+        self.sgn_mut().base_mut()
+    }
+}
+
+impl<S: Done, E: Signal<Sample = Env>> Done for Gate<S, E> {
+    fn is_done(&self) -> bool {
+        self.sgn().is_done()
+    }
+}
+
+impl<S: Stop, E: Signal<Sample = Env>> Stop for Gate<S, E> {
+    fn stop(&mut self) {
+        self.sgn_mut().stop();
+    }
+}
+
+impl<S: Panic, E: Signal<Sample = Env>> Panic for Gate<S, E> {
+    fn panic(&mut self) {
+        self.sgn_mut().panic();
     }
 }
 
