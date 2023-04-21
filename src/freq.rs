@@ -3,8 +3,7 @@
 use crate::time::Time;
 
 use std::{
-    error::Error,
-    fmt::Display,
+    fmt::{Display, Formatter, Result as FmtResult},
     num::ParseIntError,
     ops::{Div, DivAssign, Mul, MulAssign},
 };
@@ -29,6 +28,12 @@ pub struct Freq {
 impl Default for Freq {
     fn default() -> Self {
         crate::A4
+    }
+}
+
+impl Display for Freq {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{} Hz", self.hz())
     }
 }
 
@@ -84,7 +89,7 @@ impl From<ParseIntError> for NameError {
 }
 
 impl Display for NameError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Short => write!(f, "the string was too short"),
             Self::Letter(c) => write!(f, "letter {c} is invalid"),
@@ -93,7 +98,7 @@ impl Display for NameError {
     }
 }
 
-impl Error for NameError {}
+impl std::error::Error for NameError {}
 
 impl Freq {
     /// Initializes a given frequency.

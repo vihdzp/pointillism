@@ -2,13 +2,22 @@
 
 use crate::{freq::Freq, SAMPLE_RATE_F64};
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
+use std::{
+    fmt::{Display, Formatter, Result},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
+};
 
 /// Represents an amount of time.
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
 pub struct Time {
     /// Number of seconds.
     pub seconds: f64,
+}
+
+impl Display for Time {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{} Hz", self.seconds())
+    }
 }
 
 impl Time {
