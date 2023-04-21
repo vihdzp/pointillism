@@ -3,7 +3,16 @@
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
 //! By a curve, we mean any struct implementing
-//! `Map<Input = f64, Output = f64>`.
+//! [`Map<Input = f64, Output = f64>`](Map).
+//!
+//! For convenience, we provide four variants of a saw wave: [`Saw`], 
+//! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take 
+//! values from `-1.0` to `1.0` or from `0.0` to `1.0`, and whether they go from
+//! left to right or right to left.
+//! 
+//! All other of the provided curves, by default, take values from `-1.0` to 
+//! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and 
+//! [`Comp::neg`] methods.
 
 use crate::map::{Comp, Map};
 
@@ -108,7 +117,8 @@ impl Linear {
         Self { slope, intercept }
     }
 
-    /// Initializes the linear map that rescales an interval to another.
+    /// Initializes the linear map that rescales an interval
+    /// `[init_lo, init_hi]` to another `[end_lo, end_hi]`.
     #[must_use]
     pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
         let slope = (end_hi - end_lo) / (init_hi - init_lo);
@@ -126,6 +136,14 @@ impl Map for Linear {
 }
 
 /// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
+///
+/// ```txt
+/// ⟍
+///   ⟍
+/// ――――•――――  [DC = 0]
+///      ⟍
+///        ⟍
+/// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Saw;
 
@@ -146,7 +164,16 @@ impl Map for Saw {
     }
 }
 
-/// A right-to-left saw wave, taking values from `-1.0` to `1.0`.
+
+/// A right-to-left saw wave, taking values from `1.0` to `-1.0`.
+///
+/// ```txt
+///        ⟋
+///      ⟋
+/// ――――•――――  [DC = 0]
+///   ⟋
+/// ⟋
+/// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InvSaw;
 
@@ -168,6 +195,14 @@ impl Map for InvSaw {
 }
 
 /// A left-to-right saw wave, taking values from `0.0` to `1.0`.
+///
+/// ```txt
+///         ⟋
+///       ⟋
+///     ⟋
+///   ⟋
+/// •――――――――  [DC = 0]
+/// ```
 pub struct PosSaw;
 
 impl PosSaw {
@@ -187,7 +222,15 @@ impl Map for PosSaw {
     }
 }
 
-/// A right-to-left saw wave, taking values from `0.0` to `1.0`.
+/// A right-to-left saw wave, taking values from `1.0` to `0.0`.
+///
+/// ```txt
+/// ⟍
+///   ⟍
+///     ⟍
+///       ⟍
+/// ――――――――•  [DC = 0]
+/// ```
 pub struct PosInvSaw;
 
 impl PosInvSaw {
@@ -237,12 +280,18 @@ impl Sin {
     }
 }
 
+/// Evaluates `sin((x + phase) * τ)`.
+#[must_use]
+pub fn sin(x: f64, phase: f64) -> f64 {
+    ((x + phase) * std::f64::consts::TAU).sin()
+}
+
 impl Map for Sin {
     type Input = f64;
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        ((x + self.phase) * std::f64::consts::TAU).sin()
+        sin(x, self.phase)
     }
 }
 
@@ -275,16 +324,22 @@ impl Default for Pulse {
     }
 }
 
+/// Returns `1` if `x < shape`, returns `-1` otherwise.
+#[must_use]
+pub fn pulse(x: f64, shape: f64) -> f64 {
+    if x < shape {
+        1.0
+    } else {
+        -1.0
+    }
+}
+
 impl Map for Pulse {
     type Input = f64;
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        if x < self.shape {
-            1.0
-        } else {
-            -1.0
-        }
+        pulse(x, self.shape)
     }
 }
 
@@ -329,24 +384,31 @@ impl SawTri {
     }
 }
 
+/// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between
+/// `1.0` and `-1.0` for `x ≥ shape`.
+#[must_use]
+pub fn saw_tri(x: f64, shape: f64) -> f64 {
+    // We must do some size checks to avoid division by 0.
+    const EPS: f64 = 1e-7;
+
+    if x < shape {
+        if shape.abs() < EPS {
+            1.0
+        } else {
+            2.0 * x / shape - 1.0
+        }
+    } else if (1.0 - shape).abs() < EPS {
+        1.0
+    } else {
+        2.0 * (1.0 - x) / (1.0 - shape) - 1.0
+    }
+}
+
 impl Map for SawTri {
     type Input = f64;
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        // We must do some size checks to avoid division by 0.
-        const EPS: f64 = 1e-7;
-
-        if x < self.shape {
-            if self.shape.abs() < EPS {
-                1.0
-            } else {
-                2.0 * x / self.shape - 1.0
-            }
-        } else if (1.0 - self.shape).abs() < EPS {
-            1.0
-        } else {
-            2.0 * (1.0 - x) / (1.0 - self.shape) - 1.0
-        }
+        saw_tri(x, self.shape)
     }
 }

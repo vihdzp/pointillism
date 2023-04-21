@@ -1,13 +1,10 @@
 //! Functions for mixing signals together.
 
-use crate::{
-    map::Map,
-    prelude::*,
-    sample::{Mono, Stereo},
-};
+use crate::prelude::*;
 
 /// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on
 /// each channel.
+#[allow(clippy::module_name_repetitions)]
 pub struct StereoMix<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, pub Y);
 
 impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoMix<X, Y> {
