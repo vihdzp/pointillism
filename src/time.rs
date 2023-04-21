@@ -127,7 +127,7 @@ impl Debug for Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{} Hz", self.seconds())
+        write!(f, "{} s", self.seconds())
     }
 }
 
