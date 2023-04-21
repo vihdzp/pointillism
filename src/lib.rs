@@ -30,15 +30,15 @@
 //! names are suffixed by `Gen`. Signals that modify the output from another
 //! signal are called *effects*.
 //!
-//! You can think of pointillism as a run-time modular synthesizer, where every
-//! new struct is its own module.
+//! You can think of pointillism as a compile-time modular synthesizer, where 
+//! every new struct is its own module.
 //!
 //! ## Versions
 //!
 //! The following versions of `pointillism` exist:
 //!
 //! - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
-//! - 0.2.0 - 0.2.5: more stable versions, but still subject to drastic change.
+//! - 0.2.0 - 0.2.6: more stable versions, but still subject to drastic change.
 //!
 //! Once the basic structure of `pointillism` stabilizes, the version will
 //! advance to 0.3.0, and a changelog will be made.
