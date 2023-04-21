@@ -27,30 +27,13 @@ pub struct Freq {
 /// will result in a 440 Hz sine wave.
 impl Default for Freq {
     fn default() -> Self {
-        crate::A4
+        Freq::A4
     }
 }
 
 impl Display for Freq {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{} Hz", self.hz())
-    }
-}
-
-/// Converts a letter to a numeric note, from 0 to 11.
-///
-/// Returns `None` if anything other than a letter `A` - `G` is passed.
-#[must_use]
-pub const fn letter_to_note(letter: char) -> Option<u8> {
-    match letter {
-        'C' => Some(0),
-        'D' => Some(2),
-        'E' => Some(4),
-        'F' => Some(5),
-        'G' => Some(7),
-        'A' => Some(9),
-        'B' => Some(11),
-        _ => None,
     }
 }
 
@@ -67,40 +50,10 @@ pub fn note(note: f64) -> f64 {
     edo_note(12, note)
 }
 
-/// An error in [`Freq::new_name`].
-#[derive(Clone, Debug)]
-pub enum NameError {
-    /// The string is not at least two characters long.
-    Short,
-
-    /// An invalid letter name for a note was read.
-    ///
-    /// Note that this is case-sensitive.
-    Letter(char),
-
-    /// The integer after the letter name could not be parsed.
-    Parse(ParseIntError),
-}
-
-impl From<ParseIntError> for NameError {
-    fn from(value: ParseIntError) -> Self {
-        NameError::Parse(value)
-    }
-}
-
-impl Display for NameError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Short => write!(f, "the string was too short"),
-            Self::Letter(c) => write!(f, "letter {c} is invalid"),
-            Self::Parse(err) => write!(f, "integer parsing error: {err}"),
-        }
-    }
-}
-
-impl std::error::Error for NameError {}
-
 impl Freq {
+    /// Pitch for the base note A4.
+    pub const A4: Freq = Freq::new(440.0);
+
     /// Initializes a given frequency.
     ///
     /// Note that the frequency will generally be assumed to be positive.
@@ -159,7 +112,59 @@ impl Freq {
     pub fn new_midi(a4: Freq, note: i16) -> Self {
         Self::new_edo_note(a4, 12, f64::from(note) - 69.0)
     }
+}
 
+/// Converts a letter to a numeric note, from 0 to 11.
+///
+/// Returns `None` if anything other than a letter `A` - `G` is passed.
+#[must_use]
+pub const fn letter_to_note(letter: char) -> Option<u8> {
+    match letter {
+        'C' => Some(0),
+        'D' => Some(2),
+        'E' => Some(4),
+        'F' => Some(5),
+        'G' => Some(7),
+        'A' => Some(9),
+        'B' => Some(11),
+        _ => None,
+    }
+}
+
+/// An error in [`Freq::new_name`].
+#[derive(Clone, Debug)]
+pub enum NameError {
+    /// The string is not at least two characters long.
+    Short,
+
+    /// An invalid letter name for a note was read.
+    ///
+    /// Note that this is case-sensitive.
+    Letter(char),
+
+    /// The integer after the letter name could not be parsed.
+    Parse(ParseIntError),
+}
+
+impl From<ParseIntError> for NameError {
+    fn from(value: ParseIntError) -> Self {
+        NameError::Parse(value)
+    }
+}
+
+impl Display for NameError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Short => write!(f, "the string was too short"),
+            Self::Letter(c) => write!(f, "letter {c} is invalid"),
+            Self::Parse(err) => write!(f, "integer parsing error: {err}"),
+        }
+    }
+}
+
+impl std::error::Error for NameError {}
+
+impl Freq {
     /// Initializes a pitch from its name (e.g. `"A4"` or `"G#5"`).
     ///
     /// ## Errors
@@ -224,5 +229,16 @@ impl Div<f64> for Freq {
 impl DivAssign<f64> for Freq {
     fn div_assign(&mut self, rhs: f64) {
         self.hz /= rhs;
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn a4() {
+        assert_eq!(format!("{:#?}", Freq::A4), "1y 0mon 0d 0h 0m 0ms");
     }
 }

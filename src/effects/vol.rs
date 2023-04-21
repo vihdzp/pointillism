@@ -350,19 +350,19 @@ impl<S: Base, E: Stop<Sample = Env>> Base for StopTremolo<S, E> {
 
 impl<S: Signal, E: Stop<Sample = Env> + Done> Done for StopTremolo<S, E> {
     fn is_done(&self) -> bool {
-        self.env().is_done()
+        self.inner.is_done()
     }
 }
 
 impl<S: Signal, E: Stop<Sample = Env>> Stop for StopTremolo<S, E> {
     fn stop(&mut self) {
-        self.env_mut().stop();
+        self.inner.stop();
     }
 }
 
 impl<S: Signal, E: Stop<Sample = Env> + Panic> Panic for StopTremolo<S, E> {
     fn panic(&mut self) {
-        self.env_mut().panic();
+        self.inner.panic();
     }
 }
 
@@ -383,7 +383,7 @@ pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
 
 impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
     /// Initializes a new gate.
-    pub fn new(sgn: S, env: E, threshold: f64) -> Self {
+    pub const fn new(sgn: S, env: E, threshold: f64) -> Self {
         Self {
             sgn,
             env,

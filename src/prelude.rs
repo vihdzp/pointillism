@@ -22,5 +22,5 @@ pub use crate::{
     sgn,
     signal::*,
     time::*,
-    A4, SAMPLE_RATE, SAMPLE_RATE_F64,
+    SAMPLE_RATE, SAMPLE_RATE_F64,
 };

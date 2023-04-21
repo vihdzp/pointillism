@@ -61,7 +61,7 @@ impl Time {
     /// The time for a single beat at a given BPM.
     #[must_use]
     pub fn new_beat(bpm: f64) -> Self {
-        Self::new(60.0 / bpm)
+        Self::new(MIN_SECS / bpm)
     }
 
     /// Time to frequency.
@@ -208,5 +208,15 @@ impl Rem for Time {
 impl RemAssign for Time {
     fn rem_assign(&mut self, rhs: Self) {
         self.seconds %= rhs.seconds;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn yr_secs() {
+        assert_eq!(format!("{:#?}", Time::YR), "1y 0mon 0d 0h 0m 0ms");
     }
 }

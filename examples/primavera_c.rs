@@ -57,7 +57,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
 
 fn melody() -> impl Signal<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
-    let mut freq = 2.0 * A4;
+    let mut freq = 2.0 * Freq::A4;
     let notes = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
     let wave = |freq| LoopGen::new(SawTri::tri(), freq);

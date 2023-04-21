@@ -92,9 +92,6 @@ pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
 
-/// Pitch for the base note A4.
-pub const A4: Freq = Freq::new(440.0);
-
 /// Creates a song with a given duration, writing down each sample as it comes.
 ///
 /// The resulting WAV file will be mono or stereo, depending on whether the
