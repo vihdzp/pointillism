@@ -24,9 +24,8 @@ use crate::{freq::Freq, sample::Sample};
 ///
 /// ```
 /// # use pointillism::prelude::*;
-///
 /// /// A signal that produces random envelope data.
-/// pub struct NoiseGen {
+/// struct NoiseGen {
 ///     /// The current random value.
 ///     current: Env,
 /// }
@@ -44,7 +43,7 @@ use crate::{freq::Freq, sample::Sample};
 ///         self.current = Env::rand();
 ///     }
 ///     
-///     // Resetting a random signal amounts to choosing a new random value.
+///     // Retriggering a random signal amounts to choosing a new random value.
 ///     fn retrigger(&mut self) {         
 ///         self.current = Env::rand();
 ///     }

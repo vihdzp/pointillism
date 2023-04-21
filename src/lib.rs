@@ -16,14 +16,14 @@
 //! into a `.wav` file. The output is hardcoded to use 32-bit floating point,
 //! although calculations are internally done using 64-bit, for extra precision.
 //!
-//! For convenience, the [`Signal`](crate::prelude::Signal) trait is provided.
+//! For convenience, the [`Signal`] trait is provided.
 //! Structs implementing this trait generate sample data frame by frame, which
 //! can be advanced, or retriggered.
 //!
 //! Signals may be composed to create more complex signals, using for instance
 //! the [`MapSgn`](crate::prelude::MutSgn) and
 //! [`MutSgn`](crate::prelude::MutSgn) structs. Moreover, you can implement the
-//! `Signal` trait for your own structs, giving you vast control over the
+//! [`Signal`] trait for your own structs, giving you vast control over the
 //! samples you're producing.
 //!
 //! Signals that generate audio on their own are called *generators*. Their
@@ -42,6 +42,8 @@
 //!
 //! Once the basic structure of `pointillism` stabilizes, the version will
 //! advance to 0.3.0, and a changelog will be made.
+//! 
+//! * [`Signal`]: crate::prelude::Signal
 
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
