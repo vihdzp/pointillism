@@ -17,7 +17,7 @@ pub mod sequence;
 /// Plays a curve at a specified speed, until it reaches the right endpoint.
 ///
 /// See also [`LoopGen`].
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct OneshotGen<S: Sample, C: Map<Input = f64, Output = f64>> {
     /// The curve being played.
     pub curve: C,
@@ -95,7 +95,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Stop for OneshotGen<S, C> {
 /// Loops a curve at a specified frequency.
 ///
 /// See also [`OneshotGen`].
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
     /// The curve being played.
     pub curve: C,
