@@ -26,6 +26,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d13cdbd5dbb29f9c88095bbdc2590c9cba0d0a1269b983fef6b2cdd7e9f4db1"
 
 [[package]]
+name = "human-duration"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37a429277d8afba0e1a2cf784b43f938dff72ce33e6aba477c3021997171c87b"
+
+[[package]]
 name = "libc"
 version = "0.2.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -36,6 +42,7 @@ name = "pointillism"
 version = "0.2.5"
 dependencies = [
  "hound",
+ "human-duration",
  "rand",
 ]
 

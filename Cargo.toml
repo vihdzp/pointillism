@@ -11,4 +11,5 @@ version = "0.2.5"
 
 [dependencies]
 hound = "3.5.0"
+human-duration = "0.1.0"
 rand = "0.8.5"

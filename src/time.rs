@@ -3,21 +3,28 @@
 use crate::{freq::Freq, SAMPLE_RATE_F64};
 
 use std::{
-    fmt::{Display, Formatter, Result},
+    fmt::{Debug, Display, Formatter, Result},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
+    time::Duration,
 };
 
+/// Number of seconds in a minute.
+const MIN_SECS: f64 = 60.0;
+
+/// Number of seconds in an hour.
+const HR_SECS: f64 = 60.0 * MIN_SECS;
+
+/// Number of seconds in a day.
+const DAY_SECS: f64 = 24.0 * HR_SECS;
+
+/// Number of seconds in a year (365 days).
+const YR_SECS: f64 = 365.0 * DAY_SECS;
+
 /// Represents an amount of time.
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Time {
     /// Number of seconds.
     pub seconds: f64,
-}
-
-impl Display for Time {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{} Hz", self.seconds())
-    }
 }
 
 impl Time {
@@ -28,13 +35,16 @@ impl Time {
     pub const SEC: Self = Self::new(1.0);
 
     /// A minute.
-    pub const MIN: Self = Self::new(60.0);
+    pub const MIN: Self = Self::new(MIN_SECS);
 
     /// An hour.
-    pub const HR: Self = Self::new(3600.0);
+    pub const HR: Self = Self::new(HR_SECS);
 
     /// A day.
-    pub const DAY: Self = Self::new(86400.0);
+    pub const DAY: Self = Self::new(DAY_SECS);
+
+    /// A year.
+    pub const YR: Self = Self::new(YR_SECS);
 
     /// Initializes a time variable for the number of seconds.
     #[must_use]
@@ -66,6 +76,18 @@ impl Time {
         self.seconds
     }
 
+    /// The time in milliseconds.
+    #[must_use]
+    pub fn milliseconds(&self) -> f64 {
+        1e3 * self.seconds()
+    }
+
+    /// The time in microseconds.
+    #[must_use]
+    pub fn microseconds(&self) -> f64 {
+        1e6 * self.seconds()
+    }
+
     /// The time in frames.
     #[must_use]
     pub fn frames(&self) -> f64 {
@@ -75,6 +97,37 @@ impl Time {
     /// Advances the time by one frame.
     pub fn advance(&mut self) {
         self.seconds += 1.0 / SAMPLE_RATE_F64;
+    }
+}
+
+impl From<Duration> for Time {
+    fn from(value: Duration) -> Self {
+        Self::new(value.as_secs_f64())
+    }
+}
+
+impl From<Time> for Duration {
+    fn from(value: Time) -> Self {
+        Self::from_micros(value.microseconds() as u64)
+    }
+}
+
+/// We use the [`human_duration`] crate for pretty-printing.
+impl Debug for Time {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if f.alternate() {
+            write!(f, "{}", human_duration::human_duration(&(*self).into()))
+        } else {
+            f.debug_struct("Time")
+                .field("seconds", &self.seconds)
+                .finish()
+        }
+    }
+}
+
+impl Display for Time {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{} Hz", self.seconds())
     }
 }
 
