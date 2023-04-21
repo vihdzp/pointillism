@@ -5,13 +5,13 @@
 //! By a curve, we mean any struct implementing
 //! [`Map<Input = f64, Output = f64>`](Map).
 //!
-//! For convenience, we provide four variants of a saw wave: [`Saw`], 
-//! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take 
+//! For convenience, we provide four variants of a saw wave: [`Saw`],
+//! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take
 //! values from `-1.0` to `1.0` or from `0.0` to `1.0`, and whether they go from
 //! left to right or right to left.
-//! 
-//! All other of the provided curves, by default, take values from `-1.0` to 
-//! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and 
+//!
+//! All other of the provided curves, by default, take values from `-1.0` to
+//! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and
 //! [`Comp::neg`] methods.
 
 use crate::map::{Comp, Map};
@@ -163,7 +163,6 @@ impl Map for Saw {
         crate::sgn(x)
     }
 }
-
 
 /// A right-to-left saw wave, taking values from `1.0` to `-1.0`.
 ///

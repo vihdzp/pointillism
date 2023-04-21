@@ -1,5 +1,5 @@
 //! Defines different kinds of signal distortion.
-//! 
+//!
 //! No new signal structs are defined in this file. Instead, we define new
 //! initiailzations for [`PwMapSgn`].
 

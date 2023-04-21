@@ -26,8 +26,8 @@
 //! `Signal` trait for your own structs, giving you vast control over the
 //! samples you're producing.
 //!
-//! Signals that generate audio on their own are called *generators*. Their 
-//! names are suffixed by `Gen`. Signals that modify the output from another 
+//! Signals that generate audio on their own are called *generators*. Their
+//! names are suffixed by `Gen`. Signals that modify the output from another
 //! signal are called *effects*.
 //!
 //! You can think of pointillism as a run-time modular synthesizer, where every
