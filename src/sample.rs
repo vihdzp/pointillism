@@ -4,7 +4,7 @@
 //! This
 
 use hound::WavWriter;
-use rand::Rng;
+use rand::{distributions::Standard, prelude::Distribution, Rng};
 use std::{
     fmt::Debug,
     iter::Sum,
@@ -125,10 +125,24 @@ pub trait Sample:
         Self::from_fn(|_| val)
     }
 
+    /// Generates a random sample from a given `Rng` object.
+    ///
+    /// We use this, instead of `rng.gen()`, in order to avoid having to write
+    /// down `where Standard: Distribution<S>` everywhere. However, all three
+    /// instances of [`Sample`] implement this trait individually.
+    #[must_use]
+    fn rand_with<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        Self::from_fn(|_| crate::sgn(rng.gen::<f64>()))
+    }
+
     /// Generates a random sample.
+    ///
+    /// We use this, instead of `thread_rng().gen()`, in order to avoid having
+    /// to write down `where Standard: Distribution<S>` everywhere. However, all
+    /// three instances of [`Sample`] implement this individually.
     #[must_use]
     fn rand() -> Self {
-        Self::from_fn(|_| crate::sgn(rand::thread_rng().gen::<f64>()))
+        Self::rand_with(&mut rand::thread_rng())
     }
 
     /// A default implementation of the [`Sum`] trait.
@@ -288,6 +302,17 @@ macro_rules! impl_sum {
     };
 }
 
+/// Implements `Distribution<Self>` for `Standard`.
+macro_rules! impl_rand {
+    ($ty: ty) => {
+        impl Distribution<$ty> for Standard {
+            fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> $ty {
+                <$ty>::rand_with(rng)
+            }
+        }
+    };
+}
+
 /// Implements all traits for the specified type.
 macro_rules! impl_all {
     ($($ty: ty),*) => {
@@ -298,6 +323,7 @@ macro_rules! impl_all {
             impl_op_assign_f64!($ty; MulAssign, mul_assign, DivAssign, div_assign);
             impl_neg!($ty);
             impl_sum!($ty);
+            impl_rand!($ty);
         )*
     };
 }

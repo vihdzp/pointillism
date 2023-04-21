@@ -38,11 +38,11 @@
 //! The following versions of `pointillism` exist:
 //!
 //! - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
-//! - 0.2.0 - 0.2.4: more stable versions, but still subject to drastic change.
+//! - 0.2.0 - 0.2.5: more stable versions, but still subject to drastic change.
 //!
 //! Once the basic structure of `pointillism` stabilizes, the version will
 //! advance to 0.3.0, and a changelog will be made.
-//! 
+//!
 //! * [`Signal`]: crate::prelude::Signal
 
 #![warn(clippy::cargo)]

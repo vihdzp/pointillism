@@ -13,9 +13,9 @@ use crate::{freq::Freq, sample::Sample};
 /// In order to implement this trait on your custom type, you only need to
 /// define three methods:
 ///
-/// - `get`: Gets the next sample from the signal.
-/// - `advance`: Advances the state of the signal to the next sample.
-/// - `retrigger`: Resets the signal to its initial state.
+/// - [`get`](Signal::get): Gets the next sample from the signal.
+/// - [`advance`](Signal::advance): Advances the state of the signal by a frame.
+/// - [`retrigger`](Signal::retrigger): Resets the signal to its initial state.
 ///
 /// ## Example
 ///
@@ -31,6 +31,7 @@ use crate::{freq::Freq, sample::Sample};
 /// }
 ///
 /// impl Signal for NoiseGen {
+///     // This signal produces envelope data.
 ///     type Sample = Env;
 ///
 ///     // Returns the current value.
@@ -59,7 +60,7 @@ pub trait Signal {
     /// the signal isn't modified, and `advance` or `retrigger` is not called.
     fn get(&self) -> Self::Sample;
 
-    /// Advances the state of the signal to the next sample.
+    /// Advances the state of the signal by a frame.
     fn advance(&mut self);
 
     /// Resets the signal to its initial state.
