@@ -19,6 +19,8 @@
 
 use std::marker::PhantomData;
 
+use crate::generators::Sample;
+
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust
@@ -51,10 +53,7 @@ pub trait Mut<X, Y> {
 #[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<X, Y, F> {
     /// Dummy variable.
-    phantom_x: PhantomData<X>,
-
-    /// Dummy variable.
-    phantom_y: PhantomData<Y>,
+    phantom: PhantomData<(X, Y)>,
 
     /// Wrapped function.
     pub func: F,
@@ -64,8 +63,7 @@ impl<X, Y, F> FnWrapper<X, Y, F> {
     /// Wraps a function in an [`FnWrapper`].
     pub const fn new(func: F) -> Self {
         Self {
-            phantom_x: PhantomData,
-            phantom_y: PhantomData,
+            phantom: PhantomData,
             func,
         }
     }
@@ -105,9 +103,7 @@ impl<X> Id<X> {
 
 impl<X> Default for Id<X> {
     fn default() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
+        Self::new()
     }
 }
 
@@ -117,6 +113,37 @@ impl<X> Map for Id<X> {
 
     fn eval(&self, x: X) -> X {
         x
+    }
+}
+
+/// The zero function.
+#[derive(Clone, Copy, Debug)]
+pub struct Zero<X, S: Sample> {
+    /// Dummy variable.
+    phantom: PhantomData<(X, S)>,
+}
+
+impl<X, S: Sample> Zero<X, S> {
+    /// Initializes the zero function.
+    pub const fn new() -> Self {
+        Self {
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<X, S: Sample> Default for Zero<X, S> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<X, S: Sample> Map for Zero<X, S> {
+    type Input = X;
+    type Output = S;
+
+    fn eval(&self, _: X) -> S {
+        S::ZERO
     }
 }
 
