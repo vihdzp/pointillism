@@ -2,9 +2,6 @@
 //! [`OneshotGen`](crate::prelude::OneshotGen) or
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
-//! By a curve, we mean any struct implementing
-//! [`Map<Input = f32, Output = f32>`](Map).
-//!
 //! For convenience, we provide four variants of a saw wave: [`Saw`],
 //! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take
 //! values from `-1.0` to `1.0` or from `0.0` to `1.0`, and whether they go from
@@ -13,6 +10,16 @@
 //! All other of the provided curves, by default, take values from `-1.0` to
 //! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and
 //! [`Comp::neg`] methods.
+//!
+//! ## Terminology
+//!
+//! We distinguish between two kinds of curves. The most basic curves ([`Sin`],
+//! [`SawTri`], [`Pulse`], etc.) are all examples of (plain) **curves**, meaning
+//! types implementing [`Map<Input = f32, Output = f32>`](Map).
+//!
+//! On the other hand, audio curves such as those generated from
+//! [`BufCurve`](crate::prelude::BufCurve) are called **sample curves**, meaning
+//! types implementing [`Map<Input = f32>`](Map)` where Output: Sample`.
 
 pub mod buffer;
 

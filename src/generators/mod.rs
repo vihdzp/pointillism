@@ -4,8 +4,9 @@
 //! on their own, be they envelope or audio data.
 //!
 //! The module file provides the most basic examples of generators, namely
-//! generators that read data from a curve. A curve in this context means a
-//! structure implementing `Map<Input = f32, Output = f32>`.
+//! generators that read data from a curve. See the
+//! [curves module docs](../curves.html#Terminology) for an explanation on
+//! different kinds of curves.
 
 use std::marker::PhantomData;
 
@@ -14,9 +15,10 @@ pub use crate::prelude::*;
 pub mod poly;
 pub mod sequence;
 
-/// Converts a curve into a map that outputs a signal of the specified type.
+/// Converts a plain curve into a sample curve that outputs a signal of the
+/// specified type.
 pub struct CurvePlayer<S: Sample, C: Map<Input = f32, Output = f32>> {
-    /// The inner curve.
+    /// The inner plain curve.
     pub curve: C,
 
     /// Dummy value.
@@ -24,6 +26,10 @@ pub struct CurvePlayer<S: Sample, C: Map<Input = f32, Output = f32>> {
 }
 
 impl<S: Sample, C: Map<Input = f32, Output = f32>> CurvePlayer<S, C> {
+    /// Initializes a new [`CurvePlayer`].
+    ///
+    /// You might need to explicitly specify the type of sample you want to play
+    /// the curve as, via `CurvePlayer::new::<S>`.
     pub const fn new(curve: C) -> Self {
         Self {
             curve,
@@ -41,7 +47,8 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Map for CurvePlayer<S, C> {
     }
 }
 
-/// Plays a curve at a specified speed, until it reaches the right endpoint.
+/// Plays a sample curve at a specified speed, until it reaches the right
+/// endpoint.
 ///
 /// See also [`LoopGen`].
 #[derive(Clone, Debug)]
@@ -49,7 +56,7 @@ pub struct OneshotGen<C: Map<Input = f32>>
 where
     C::Output: Sample,
 {
-    /// The map used to generate the samples.
+    /// The sample curve used to generate the samples.
     pub map: C,
 
     /// The time for which the curve is played.
@@ -152,9 +159,11 @@ where
     }
 }
 
+/// Plays a given curve by reading its output as values of a given sample type.
 pub type OneshotCurveGen<S, C> = OneshotGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = f32, Output = f32>> OneshotCurveGen<S, C> {
+    /// Initializes a new [`OneshotCurveGen`].
     pub const fn new_curve(curve: C, time: Time) -> Self {
         Self::new(CurvePlayer::new(curve), time)
     }
@@ -267,9 +276,11 @@ where
     }
 }
 
+/// Loops a given curve by reading its output as values of a given sample type.
 pub type LoopCurveGen<S, C> = LoopGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = f32, Output = f32>> LoopCurveGen<S, C> {
+    /// Initializes a new [`LoopCurveGen`].
     pub const fn new_curve(curve: C, freq: Freq) -> Self {
         Self::new(CurvePlayer::new(curve), freq)
     }
