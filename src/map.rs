@@ -52,7 +52,7 @@ pub trait Mut<X, Y> {
 /// the function.
 #[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<X, Y, F> {
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<(X, Y)>,
 
     /// Wrapped function.
@@ -87,7 +87,7 @@ impl<X, Y, F: FnMut(&mut X, Y)> Mut<X, Y> for FnWrapper<X, Y, F> {
 /// The identity function.
 #[derive(Clone, Copy, Debug)]
 pub struct Id<X> {
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<X>,
 }
 
@@ -119,7 +119,7 @@ impl<X> Map for Id<X> {
 /// The zero function.
 #[derive(Clone, Copy, Debug)]
 pub struct Zero<X, S: Sample> {
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<(X, S)>,
 }
 
@@ -154,7 +154,7 @@ pub struct Const<X, Y: Clone> {
     /// The constant value attained by the function.
     pub val: Y,
 
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<X>,
 }
 

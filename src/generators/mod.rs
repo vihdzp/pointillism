@@ -14,13 +14,43 @@ pub use crate::prelude::*;
 pub mod poly;
 pub mod sequence;
 
+/// Converts a curve into a map that outputs a signal of the specified type.
+pub struct CurvePlayer<S: Sample, C: Map<Input = f32, Output = f32>> {
+    /// The inner curve.
+    pub curve: C,
+
+    /// Dummy value.
+    phantom: PhantomData<S>,
+}
+
+impl<S: Sample, C: Map<Input = f32, Output = f32>> CurvePlayer<S, C> {
+    pub const fn new(curve: C) -> Self {
+        Self {
+            curve,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Map for CurvePlayer<S, C> {
+    type Input = f32;
+    type Output = S;
+
+    fn eval(&self, val: f32) -> S {
+        S::from_val(val)
+    }
+}
+
 /// Plays a curve at a specified speed, until it reaches the right endpoint.
 ///
 /// See also [`LoopGen`].
 #[derive(Clone, Debug)]
-pub struct OneshotGen<S: Sample, C: Map<Input = f32, Output = f32>> {
-    /// The curve being played.
-    pub curve: C,
+pub struct OneshotGen<C: Map<Input = f32>>
+where
+    C::Output: Sample,
+{
+    /// The map used to generate the samples.
+    pub map: C,
 
     /// The time for which the curve is played.
     pub time: Time,
@@ -28,20 +58,29 @@ pub struct OneshotGen<S: Sample, C: Map<Input = f32, Output = f32>> {
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
     val: f32,
-
-    /// Dummy value.
-    phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> OneshotGen<S, C> {
+impl<C: Map<Input = f32>> OneshotGen<C>
+where
+    C::Output: Sample,
+{
     /// Initializes a new [`OneshotGen`].
-    pub const fn new(curve: C, time: Time) -> Self {
+    pub const fn new(map: C, time: Time) -> Self {
         Self {
-            curve,
+            map,
             time,
             val: 0.0,
-            phantom: PhantomData,
         }
+    }
+
+    /// A reference to the curve being played.
+    pub const fn map(&self) -> &C {
+        &self.map
+    }
+
+    /// A mutable reference to the curve being played.
+    pub fn map_mut(&mut self) -> &mut C {
+        &mut self.map
     }
 
     /// Returns the value between `0.0` and `1.0` which represents how far along
@@ -51,11 +90,14 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> OneshotGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for OneshotGen<S, C> {
-    type Sample = S;
+impl<C: Map<Input = f32>> Signal for OneshotGen<C>
+where
+    C::Output: Sample,
+{
+    type Sample = C::Output;
 
-    fn get(&self) -> S {
-        S::from_val(self.curve.eval(self.val))
+    fn get(&self) -> C::Output {
+        self.map.eval(self.val)
     }
 
     fn advance(&mut self) {
@@ -68,7 +110,10 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for OneshotGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for OneshotGen<S, C> {
+impl<C: Map<Input = f32>> Base for OneshotGen<C>
+where
+    C::Output: Sample,
+{
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -80,15 +125,48 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for OneshotGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Done for OneshotGen<S, C> {
+impl<C: Map<Input = f32>> Done for OneshotGen<C>
+where
+    C::Output: Sample,
+{
     fn is_done(&self) -> bool {
         self.val >= 1.0
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Stop for OneshotGen<S, C> {
+impl<C: Map<Input = f32>> Stop for OneshotGen<C>
+where
+    C::Output: Sample,
+{
     fn stop(&mut self) {
         self.val = 1.0;
+    }
+}
+
+impl<C: Map<Input = f32>> Panic for OneshotGen<C>
+where
+    C::Output: Sample,
+{
+    fn panic(&mut self) {
+        self.stop();
+    }
+}
+
+pub type OneshotCurveGen<S, C> = OneshotGen<CurvePlayer<S, C>>;
+
+impl<S: Sample, C: Map<Input = f32, Output = f32>> OneshotCurveGen<S, C> {
+    pub const fn new_curve(curve: C, time: Time) -> Self {
+        Self::new(CurvePlayer::new(curve), time)
+    }
+
+    /// A reference to the curve being played.
+    pub const fn curve(&self) -> &C {
+        &self.map().curve
+    }
+
+    /// A mutable reference to the curve being played.
+    pub fn curve_mut(&mut self) -> &mut C {
+        &mut self.map_mut().curve
     }
 }
 
@@ -96,9 +174,12 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Stop for OneshotGen<S, C> {
 ///
 /// See also [`OneshotGen`].
 #[derive(Clone, Debug, Default)]
-pub struct LoopGen<S: Sample, C: Map<Input = f32, Output = f32>> {
-    /// The curve being played.
-    pub curve: C,
+pub struct LoopGen<C: Map<Input = f32>>
+where
+    C::Output: Sample,
+{
+    /// The map used to generate the samples.
+    pub map: C,
 
     /// The frequency at which the curve is played.
     pub freq: Freq,
@@ -106,30 +187,29 @@ pub struct LoopGen<S: Sample, C: Map<Input = f32, Output = f32>> {
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
     val: f32,
-
-    /// Dummy value.
-    phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> LoopGen<S, C> {
+impl<C: Map<Input = f32>> LoopGen<C>
+where
+    C::Output: Sample,
+{
     /// Initializes a new [`LoopGen`].
-    pub const fn new(curve: C, freq: Freq) -> Self {
+    pub const fn new(map: C, freq: Freq) -> Self {
         Self {
-            curve,
+            map,
             freq,
             val: 0.0,
-            phantom: PhantomData,
         }
     }
 
     /// A reference to the curve being played.
-    pub const fn curve(&self) -> &C {
-        &self.curve
+    pub const fn map(&self) -> &C {
+        &self.map
     }
 
     /// A mutable reference to the curve being played.
-    pub fn curve_mut(&mut self) -> &mut C {
-        &mut self.curve
+    pub fn map_mut(&mut self) -> &mut C {
+        &mut self.map
     }
 
     /// Returns the value between `0.0` and `1.0` which represents how far along
@@ -139,11 +219,14 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> LoopGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for LoopGen<S, C> {
-    type Sample = S;
+impl<C: Map<Input = f32>> Signal for LoopGen<C>
+where
+    C::Output: Sample,
+{
+    type Sample = C::Output;
 
-    fn get(&self) -> S {
-        S::from_val(self.curve.eval(self.val))
+    fn get(&self) -> C::Output {
+        self.map.eval(self.val)
     }
 
     fn advance(&mut self) {
@@ -156,7 +239,10 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for LoopGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Frequency for LoopGen<S, C> {
+impl<C: Map<Input = f32>> Frequency for LoopGen<C>
+where
+    C::Output: Sample,
+{
     fn freq(&self) -> Freq {
         self.freq
     }
@@ -166,7 +252,10 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Frequency for LoopGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for LoopGen<S, C> {
+impl<C: Map<Input = f32>> Base for LoopGen<C>
+where
+    C::Output: Sample,
+{
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -175,6 +264,24 @@ impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for LoopGen<S, C> {
 
     fn base_mut(&mut self) -> &mut Self::Base {
         self
+    }
+}
+
+pub type LoopCurveGen<S, C> = LoopGen<CurvePlayer<S, C>>;
+
+impl<S: Sample, C: Map<Input = f32, Output = f32>> LoopCurveGen<S, C> {
+    pub const fn new_curve(curve: C, freq: Freq) -> Self {
+        Self::new(CurvePlayer::new(curve), freq)
+    }
+
+    /// A reference to the curve being played.
+    pub const fn curve(&self) -> &C {
+        &self.map().curve
+    }
+
+    /// A mutable reference to the curve being played.
+    pub fn curve_mut(&mut self) -> &mut C {
+        &mut self.map_mut().curve
     }
 }
 

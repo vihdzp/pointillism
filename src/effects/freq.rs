@@ -9,7 +9,7 @@ pub struct Vib<S: Frequency> {
     /// Base frequency.
     pub base: Freq,
 
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<S>,
 }
 

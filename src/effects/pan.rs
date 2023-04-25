@@ -132,7 +132,7 @@ impl Law for Mixed {
 /// A wrapper for a pan [`Law`] which converts it into a [`Map`].
 #[derive(Clone, Copy, Debug)]
 pub struct Wrapper<A: Audio, P: Law> {
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<A>,
 
     /// Inner pan law.

@@ -18,12 +18,12 @@ fn main() {
     let osc = |phase| {
         MutSgn::new(
             // A triangle wave with a placeholder frequency.
-            LoopGen::new(SawTri::tri(), BASE),
+            LoopGen::new_curve(SawTri::tri(), BASE),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new(Sin::new(phase), (NUM_OSC as f32 * TIME).freq()),
+            LoopGen::new_curve(Sin::new(phase), (NUM_OSC as f32 * TIME).freq()),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
-            FnWrapper::new(|sgn: &mut LoopGen<_, _>, val| {
+            FnWrapper::new(|sgn: &mut LoopCurveGen<_, _>, val| {
                 *sgn.freq_mut() = BASE * (val / 2.0 + 1.0);
             }),
         )

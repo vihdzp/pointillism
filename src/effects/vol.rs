@@ -150,7 +150,7 @@ impl<S: Panic> Panic for Volume<S> {
 /// The function that applies tremolo to a volume signal.
 #[derive(Clone, Copy, Debug)]
 pub struct Trem<S: Signal> {
-    /// Dummy variable.
+    /// Dummy value.
     phantom: PhantomData<S>,
 }
 
