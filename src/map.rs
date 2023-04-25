@@ -125,6 +125,7 @@ pub struct Zero<X, S: Sample> {
 
 impl<X, S: Sample> Zero<X, S> {
     /// Initializes the zero function.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             phantom: PhantomData,

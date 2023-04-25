@@ -38,7 +38,7 @@ fn main() {
                 ),
                 OneshotGen::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper::new(|sgn: &mut Envelope<LoopGen<Stereo, SawTri>>, val: f64| {
+                FnWrapper::new(|sgn: &mut Envelope<LoopGen<Stereo, SawTri>>, val: f32| {
                     sgn.sgn_mut().curve_mut().shape = val;
                 }),
             ),
@@ -84,7 +84,7 @@ fn main() {
             }
 
             // Plays a new note, as long as the song isn't about to end.
-            if time < (NOTE_COUNT as f64 - 1.0) * NOTE_LEN - RELEASE_LEN {
+            if time < (NOTE_COUNT as f32 - 1.0) * NOTE_LEN - RELEASE_LEN {
                 poly.add(idx, osc(freq, rand::thread_rng().gen()));
             }
         }),
@@ -92,7 +92,7 @@ fn main() {
 
     pointillism::create(
         "examples/continuum.wav",
-        NOTE_COUNT as f64 * NOTE_LEN,
+        NOTE_COUNT as f32 * NOTE_LEN,
         |_| {
             // 10.0 might be too much, but just to be safe from clipping.
             poly_loop.next() / 10.0

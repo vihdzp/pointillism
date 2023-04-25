@@ -65,16 +65,16 @@ use sample::Audio;
 use time::Time;
 
 /// The sample rate for the audio file, in samples per second.
-pub const SAMPLE_RATE: u32 = 44100;
+pub const SAMPLE_RATE: u16 = 44100;
 
 /// The sample rate for the audio file, in samples per second.
-pub const SAMPLE_RATE_F64: f64 = SAMPLE_RATE as f64;
+pub const SAMPLE_RATE_F64: f32 = SAMPLE_RATE as f32;
 
 /// The specification for the output file.
 const fn spec(channels: u8) -> WavSpec {
     WavSpec {
         channels: channels as u16,
-        sample_rate: SAMPLE_RATE,
+        sample_rate: SAMPLE_RATE as u32,
         bits_per_sample: 32,
         sample_format: SampleFormat::Float,
     }
@@ -82,13 +82,13 @@ const fn spec(channels: u8) -> WavSpec {
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[must_use]
-pub fn pos(x: f64) -> f64 {
+pub fn pos(x: f32) -> f32 {
     (x + 1.0) / 2.0
 }
 
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
 #[must_use]
-pub fn sgn(x: f64) -> f64 {
+pub fn sgn(x: f32) -> f32 {
     2.0 * x - 1.0
 }
 

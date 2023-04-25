@@ -25,7 +25,7 @@ const LENGTH: Time = Time::new(5.0 * 60.0);
 /// A fade-in and fade-out effect.
 ///
 /// TODO: implement this directly in pointillism.
-fn fade(time: Time, length: Time, fade: Time) -> f64 {
+fn fade(time: Time, length: Time, fade: Time) -> f32 {
     if time < fade {
         time.seconds / fade.seconds
     } else if time > length - fade {
@@ -65,7 +65,7 @@ fn melody() -> impl Signal<Sample = Mono> {
         MutSgn::new(
             wave(freq),
             OneshotGen::new(PosSaw::new(), Time::new(5.0)),
-            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: f64| {
+            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: f32| {
                 sgn.curve_mut().shape = 1.0 - val.powf(0.2) / 2.0;
             }),
         )

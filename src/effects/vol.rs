@@ -11,13 +11,13 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug)]
 pub struct Vol {
     /// Gain factor.
-    pub gain: f64,
+    pub gain: f32,
 }
 
 impl Vol {
     /// Initializes a new volume variable.
     #[must_use]
-    pub const fn new(gain: f64) -> Self {
+    pub const fn new(gain: f32) -> Self {
         Self { gain }
     }
 
@@ -29,13 +29,13 @@ impl Vol {
 
     /// Gain measured in decibels.
     #[must_use]
-    pub fn new_db(db: f64) -> Self {
-        Self::new(10f64.powf(db / 20.0))
+    pub fn new_db(db: f32) -> Self {
+        Self::new(10f32.powf(db / 20.0))
     }
 
     /// The gain in decibels.
     #[must_use]
-    pub fn db(&self) -> f64 {
+    pub fn db(&self) -> f32 {
         20.0 * self.gain.log10()
     }
 }
@@ -47,10 +47,10 @@ impl Default for Vol {
 }
 
 impl Map for Vol {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         x * self.gain
     }
 }
@@ -170,8 +170,8 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
-    fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
+impl<S: Signal> Mut<Volume<S>, f32> for Trem<S> {
+    fn modify(&mut self, sgn: &mut Volume<S>, gain: f32) {
         sgn.vol_mut().gain = gain;
     }
 }
@@ -378,12 +378,12 @@ pub struct Gate<S: Signal, E: Signal<Sample = Env>> {
     env: E,
 
     /// The threshold for the gate.
-    threshold: f64,
+    threshold: f32,
 }
 
 impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
     /// Initializes a new gate.
-    pub const fn new(sgn: S, env: E, threshold: f64) -> Self {
+    pub const fn new(sgn: S, env: E, threshold: f32) -> Self {
         Self {
             sgn,
             env,
@@ -412,12 +412,12 @@ impl<S: Signal, E: Signal<Sample = Env>> Gate<S, E> {
     }
 
     /// Returns the threshold.
-    pub const fn threshold(&self) -> f64 {
+    pub const fn threshold(&self) -> f32 {
         self.threshold
     }
 
     /// Returns a mutable reference to the threshold.
-    pub fn threshold_mut(&mut self) -> &mut f64 {
+    pub fn threshold_mut(&mut self) -> &mut f32 {
         &mut self.threshold
     }
 }

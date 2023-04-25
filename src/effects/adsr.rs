@@ -31,7 +31,7 @@ pub struct Adsr {
     pub decay: Time,
 
     /// The sustain value for the signal.
-    pub sustain: f64,
+    pub sustain: f32,
 
     /// The time from the signal stop to it being done.
     pub release: Time,
@@ -43,16 +43,16 @@ pub struct Adsr {
     ///
     /// This can differ from the sustain value if the envelope is stopped before
     /// the `Sustain` phase.
-    sustain_val: f64,
+    sustain_val: f32,
 
     /// A value from `0.0` to `1.0` representing how far along the phase we are.
-    val: f64,
+    val: f32,
 }
 
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub fn new(attack: Time, decay: Time, sustain: f64, release: Time) -> Self {
+    pub fn new(attack: Time, decay: Time, sustain: f32, release: Time) -> Self {
         Self {
             attack,
             decay,

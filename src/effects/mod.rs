@@ -21,7 +21,7 @@ use crate::prelude::*;
 /// Converts a function into one applied pointwise to the entries of a
 /// [`Sample`].
 #[derive(Clone, Debug, Default)]
-pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
+pub struct Pw<S: Sample, F: Map<Input = f32, Output = f32>> {
     /// The function to apply.
     pub func: F,
 
@@ -29,7 +29,7 @@ pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
+impl<S: Sample, F: Map<Input = f32, Output = f32>> Pw<S, F> {
     /// Initializes a new [`Pw`] function.
     pub const fn new(func: F) -> Self {
         Self {
@@ -39,7 +39,7 @@ impl<S: Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
     }
 }
 
-impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
+impl<S: Sample, F: Map<Input = f32, Output = f32>> Map for Pw<S, F> {
     type Input = S;
     type Output = S;
 
@@ -183,7 +183,7 @@ where
 /// A [`MapSgn`] taking in a [`Pw`] function.
 pub type PwMapSgn<S, F> = MapSgn<S, Pw<<S as Signal>::Sample, F>>;
 
-impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
+impl<S: Signal, F: Map<Input = f32, Output = f32>> PwMapSgn<S, F> {
     /// Initializes a [`MapSgn`] from a pointwise function.
     pub const fn new_pw(sgn: S, map: F) -> Self {
         Self::new(sgn, Pw::new(map))
@@ -205,7 +205,7 @@ impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
 /// This signal stops whenever the original signal does. If you instead want a
 /// signal that stops when the envelope does, use [`ModSgn`].
 #[derive(Clone, Debug)]
-pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
+pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f32>> {
     /// The signal to modify.
     sgn: S,
 
@@ -216,7 +216,7 @@ pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
     func: F,
 }
 
-impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> MutSgn<S, E, F> {
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f32>> MutSgn<S, E, F> {
     /// Initializes a new [`MutSgn`].
     pub fn new(mut sgn: S, env: E, mut func: F) -> Self {
         func.modify(&mut sgn, env.get().0);
@@ -254,7 +254,7 @@ impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> MutSgn<S, E, F> {
     }
 }
 
-impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> Signal for MutSgn<S, E, F> {
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f32>> Signal for MutSgn<S, E, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -272,7 +272,7 @@ impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> Signal for MutSgn<S, E,
     }
 }
 
-impl<S: Frequency, E: Signal<Sample = Env>, F: Mut<S, f64>> Frequency for MutSgn<S, E, F> {
+impl<S: Frequency, E: Signal<Sample = Env>, F: Mut<S, f32>> Frequency for MutSgn<S, E, F> {
     fn freq(&self) -> Freq {
         self.sgn().freq()
     }
@@ -282,7 +282,7 @@ impl<S: Frequency, E: Signal<Sample = Env>, F: Mut<S, f64>> Frequency for MutSgn
     }
 }
 
-impl<S: Base, E: Signal<Sample = Env>, F: Mut<S, f64>> Base for MutSgn<S, E, F> {
+impl<S: Base, E: Signal<Sample = Env>, F: Mut<S, f32>> Base for MutSgn<S, E, F> {
     type Base = S::Base;
 
     fn base(&self) -> &S::Base {
@@ -294,19 +294,19 @@ impl<S: Base, E: Signal<Sample = Env>, F: Mut<S, f64>> Base for MutSgn<S, E, F> 
     }
 }
 
-impl<S: Done, E: Signal<Sample = Env>, F: Mut<S, f64>> Done for MutSgn<S, E, F> {
+impl<S: Done, E: Signal<Sample = Env>, F: Mut<S, f32>> Done for MutSgn<S, E, F> {
     fn is_done(&self) -> bool {
         self.sgn().is_done()
     }
 }
 
-impl<S: Stop, E: Signal<Sample = Env>, F: Mut<S, f64>> Stop for MutSgn<S, E, F> {
+impl<S: Stop, E: Signal<Sample = Env>, F: Mut<S, f32>> Stop for MutSgn<S, E, F> {
     fn stop(&mut self) {
         self.sgn_mut().stop();
     }
 }
 
-impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f64>> Panic for MutSgn<S, E, F> {
+impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f32>> Panic for MutSgn<S, E, F> {
     fn panic(&mut self) {
         self.sgn_mut().panic();
     }
@@ -317,12 +317,12 @@ impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f64>> Panic for MutSgn<S, E, F
 /// This signal stops whenever the envelope does. If you instead want a signal
 /// that stops when the signal does, use [`MutSgn`].
 #[derive(Clone, Debug)]
-pub struct ModSgn<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> {
+pub struct ModSgn<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f32>> {
     /// Inner data.
     inner: MutSgn<S, E, F>,
 }
 
-impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> ModSgn<S, E, F> {
+impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f32>> ModSgn<S, E, F> {
     /// Initializes a new [`ModSgn`].
     pub fn new(sgn: S, env: E, func: F) -> Self {
         Self {
@@ -361,7 +361,7 @@ impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> ModSgn<S, E, F> {
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> Signal for ModSgn<S, E, F> {
+impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f32>> Signal for ModSgn<S, E, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -377,7 +377,7 @@ impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> Signal for ModSgn<S, E, F
     }
 }
 
-impl<S: Frequency, E: Stop<Sample = Env>, F: Mut<S, f64>> Frequency for ModSgn<S, E, F> {
+impl<S: Frequency, E: Stop<Sample = Env>, F: Mut<S, f32>> Frequency for ModSgn<S, E, F> {
     fn freq(&self) -> Freq {
         self.inner.freq()
     }
@@ -387,7 +387,7 @@ impl<S: Frequency, E: Stop<Sample = Env>, F: Mut<S, f64>> Frequency for ModSgn<S
     }
 }
 
-impl<S: Base, E: Stop<Sample = Env>, F: Mut<S, f64>> Base for ModSgn<S, E, F> {
+impl<S: Base, E: Stop<Sample = Env>, F: Mut<S, f32>> Base for ModSgn<S, E, F> {
     type Base = S::Base;
 
     fn base(&self) -> &S::Base {
@@ -399,19 +399,19 @@ impl<S: Base, E: Stop<Sample = Env>, F: Mut<S, f64>> Base for ModSgn<S, E, F> {
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env> + Done, F: Mut<S, f64>> Done for ModSgn<S, E, F> {
+impl<S: Signal, E: Stop<Sample = Env> + Done, F: Mut<S, f32>> Done for ModSgn<S, E, F> {
     fn is_done(&self) -> bool {
         self.env().is_done()
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> Stop for ModSgn<S, E, F> {
+impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f32>> Stop for ModSgn<S, E, F> {
     fn stop(&mut self) {
         self.env_mut().stop();
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env> + Panic, F: Mut<S, f64>> Panic for ModSgn<S, E, F> {
+impl<S: Signal, E: Stop<Sample = Env> + Panic, F: Mut<S, f32>> Panic for ModSgn<S, E, F> {
     fn panic(&mut self) {
         self.env_mut().panic();
     }

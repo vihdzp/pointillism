@@ -45,7 +45,7 @@ fn main() {
                 osc(Freq::new_edo_note(
                     BASE,
                     5,
-                    rand::thread_rng().gen_range(0..=7) as f64,
+                    rand::thread_rng().gen_range(0..=7) as f32,
                 )),
             );
         }),

@@ -12,10 +12,10 @@ use crate::prelude::*;
 pub struct InfClip;
 
 impl Map for InfClip {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         x.signum()
     }
 }
@@ -33,13 +33,13 @@ impl<S: Signal> PwMapSgn<S, InfClip> {
 #[derive(Clone, Copy, Debug)]
 pub struct Clip {
     /// The threshold for clipping.
-    pub threshold: f64,
+    pub threshold: f32,
 }
 
 impl Clip {
     /// Initializes a new [`Clip`] struct.
     #[must_use]
-    pub const fn new(threshold: f64) -> Self {
+    pub const fn new(threshold: f32) -> Self {
         Self { threshold }
     }
 }
@@ -51,17 +51,17 @@ impl Default for Clip {
 }
 
 impl Map for Clip {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         x.clamp(-self.threshold, self.threshold) / self.threshold
     }
 }
 
 impl<S: Signal> PwMapSgn<S, Clip> {
     /// Applies [`Clip`] distortion to a signal.
-    pub const fn clip(sgn: S, threshold: f64) -> Self {
+    pub const fn clip(sgn: S, threshold: f32) -> Self {
         Self::new_pw(sgn, Clip::new(threshold))
     }
 }
@@ -72,13 +72,13 @@ impl<S: Signal> PwMapSgn<S, Clip> {
 #[derive(Clone, Copy, Debug)]
 pub struct Atan {
     /// The shape of the distortion. Typically larger than `1.0`.
-    pub shape: f64,
+    pub shape: f32,
 }
 
 impl Atan {
     /// Initializes a new [`Atan`] struct.
     #[must_use]
-    pub const fn new(shape: f64) -> Self {
+    pub const fn new(shape: f32) -> Self {
         Self { shape }
     }
 }
@@ -90,17 +90,17 @@ impl Default for Atan {
 }
 
 impl Map for Atan {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
-        (self.shape * x).atan() / std::f64::consts::FRAC_PI_2
+    fn eval(&self, x: f32) -> f32 {
+        (self.shape * x).atan() / std::f32::consts::FRAC_PI_2
     }
 }
 
 impl<S: Signal> PwMapSgn<S, Atan> {
     /// Applies [`Atan`] distortion to a signal.
-    pub const fn atan(sgn: S, shape: f64) -> Self {
+    pub const fn atan(sgn: S, shape: f32) -> Self {
         Self::new_pw(sgn, Atan::new(shape))
     }
 }
@@ -139,10 +139,10 @@ impl Default for Pow {
 }
 
 impl Map for Pow {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         let res = x.powi(i32::from(self.exponent));
 
         if self.exponent % 2 == 0 {

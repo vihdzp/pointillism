@@ -91,6 +91,8 @@ pub trait Frequency: Signal {
 
 /// A trait for a signal with a "base" signal.
 ///
+/// This is often a generator in a chain of effects.
+///
 /// This is implemented both for basic signals that don't depend on others, as
 /// well as straightforward wrappers of these.
 pub trait Base: Signal {
@@ -132,7 +134,8 @@ pub trait Stop: Signal {
 
 /// Represents a signal that can be stopped abruptly.
 ///
-/// All sound will stop being produced once the `panic` method is called.
+/// All sound or envelope data will stop being produced once the `panic` method
+/// is called.
 ///
 /// Depending on how your code is structured, it might be easier to simply stop
 /// calling `next` on your signal.

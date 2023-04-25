@@ -30,8 +30,8 @@ impl<S: Frequency> Default for Vib<S> {
     }
 }
 
-impl<S: Frequency> Mut<S, f64> for Vib<S> {
-    fn modify(&mut self, sgn: &mut S, bend: f64) {
+impl<S: Frequency> Mut<S, f32> for Vib<S> {
+    fn modify(&mut self, sgn: &mut S, bend: f32) {
         *sgn.freq_mut() = self.base * bend;
     }
 }

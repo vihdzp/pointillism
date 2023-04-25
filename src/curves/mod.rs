@@ -3,7 +3,7 @@
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
 //! By a curve, we mean any struct implementing
-//! [`Map<Input = f64, Output = f64>`](Map).
+//! [`Map<Input = f32, Output = f32>`](Map).
 //!
 //! For convenience, we provide four variants of a saw wave: [`Saw`],
 //! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take
@@ -13,6 +13,8 @@
 //! All other of the provided curves, by default, take values from `-1.0` to
 //! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and
 //! [`Comp::neg`] methods.
+
+pub mod buffer;
 
 use crate::map::{Comp, Map};
 
@@ -29,15 +31,15 @@ impl Pos {
 }
 
 impl Map for Pos {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         crate::pos(x)
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Pos> {
+impl<F: Map<Output = f32>> Comp<F, Pos> {
     /// Composes a function with [`Pos`].
     pub const fn pos(f: F) -> Self {
         Self::new(f, Pos)
@@ -57,15 +59,15 @@ impl Sgn {
 }
 
 impl Map for Sgn {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         crate::sgn(x)
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Sgn> {
+impl<F: Map<Output = f32>> Comp<F, Sgn> {
     /// Composes a function with [`Sgn`].
     pub const fn sgn(f: F) -> Self {
         Self::new(f, Sgn)
@@ -85,15 +87,15 @@ impl Neg {
 }
 
 impl Map for Neg {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         -x
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Neg> {
+impl<F: Map<Output = f32>> Comp<F, Neg> {
     /// Composes a function with [`Neg`].
     pub const fn neg(f: F) -> Self {
         Self::new(f, Neg)
@@ -104,33 +106,33 @@ impl<F: Map<Output = f64>> Comp<F, Neg> {
 #[derive(Clone, Copy, Debug)]
 pub struct Linear {
     /// Slope of the map.
-    pub slope: f64,
+    pub slope: f32,
 
     /// y-intercept of the map.
-    pub intercept: f64,
+    pub intercept: f32,
 }
 
 impl Linear {
     /// Initializes a new linear map.
     #[must_use]
-    pub const fn new(slope: f64, intercept: f64) -> Self {
+    pub const fn new(slope: f32, intercept: f32) -> Self {
         Self { slope, intercept }
     }
 
     /// Initializes the linear map that rescales an interval
     /// `[init_lo, init_hi]` to another `[end_lo, end_hi]`.
     #[must_use]
-    pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
+    pub fn rescale(init_lo: f32, init_hi: f32, end_lo: f32, end_hi: f32) -> Self {
         let slope = (end_hi - end_lo) / (init_hi - init_lo);
         Self::new(slope, end_lo - slope * init_lo)
     }
 }
 
 impl Map for Linear {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         x * self.slope + self.intercept
     }
 }
@@ -156,10 +158,10 @@ impl Saw {
 }
 
 impl Map for Saw {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         crate::sgn(x)
     }
 }
@@ -185,10 +187,10 @@ impl InvSaw {
 }
 
 impl Map for InvSaw {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         -crate::sgn(x)
     }
 }
@@ -213,10 +215,10 @@ impl PosSaw {
 }
 
 impl Map for PosSaw {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         x
     }
 }
@@ -241,10 +243,10 @@ impl PosInvSaw {
 }
 
 impl Map for PosInvSaw {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         1.0 - x
     }
 }
@@ -255,13 +257,13 @@ impl Map for PosInvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sin {
     /// Phase of the sine curve, from `0.0` to `1.0`.
-    pub phase: f64,
+    pub phase: f32,
 }
 
 impl Sin {
     /// A sine wave with a given phase.
     #[must_use]
-    pub const fn new(phase: f64) -> Self {
+    pub const fn new(phase: f32) -> Self {
         Self { phase }
     }
 
@@ -281,15 +283,15 @@ impl Sin {
 
 /// Evaluates `sin((x + phase) * τ)`.
 #[must_use]
-pub fn sin(x: f64, phase: f64) -> f64 {
-    ((x + phase) * std::f64::consts::TAU).sin()
+pub fn sin(x: f32, phase: f32) -> f32 {
+    ((x + phase) * std::f32::consts::TAU).sin()
 }
 
 impl Map for Sin {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         sin(x, self.phase)
     }
 }
@@ -300,13 +302,13 @@ impl Map for Sin {
 #[derive(Clone, Copy, Debug)]
 pub struct Pulse {
     /// Shape of the pulse curve, from `0.0` to `1.0`.
-    pub shape: f64,
+    pub shape: f32,
 }
 
 impl Pulse {
     /// A pulse wave.
     #[must_use]
-    pub const fn new(shape: f64) -> Self {
+    pub const fn new(shape: f32) -> Self {
         Self { shape }
     }
 
@@ -325,7 +327,7 @@ impl Default for Pulse {
 
 /// Returns `1` if `x < shape`, returns `-1` otherwise.
 #[must_use]
-pub fn pulse(x: f64, shape: f64) -> f64 {
+pub fn pulse(x: f32, shape: f32) -> f32 {
     if x < shape {
         1.0
     } else {
@@ -334,10 +336,10 @@ pub fn pulse(x: f64, shape: f64) -> f64 {
 }
 
 impl Map for Pulse {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         pulse(x, self.shape)
     }
 }
@@ -348,13 +350,13 @@ impl Map for Pulse {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SawTri {
     /// Position of the peak of the wave.
-    pub shape: f64,
+    pub shape: f32,
 }
 
 impl SawTri {
     /// A saw-triangle curve.
     #[must_use]
-    pub const fn new(shape: f64) -> Self {
+    pub const fn new(shape: f32) -> Self {
         Self { shape }
     }
 
@@ -386,9 +388,9 @@ impl SawTri {
 /// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between
 /// `1.0` and `-1.0` for `x ≥ shape`.
 #[must_use]
-pub fn saw_tri(x: f64, shape: f64) -> f64 {
+pub fn saw_tri(x: f32, shape: f32) -> f32 {
     /// We must do some size checks to avoid division by 0.
-    const EPS: f64 = 1e-7;
+    const EPS: f32 = 1e-7;
 
     if x < shape {
         if shape.abs() < EPS {
@@ -404,10 +406,10 @@ pub fn saw_tri(x: f64, shape: f64) -> f64 {
 }
 
 impl Map for SawTri {
-    type Input = f64;
-    type Output = f64;
+    type Input = f32;
+    type Output = f32;
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: f32) -> f32 {
         saw_tri(x, self.shape)
     }
 }

@@ -14,7 +14,7 @@ use std::{
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in hertz.
-    pub hz: f64,
+    pub hz: f32,
 }
 
 /// We use `A4` as a default frequency. This means that, for instance,
@@ -40,13 +40,13 @@ impl Display for Freq {
 /// Relative pitch corresponding to a note in a given EDO or
 /// [equal division of the octave](https://en.wikipedia.org/wiki/Equal_temperament).
 #[must_use]
-pub fn edo_note(edo: u16, note: f64) -> f64 {
-    2f64.powf(note / f64::from(edo))
+pub fn edo_note(edo: u16, note: f32) -> f32 {
+    2f32.powf(note / f32::from(edo))
 }
 
 /// Relative pitch corresponding to a note in 12-EDO. See also [`edo_note`].
 #[must_use]
-pub fn note(note: f64) -> f64 {
+pub fn note(note: f32) -> f32 {
     edo_note(12, note)
 }
 
@@ -58,13 +58,13 @@ impl Freq {
     ///
     /// Note that the frequency will generally be assumed to be positive.
     #[must_use]
-    pub const fn new(hz: f64) -> Self {
+    pub const fn new(hz: f32) -> Self {
         Self { hz }
     }
 
     /// The frequency in Hertz.
     #[must_use]
-    pub const fn hz(&self) -> f64 {
+    pub const fn hz(&self) -> f32 {
         self.hz
     }
 
@@ -76,7 +76,7 @@ impl Freq {
 
     /// Initializes a frequency in a given `edo` (equal division of the octave),
     /// a certain amount of `notes` above or below a `base` pitch (usually
-    /// [`A4`](crate::A4)).
+    /// [`A4`](Freq::A4)).
     ///
     /// ## Example
     ///
@@ -86,12 +86,12 @@ impl Freq {
     /// let C5 = Freq::new_edo_note(A4, 12, 3.0);
     /// ```
     #[must_use]
-    pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
+    pub fn new_edo_note(base: Freq, edo: u16, note: f32) -> Self {
         edo_note(edo, note) * base
     }
 
     /// Initializes a frequency in 12-EDO, a certain amount of `notes` above or
-    /// below a `base` pitch (usually [`A4`](crate::A4)).
+    /// below a `base` pitch (usually [`A4`](Freq::A4)).
     ///
     /// See also [`Freq::new_edo_note`].
     ///
@@ -103,14 +103,14 @@ impl Freq {
     /// let C5 = Freq::new_note(A4, 3.0);
     /// ```
     #[must_use]
-    pub fn new_note(base: Freq, note: f64) -> Self {
+    pub fn new_note(base: Freq, note: f32) -> Self {
         Self::new_edo_note(base, 12, note)
     }
 
     /// Initializes a frequency from a MIDI note.
     #[must_use]
     pub fn new_midi(a4: Freq, note: i16) -> Self {
-        Self::new_edo_note(a4, 12, f64::from(note) - 69.0)
+        Self::new_edo_note(a4, 12, f32::from(note) - 69.0)
     }
 }
 
@@ -204,30 +204,30 @@ impl Freq {
     }
 }
 
-impl Mul<f64> for Freq {
+impl Mul<f32> for Freq {
     type Output = Self;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         rhs * self
     }
 }
 
-impl MulAssign<f64> for Freq {
-    fn mul_assign(&mut self, rhs: f64) {
+impl MulAssign<f32> for Freq {
+    fn mul_assign(&mut self, rhs: f32) {
         self.hz *= rhs;
     }
 }
 
-impl Div<f64> for Freq {
+impl Div<f32> for Freq {
     type Output = Self;
 
-    fn div(self, rhs: f64) -> Self {
+    fn div(self, rhs: f32) -> Self {
         Self::new(self.hz / rhs)
     }
 }
 
-impl DivAssign<f64> for Freq {
-    fn div_assign(&mut self, rhs: f64) {
+impl DivAssign<f32> for Freq {
+    fn div_assign(&mut self, rhs: f32) {
         self.hz /= rhs;
     }
 }

@@ -5,7 +5,7 @@
 //!
 //! The module file provides the most basic examples of generators, namely
 //! generators that read data from a curve. A curve in this context means a
-//! structure implementing `Map<Input = f64, Output = f64>`.
+//! structure implementing `Map<Input = f32, Output = f32>`.
 
 use std::marker::PhantomData;
 
@@ -18,7 +18,7 @@ pub mod sequence;
 ///
 /// See also [`LoopGen`].
 #[derive(Clone, Debug)]
-pub struct OneshotGen<S: Sample, C: Map<Input = f64, Output = f64>> {
+pub struct OneshotGen<S: Sample, C: Map<Input = f32, Output = f32>> {
     /// The curve being played.
     pub curve: C,
 
@@ -27,13 +27,13 @@ pub struct OneshotGen<S: Sample, C: Map<Input = f64, Output = f64>> {
 
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
-    val: f64,
+    val: f32,
 
     /// Dummy value.
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> OneshotGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> OneshotGen<S, C> {
     /// Initializes a new [`OneshotGen`].
     pub const fn new(curve: C, time: Time) -> Self {
         Self {
@@ -46,12 +46,12 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> OneshotGen<S, C> {
 
     /// Returns the value between `0.0` and `1.0` which represents how far along
     /// the curve we're currently reading.
-    pub const fn val(&self) -> f64 {
+    pub const fn val(&self) -> f32 {
         self.val
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for OneshotGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for OneshotGen<S, C> {
     type Sample = S;
 
     fn get(&self) -> S {
@@ -68,7 +68,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for OneshotGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Base for OneshotGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for OneshotGen<S, C> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
@@ -80,13 +80,13 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Base for OneshotGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Done for OneshotGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Done for OneshotGen<S, C> {
     fn is_done(&self) -> bool {
         self.val >= 1.0
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Stop for OneshotGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Stop for OneshotGen<S, C> {
     fn stop(&mut self) {
         self.val = 1.0;
     }
@@ -96,7 +96,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Stop for OneshotGen<S, C> {
 ///
 /// See also [`OneshotGen`].
 #[derive(Clone, Debug, Default)]
-pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
+pub struct LoopGen<S: Sample, C: Map<Input = f32, Output = f32>> {
     /// The curve being played.
     pub curve: C,
 
@@ -105,13 +105,13 @@ pub struct LoopGen<S: Sample, C: Map<Input = f64, Output = f64>> {
 
     /// A value between `0.0` and `1.0` indicating what sample of the curve to
     /// play.
-    val: f64,
+    val: f32,
 
     /// Dummy value.
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> LoopGen<S, C> {
     /// Initializes a new [`LoopGen`].
     pub const fn new(curve: C, freq: Freq) -> Self {
         Self {
@@ -134,12 +134,12 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
 
     /// Returns the value between `0.0` and `1.0` which represents how far along
     /// the curve we're currently reading.
-    pub fn val(&self) -> f64 {
+    pub fn val(&self) -> f32 {
         self.val
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for LoopGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Signal for LoopGen<S, C> {
     type Sample = S;
 
     fn get(&self) -> S {
@@ -156,7 +156,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Signal for LoopGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Frequency for LoopGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Frequency for LoopGen<S, C> {
     fn freq(&self) -> Freq {
         self.freq
     }
@@ -166,7 +166,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Frequency for LoopGen<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Base for LoopGen<S, C> {
+impl<S: Sample, C: Map<Input = f32, Output = f32>> Base for LoopGen<S, C> {
     type Base = Self;
 
     fn base(&self) -> &Self::Base {
