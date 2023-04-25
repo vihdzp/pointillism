@@ -68,7 +68,7 @@ use time::Time;
 pub const SAMPLE_RATE: u16 = 44100;
 
 /// The sample rate for the audio file, in samples per second.
-pub const SAMPLE_RATE_F64: f32 = SAMPLE_RATE as f32;
+pub const SAMPLE_RATE_F64: f64 = SAMPLE_RATE as f64;
 
 /// The specification for the output file.
 const fn spec(channels: u8) -> WavSpec {
@@ -82,13 +82,13 @@ const fn spec(channels: u8) -> WavSpec {
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[must_use]
-pub fn pos(x: f32) -> f32 {
+pub fn pos(x: f64) -> f64 {
     (x + 1.0) / 2.0
 }
 
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
 #[must_use]
-pub fn sgn(x: f32) -> f32 {
+pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
 
@@ -111,7 +111,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     let mut timer = Time::ZERO;
     let mut writer = WavWriter::create(filename, spec(A::CHANNELS))?;
 
-    while timer < length {
+    while timer < dbg!(length) {
         song(timer).write(&mut writer)?;
         timer.advance();
     }

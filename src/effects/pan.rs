@@ -7,18 +7,18 @@ use crate::prelude::*;
 /// Represents the way in which gain correlates with panning angle.
 pub trait Law: Copy + Default {
     /// Initializes a new struct with the specified angle.
-    fn new(angle: f32) -> Self;
+    fn new(angle: f64) -> Self;
 
     /// Panning angle, between `0.0` and `1.0`.
     ///
     /// Hard left is `0.0`, center is `0.5`, hard right is `1.0`.
-    fn angle(&self) -> f32;
+    fn angle(&self) -> f64;
 
     /// Returns a mutable reference to the panning angle.
-    fn angle_mut(&mut self) -> &mut f32;
+    fn angle_mut(&mut self) -> &mut f64;
 
     /// Returns the left and right gains for a given angle.
-    fn gain(&self) -> (f32, f32);
+    fn gain(&self) -> (f64, f64);
 }
 
 /// Linear panning.
@@ -27,7 +27,7 @@ pub trait Law: Copy + Default {
 #[derive(Clone, Copy, Debug)]
 pub struct Linear {
     /// Panning angle. See [`Law::angle`] for more info.
-    pub angle: f32,
+    pub angle: f64,
 }
 
 impl Default for Linear {
@@ -39,15 +39,15 @@ impl Default for Linear {
 /// Initializes the fields `new`, `angle`, `angle_mut`.
 macro_rules! pan_boilerplate {
     () => {
-        fn new(angle: f32) -> Self {
+        fn new(angle: f64) -> Self {
             Self { angle }
         }
 
-        fn angle(&self) -> f32 {
+        fn angle(&self) -> f64 {
             self.angle
         }
 
-        fn angle_mut(&mut self) -> &mut f32 {
+        fn angle_mut(&mut self) -> &mut f64 {
             &mut self.angle
         }
     };
@@ -55,14 +55,14 @@ macro_rules! pan_boilerplate {
 
 /// Gain formula for a linear panning law.
 #[must_use]
-pub fn linear_gain(angle: f32) -> (f32, f32) {
+pub fn linear_gain(angle: f64) -> (f64, f64) {
     (1.0 - angle, angle)
 }
 
 impl Law for Linear {
     pan_boilerplate!();
 
-    fn gain(&self) -> (f32, f32) {
+    fn gain(&self) -> (f64, f64) {
         linear_gain(self.angle)
     }
 }
@@ -73,7 +73,7 @@ impl Law for Linear {
 #[derive(Clone, Copy, Debug)]
 pub struct Power {
     /// Panning angle. See [`Law::angle`] for more info.
-    pub angle: f32,
+    pub angle: f64,
 }
 
 impl Default for Power {
@@ -84,15 +84,15 @@ impl Default for Power {
 
 /// Gain formula for a power panning law.
 #[must_use]
-pub fn power_gain(angle: f32) -> (f32, f32) {
-    let (r, l) = (std::f32::consts::FRAC_PI_2 * angle).sin_cos();
+pub fn power_gain(angle: f64) -> (f64, f64) {
+    let (r, l) = (std::f64::consts::FRAC_PI_2 * angle).sin_cos();
     (l, r)
 }
 
 impl Law for Power {
     pan_boilerplate!();
 
-    fn gain(&self) -> (f32, f32) {
+    fn gain(&self) -> (f64, f64) {
         power_gain(self.angle)
     }
 }
@@ -104,7 +104,7 @@ impl Law for Power {
 #[derive(Clone, Copy, Debug)]
 pub struct Mixed {
     /// Panning angle. See [`Law::angle`] for more info.
-    pub angle: f32,
+    pub angle: f64,
 }
 
 impl Default for Mixed {
@@ -115,7 +115,7 @@ impl Default for Mixed {
 
 /// Gain formula for a mixed panning law.
 #[must_use]
-pub fn mixed_gain(angle: f32) -> (f32, f32) {
+pub fn mixed_gain(angle: f64) -> (f64, f64) {
     let linear = linear_gain(angle);
     let power = power_gain(angle);
     ((linear.0 * power.0).sqrt(), (linear.1 * power.1).sqrt())
@@ -124,7 +124,7 @@ pub fn mixed_gain(angle: f32) -> (f32, f32) {
 impl Law for Mixed {
     pan_boilerplate!();
 
-    fn gain(&self) -> (f32, f32) {
+    fn gain(&self) -> (f64, f64) {
         mixed_gain(self.angle)
     }
 }
@@ -173,17 +173,17 @@ where
     }
 
     /// Initializes a new [`Panner`] for a given signal and angle.
-    pub fn new_pan(sgn: S, angle: f32) -> Self {
+    pub fn new_pan(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, P::new(angle))
     }
 
     /// Returns the current panning angle.
-    pub fn angle(&self) -> f32 {
+    pub fn angle(&self) -> f64 {
         self.map().pan_law.angle()
     }
 
     /// Returns a mutable reference to the current panning angle.
-    pub fn angle_mut(&mut self) -> &mut f32 {
+    pub fn angle_mut(&mut self) -> &mut f64 {
         self.map_mut().pan_law.angle_mut()
     }
 }
@@ -193,7 +193,7 @@ where
     S::Sample: Audio,
 {
     /// Initializes a [`Linear`] panner with the specified angle.
-    pub const fn linear(sgn: S, angle: f32) -> Self {
+    pub const fn linear(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Linear { angle })
     }
 }
@@ -203,7 +203,7 @@ where
     S::Sample: Audio,
 {
     /// Initializes a [`Power`] panner with the specified angle.
-    pub const fn power(sgn: S, angle: f32) -> Self {
+    pub const fn power(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Power { angle })
     }
 }
@@ -213,7 +213,7 @@ where
     S::Sample: Audio,
 {
     /// Initializes a [`Mixed`] panner with the specified angle.
-    pub const fn mixed(sgn: S, angle: f32) -> Self {
+    pub const fn mixed(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Mixed { angle })
     }
 }

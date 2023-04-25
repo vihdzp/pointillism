@@ -19,14 +19,14 @@ use std::{
 /// freely convert one to the other if so needed.
 #[derive(Clone, Copy, Debug, Default)]
 #[repr(C)]
-pub struct Mono(pub f32);
+pub struct Mono(pub f64);
 
 /// A sample of stereo audio, typically holding values between `-1.0` and `1.0`.
 ///
 /// The left channel is stored in `.0`, the right channel is stored in `.1`.
 #[derive(Clone, Copy, Debug, Default)]
 #[repr(C)]
-pub struct Stereo(pub f32, pub f32);
+pub struct Stereo(pub f64, pub f64);
 
 /// A data sample from an envelope, typically holding a value between `-1.0` and
 /// `1.0`.
@@ -35,7 +35,7 @@ pub struct Stereo(pub f32, pub f32);
 /// freely convert one to the other if so needed.
 #[derive(Clone, Copy, Debug, Default)]
 #[repr(C)]
-pub struct Env(pub f32);
+pub struct Env(pub f64);
 
 /// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
 ///
@@ -50,10 +50,10 @@ pub trait Sample:
     + Neg<Output = Self>
     + Sub<Output = Self>
     + SubAssign
-    + Mul<f32, Output = Self>
-    + MulAssign<f32>
-    + Div<f32, Output = Self>
-    + DivAssign<f32>
+    + Mul<f64, Output = Self>
+    + MulAssign<f64>
+    + Div<f64, Output = Self>
+    + DivAssign<f64>
     + Sum
 {
     /// The number of values stored in the sample.
@@ -64,18 +64,18 @@ pub trait Sample:
 
     /// Gets the value from channel `idx`. Reads the last channel if out of
     /// bounds.
-    fn get_unchecked(&self, idx: u8) -> f32;
+    fn get_unchecked(&self, idx: u8) -> f64;
 
     /// Gets a reference to the value from channel `idx`. Reads the last channel
     /// if out of bounds.
-    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f32;
+    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f64;
 
     /// Gets the value from channel `idx`.
     ///
     /// # Panics
     ///
     /// Panics if the index is greater than the number of channels.
-    fn get(&self, idx: u8) -> f32 {
+    fn get(&self, idx: u8) -> f64 {
         assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
         self.get_unchecked(idx)
     }
@@ -85,7 +85,7 @@ pub trait Sample:
     /// # Panics
     ///
     /// Panics if the index is greater than the number of channels.
-    fn get_mut(&mut self, idx: u8) -> &mut f32 {
+    fn get_mut(&mut self, idx: u8) -> &mut f64 {
         assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
         self.get_mut_unchecked(idx)
     }
@@ -98,7 +98,7 @@ pub trait Sample:
     }
 
     /// Initializes a new sample by calling `f(idx)` on each index.
-    fn from_fn<F: FnMut(u8) -> f32>(mut f: F) -> Self {
+    fn from_fn<F: FnMut(u8) -> f64>(mut f: F) -> Self {
         let mut res = Self::default();
         Self::for_each(|idx| *res.get_mut_unchecked(idx) = f(idx));
         res
@@ -106,29 +106,29 @@ pub trait Sample:
 
     /// Applies a function `f` to all entries of the sample.
     #[must_use]
-    fn map<F: FnMut(f32) -> f32>(&self, mut f: F) -> Self {
+    fn map<F: FnMut(f64) -> f64>(&self, mut f: F) -> Self {
         Self::from_fn(|idx| f(self.get(idx)))
     }
 
     /// Mutably applies a function `f` to all entries of the sample.
-    fn map_mut<F: FnMut(&mut f32)>(&mut self, mut f: F) {
+    fn map_mut<F: FnMut(&mut f64)>(&mut self, mut f: F) {
         Self::for_each(|idx| f(self.get_mut_unchecked(idx)));
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
     #[must_use]
-    fn pairwise<F: FnMut(f32, f32) -> f32>(&self, rhs: Self, mut f: F) -> Self {
+    fn pairwise<F: FnMut(f64, f64) -> f64>(&self, rhs: Self, mut f: F) -> Self {
         Self::from_fn(|idx| f(self.get(idx), rhs.get(idx)))
     }
 
     /// Mutably applies a function `f` to pairs of entries of the samples.
-    fn pairwise_mut<F: FnMut(&mut f32, f32)>(&mut self, rhs: Self, mut f: F) {
+    fn pairwise_mut<F: FnMut(&mut f64, f64)>(&mut self, rhs: Self, mut f: F) {
         Self::for_each(|idx| f(self.get_mut(idx), rhs.get(idx)));
     }
 
     /// Initializes a sample where all channels use the specified value.
     #[must_use]
-    fn from_val(val: f32) -> Self {
+    fn from_val(val: f64) -> Self {
         Self::from_fn(|_| val)
     }
 
@@ -139,7 +139,7 @@ pub trait Sample:
     /// instances of [`Sample`] implement this trait individually.
     #[must_use]
     fn rand_with<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        Self::from_fn(|_| crate::sgn(rng.gen::<f32>()))
+        Self::from_fn(|_| crate::sgn(rng.gen::<f64>()))
     }
 
     /// Generates a random sample.
@@ -182,7 +182,7 @@ pub trait Audio: Sample {
         for idx in 0..Self::CHANNELS {
             // In practice, truncation should never occur.
             #[allow(clippy::cast_possible_truncation)]
-            writer.write_sample(self.get_unchecked(idx))?;
+            writer.write_sample(self.get_unchecked(idx) as f32)?;
         }
 
         Ok(())
@@ -193,11 +193,11 @@ impl Sample for Mono {
     const CHANNELS: u8 = 1;
     const ZERO: Self = Self(0.0);
 
-    fn get_unchecked(&self, _: u8) -> f32 {
+    fn get_unchecked(&self, _: u8) -> f64 {
         self.0
     }
 
-    fn get_mut_unchecked(&mut self, _: u8) -> &mut f32 {
+    fn get_mut_unchecked(&mut self, _: u8) -> &mut f64 {
         &mut self.0
     }
 }
@@ -208,7 +208,7 @@ impl Sample for Stereo {
     const CHANNELS: u8 = 2;
     const ZERO: Self = Self(0.0, 0.0);
 
-    fn get_unchecked(&self, idx: u8) -> f32 {
+    fn get_unchecked(&self, idx: u8) -> f64 {
         if idx == 0 {
             self.0
         } else {
@@ -216,7 +216,7 @@ impl Sample for Stereo {
         }
     }
 
-    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f32 {
+    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f64 {
         if idx == 0 {
             &mut self.0
         } else {
@@ -231,11 +231,11 @@ impl Sample for Env {
     const CHANNELS: u8 = 1;
     const ZERO: Self = Self(0.0);
 
-    fn get_unchecked(&self, _: u8) -> f32 {
+    fn get_unchecked(&self, _: u8) -> f64 {
         self.0
     }
 
-    fn get_mut_unchecked(&mut self, _: u8) -> &mut f32 {
+    fn get_mut_unchecked(&mut self, _: u8) -> &mut f64 {
         &mut self.0
     }
 }
@@ -263,23 +263,23 @@ macro_rules! impl_op_assign {
     };
 }
 
-/// Implements traits `Mul<f32>`, `Div<f32>`.
-macro_rules! impl_op_f32 {
+/// Implements traits `Mul<f64>`, `Div<f64>`.
+macro_rules! impl_op_f64 {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op<f32> for $ty {
+        $(impl $op<f64> for $ty {
             type Output = Self;
-            fn $fn(self, rhs: f32) -> Self::Output {
+            fn $fn(self, rhs: f64) -> Self::Output {
                 self.map(|x| std::ops::$op::$fn(x, rhs))
             }
         })*
     };
 }
 
-/// Implements traits `MulAssign<f32>`, `DivAssign<f32>`.
-macro_rules! impl_op_assign_f32 {
+/// Implements traits `MulAssign<f64>`, `DivAssign<f64>`.
+macro_rules! impl_op_assign_f64 {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op<f32> for $ty {
-            fn $fn(&mut self, rhs: f32) {
+        $(impl $op<f64> for $ty {
+            fn $fn(&mut self, rhs: f64) {
                 self.map_mut(|x| std::ops::$op::$fn(x, rhs))
             }
         })*
@@ -326,8 +326,8 @@ macro_rules! impl_all {
         $(
             impl_op!($ty; Add, add, Sub, sub);
             impl_op_assign!($ty; AddAssign, add_assign, SubAssign, sub_assign);
-            impl_op_f32!($ty; Mul, mul, Div, div);
-            impl_op_assign_f32!($ty; MulAssign, mul_assign, DivAssign, div_assign);
+            impl_op_f64!($ty; Mul, mul, Div, div);
+            impl_op_assign_f64!($ty; MulAssign, mul_assign, DivAssign, div_assign);
             impl_neg!($ty);
             impl_sum!($ty);
             impl_rand!($ty);
@@ -339,7 +339,7 @@ impl_all!(Mono, Stereo, Env);
 
 /// A numeric type that can store a raw sample from a WAV file.
 ///
-/// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f32`.
+/// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f64`.
 #[allow(clippy::module_name_repetitions)]
 pub trait WavSample: hound::Sample {
     /// Re-scales and converts the sample into `Mono`.
@@ -352,7 +352,7 @@ macro_rules! impl_wav_signed {
         $(
             impl WavSample for $ty {
                 fn into_mono(self) -> Mono {
-                    Mono(self as f32 / <$ty>::MAX as f32)
+                    Mono(self as f64 / <$ty>::MAX as f64)
                 }
             }
         )*
@@ -363,7 +363,7 @@ impl_wav_signed!(i8, i16, i32);
 
 impl WavSample for f32 {
     fn into_mono(self) -> Mono {
-        Mono(self)
+        Mono(f64::from(self))
     }
 }
 
@@ -375,11 +375,11 @@ mod test {
 
     #[test]
     fn size_align() {
-        assert_eq!(size_of::<Mono>(), 4);
-        assert_eq!(align_of::<Mono>(), 4);
-        assert_eq!(size_of::<Stereo>(), 8);
-        assert_eq!(align_of::<Stereo>(), 4);
-        assert_eq!(size_of::<Env>(), 4);
-        assert_eq!(align_of::<Env>(), 4);
+        assert_eq!(size_of::<Mono>(), 8);
+        assert_eq!(align_of::<Mono>(), 8);
+        assert_eq!(size_of::<Stereo>(), 16);
+        assert_eq!(align_of::<Stereo>(), 8);
+        assert_eq!(size_of::<Env>(), 8);
+        assert_eq!(align_of::<Env>(), 8);
     }
 }

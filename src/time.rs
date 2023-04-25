@@ -9,22 +9,22 @@ use std::{
 };
 
 /// Number of seconds in a minute.
-const MIN_SECS: f32 = 60.0;
+const MIN_SECS: f64 = 60.0;
 
 /// Number of seconds in an hour.
-const HR_SECS: f32 = 60.0 * MIN_SECS;
+const HR_SECS: f64 = 60.0 * MIN_SECS;
 
 /// Number of seconds in a day.
-const DAY_SECS: f32 = 24.0 * HR_SECS;
+const DAY_SECS: f64 = 24.0 * HR_SECS;
 
 /// Number of seconds in a year (365 days).
-const YR_SECS: f32 = 365.0 * DAY_SECS;
+const YR_SECS: f64 = 365.0 * DAY_SECS;
 
 /// Represents an amount of time.
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Time {
     /// Number of seconds.
-    pub seconds: f32,
+    pub seconds: f64,
 }
 
 impl Time {
@@ -48,19 +48,19 @@ impl Time {
 
     /// Initializes a time variable for the number of seconds.
     #[must_use]
-    pub const fn new(seconds: f32) -> Self {
+    pub const fn new(seconds: f64) -> Self {
         Self { seconds }
     }
 
     /// Initializes a time variable for the number of frames.
     #[must_use]
-    pub fn new_frames(frames: f32) -> Self {
+    pub fn new_frames(frames: f64) -> Self {
         Self::new(frames / SAMPLE_RATE_F64)
     }
 
     /// The time for a single beat at a given BPM.
     #[must_use]
-    pub fn new_beat(bpm: f32) -> Self {
+    pub fn new_beat(bpm: f64) -> Self {
         Self::new(MIN_SECS / bpm)
     }
 
@@ -72,19 +72,19 @@ impl Time {
 
     /// The time in seconds.
     #[must_use]
-    pub const fn seconds(&self) -> f32 {
+    pub const fn seconds(&self) -> f64 {
         self.seconds
     }
 
     /// The time in milliseconds.
     #[must_use]
-    pub fn milliseconds(&self) -> f32 {
+    pub fn milliseconds(&self) -> f64 {
         1e3 * self.seconds()
     }
 
     /// The time in frames.
     #[must_use]
-    pub fn frames(&self) -> f32 {
+    pub fn frames(&self) -> f64 {
         self.seconds() * SAMPLE_RATE_F64
     }
 
@@ -96,13 +96,13 @@ impl Time {
 
 impl From<Duration> for Time {
     fn from(value: Duration) -> Self {
-        Self::new(value.as_secs_f32())
+        Self::new(value.as_secs_f64())
     }
 }
 
 impl From<Time> for Duration {
     fn from(value: Time) -> Self {
-        Self::from_secs_f32(value.seconds())
+        Self::from_secs_f64(value.seconds())
     }
 }
 
@@ -125,7 +125,7 @@ impl Display for Time {
     }
 }
 
-impl Mul<Freq> for f32 {
+impl Mul<Freq> for f64 {
     type Output = Freq;
 
     fn mul(self, rhs: Freq) -> Freq {
@@ -161,7 +161,7 @@ impl SubAssign for Time {
     }
 }
 
-impl Mul<Time> for f32 {
+impl Mul<Time> for f64 {
     type Output = Time;
 
     fn mul(self, rhs: Time) -> Time {
@@ -169,30 +169,30 @@ impl Mul<Time> for f32 {
     }
 }
 
-impl Mul<f32> for Time {
+impl Mul<f64> for Time {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         rhs * self
     }
 }
 
-impl MulAssign<f32> for Time {
-    fn mul_assign(&mut self, rhs: f32) {
+impl MulAssign<f64> for Time {
+    fn mul_assign(&mut self, rhs: f64) {
         self.seconds *= rhs;
     }
 }
 
-impl Div<f32> for Time {
+impl Div<f64> for Time {
     type Output = Self;
 
-    fn div(self, rhs: f32) -> Self {
+    fn div(self, rhs: f64) -> Self {
         Self::new(self.seconds / rhs)
     }
 }
 
-impl DivAssign<f32> for Time {
-    fn div_assign(&mut self, rhs: f32) {
+impl DivAssign<f64> for Time {
+    fn div_assign(&mut self, rhs: f64) {
         self.seconds /= rhs;
     }
 }
@@ -217,6 +217,6 @@ mod test {
 
     #[test]
     fn yr_secs() {
-        assert_eq!(format!("{:#?}", Time::YR), "1y 0mon 0d 0h 0m 0ms");
+        assert_eq!(format!("{:#?}", Time::YR), "1y 0mon 0d 0h 0m 0s 0ms");
     }
 }

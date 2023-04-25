@@ -21,7 +21,7 @@ use crate::{prelude::*, sample::WavSample};
 pub type WavFileReader = WavReader<io::BufReader<std::fs::File>>;
 
 /// Returns the integer and fractional part of a float.
-fn index_frac(val: f32) -> (isize, f32) {
+fn index_frac(val: f64) -> (isize, f64) {
     // Hopefully we never deal with files so large that truncation can occur.
     #[allow(clippy::cast_possible_truncation)]
     (val.floor() as isize, val.fract())
@@ -30,7 +30,7 @@ fn index_frac(val: f32) -> (isize, f32) {
 /// Linearly interpolates two samples `x0` and `x1`.
 ///
 /// The variable `t` should range between `0` and `1`.
-pub fn linear_inter<S: Sample>(x0: S, x1: S, t: f32) -> S {
+pub fn linear_inter<S: Sample>(x0: S, x1: S, t: f64) -> S {
     x0 * (1.0 - t) + x1 * t
 }
 
@@ -40,7 +40,7 @@ pub fn linear_inter<S: Sample>(x0: S, x1: S, t: f32) -> S {
 /// The variable `t` should range between `0` and `1`.
 ///
 /// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f32) -> S {
+pub fn cubic_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     let a0 = x3 - x2 - x0 + x1;
     let a1 = x0 - x1 - a0;
     let a2 = x2 - x0;
@@ -55,7 +55,7 @@ pub fn cubic_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f32) -> S {
 /// The variable `t` should range between `0` and `1`.
 ///
 /// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f32) -> S {
+pub fn hermite_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     let diff = x1 - x2;
     let c1 = x2 - x0;
     let c3 = x3 - x0 + diff * 3.0;
@@ -482,7 +482,7 @@ impl<S: Sample> BufCurve<S> {
 
     /// Gets a sample from the buffer via the given interpolation mode.
     #[must_use]
-    pub fn get_inter(&self, val: f32) -> S {
+    pub fn get_inter(&self, val: f64) -> S {
         let (index, t) = index_frac(val);
 
         match self.inter {
@@ -601,12 +601,12 @@ impl BufCurve<Stereo> {
 }
 
 impl<S: Sample> Map for BufCurve<S> {
-    type Input = f32;
+    type Input = f64;
     type Output = S;
 
-    fn eval(&self, val: f32) -> S {
+    fn eval(&self, val: f64) -> S {
         // Any precision loss is hopefully insignificant.
         #[allow(clippy::cast_precision_loss)]
-        self.get_inter(val * self.buffer().len() as f32)
+        self.get_inter(val * self.buffer().len() as f64)
     }
 }

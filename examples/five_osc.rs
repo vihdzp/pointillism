@@ -20,7 +20,7 @@ fn main() {
             // A triangle wave with a placeholder frequency.
             LoopGen::new_curve(SawTri::tri(), BASE),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new_curve(Sin::new(phase), (NUM_OSC as f32 * TIME).freq()),
+            LoopGen::new_curve(Sin::new(phase), (NUM_OSC as f64 * TIME).freq()),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             FnWrapper::new(|sgn: &mut LoopCurveGen<_, _>, val| {
@@ -32,11 +32,11 @@ fn main() {
     // Initialize oscillators with equally-spaced phases.
     let mut oscillators = Vec::new();
     for i in 0..NUM_OSC {
-        oscillators.push(osc(i as f32 / NUM_OSC as f32));
+        oscillators.push(osc(i as f64 / NUM_OSC as f64));
     }
 
     pointillism::create("examples/five_osc.wav", 2.0 * TIME, |_| {
-        oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f32
+        oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
     })
     .unwrap();
 }
