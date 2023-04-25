@@ -107,7 +107,7 @@ impl Buffer<Mono> {
     /// ## Errors
     ///
     /// This should not error as long as the WAV file is in a supported format.
-    /// See the [buffer](module docs) for a list.
+    /// See the [module docs](buffer) for a list.
     fn write_ptr(
         reader: WavReader<io::BufReader<std::fs::File>>,
         ptr: *mut Mono,
@@ -143,7 +143,7 @@ impl Buffer<Mono> {
     /// This can error for various possible reasons:
     ///
     /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [buffer](module docs)).
+    /// - The WAV format is unsupported (see the [module docs](buffer)).
     /// - Some IO error related to opening the file.
     ///
     /// ## Panics
@@ -167,7 +167,7 @@ impl Buffer<Mono> {
     ///
     /// This can error for various possible reasons:
     ///
-    /// - The WAV format is unsupported (see the [buffer](module docs)).
+    /// - The WAV format is unsupported (see the [module docs](buffer)).
     /// - Some IO error related to opening the file.
     ///
     /// ## Panics
@@ -209,7 +209,7 @@ impl Buffer<Stereo> {
     /// This can error for various possible reasons:
     ///
     /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [buffer](module docs)).
+    /// - The WAV format is unsupported (see the [module docs](buffer)).
     /// - Some IO error related to opening the file.
     ///
     /// ## Panics
@@ -238,7 +238,7 @@ impl Buffer<Stereo> {
     ///
     /// This can error for various possible reasons:
     ///
-    /// - The WAV format is unsupported (see the [buffer](module docs)).
+    /// - The WAV format is unsupported (see the [module docs](buffer)).
     /// - Some IO error related to opening the file.
     ///
     /// ## Panics
