@@ -13,8 +13,8 @@
 //! ## Design
 //!
 //! The way in which `pointillism` outputs audio is by writing sample by sample
-//! into a `.wav` file. Both internal calculations and the output use 32-bit
-//! floating point.
+//! into a 32-bit floating point `.wav` file. Internal calculations use 64-bit
+//! floating points.
 //!
 //! For convenience, the [`Signal`] trait is provided.
 //! Structs implementing this trait generate sample data frame by frame, which
@@ -111,7 +111,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     let mut timer = Time::ZERO;
     let mut writer = WavWriter::create(filename, spec(A::CHANNELS))?;
 
-    while timer < dbg!(length) {
+    while timer < length {
         song(timer).write(&mut writer)?;
         timer.advance();
     }
