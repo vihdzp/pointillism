@@ -99,6 +99,7 @@ fn main() {
     pointillism::create("examples/primavera_c.wav", LENGTH, |time| {
         let mut sample = binaural.next() * fade(time, LENGTH, FADE);
 
+        // The triangle waves start playing 2 minutes in.
         if time > MELODY_TIME {
             sample += (melody.next() * fade(time - MELODY_TIME, LENGTH - MELODY_TIME, FADE))
                 .duplicate()

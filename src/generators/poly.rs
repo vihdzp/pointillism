@@ -10,7 +10,8 @@ use crate::prelude::*;
 /// A polyphonic signal.
 ///
 /// This stores multiple instances of a signal `S`, which can be added and
-/// stopped. Signals are internally removed as they are done.
+/// stopped. Signals are internally removed as they are done, to save processing
+/// power.
 #[derive(Clone, Debug)]
 pub struct Polyphony<K: Eq + Hash + Clone, S: Done> {
     /// The signals currently playing.
