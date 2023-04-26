@@ -13,8 +13,6 @@
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-// In case we decide to swap back to `f64`.
-
 use super::{Freq, MidiNote};
 
 impl MidiNote {
