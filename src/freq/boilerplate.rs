@@ -13,9 +13,7 @@
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-use super::{Freq, MidiNote};
-
-impl MidiNote {
+impl super::MidiNote {
     // OCTAVE -1
 
     /// The note C-1.
@@ -665,7 +663,7 @@ impl MidiNote {
     pub const CB11: Self = Self::B10;
 }
 
-impl Freq {
+impl super::Freq {
     // OCTAVE -1
 
     /// The note C-1.
