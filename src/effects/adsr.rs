@@ -31,7 +31,7 @@ pub struct Adsr {
     pub decay: Time,
 
     /// The sustain value for the signal.
-    pub sustain: f64,
+    pub sustain: Vol,
 
     /// The time from the signal stop to it being done.
     pub release: Time,
@@ -43,7 +43,7 @@ pub struct Adsr {
     ///
     /// This can differ from the sustain value if the envelope is stopped before
     /// the `Sustain` phase.
-    sustain_val: f64,
+    sustain_val: Vol,
 
     /// A value from `0.0` to `1.0` representing how far along the phase we are.
     val: f64,
@@ -52,7 +52,7 @@ pub struct Adsr {
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub fn new(attack: Time, decay: Time, sustain: f64, release: Time) -> Self {
+    pub fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self {
             attack,
             decay,
@@ -62,7 +62,7 @@ impl Adsr {
             val: 0.0,
 
             // Is properly initialized in `stop`.
-            sustain_val: 0.0,
+            sustain_val: Vol::ZERO,
         }
     }
 
@@ -79,9 +79,9 @@ impl Signal for Adsr {
     fn get(&self) -> Env {
         Env(match self.stage() {
             Stage::Attack => self.val,
-            Stage::Decay => 1.0 + (self.sustain - 1.0) * self.val,
-            Stage::Sustain => self.sustain,
-            Stage::Release => self.sustain_val * (1.0 - self.val),
+            Stage::Decay => 1.0 + (self.sustain.gain - 1.0) * self.val,
+            Stage::Sustain => self.sustain.gain,
+            Stage::Release => self.sustain_val.gain * (1.0 - self.val),
             Stage::Done => 0.0,
         })
     }
@@ -132,7 +132,7 @@ impl Done for Adsr {
 
 impl Stop for Adsr {
     fn stop(&mut self) {
-        self.sustain_val = self.get().0;
+        self.sustain_val = Vol::new(self.get().0);
         self.val = 0.0;
         self.stage = Stage::Release;
     }
@@ -155,7 +155,7 @@ impl<S: Signal> Envelope<S> {
     /// Initializes a new ADSR envelope.
     pub fn new(sgn: S, env: Adsr) -> Self {
         Self {
-            inner: Tremolo::new(sgn, env, Vol::ZERO),
+            inner: Tremolo::new(sgn, env),
         }
     }
 

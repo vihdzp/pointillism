@@ -19,7 +19,12 @@ fn main() {
             // Sine wave with specified frequency.
             LoopCurveGen::<Stereo, _>::new_curve(Sin::sin(), freq),
             // ADSR envelope with long attack, long release.
-            Adsr::new(0.8 * NOTE_LEN, 0.2 * NOTE_LEN, 0.8, 1.5 * NOTE_LEN),
+            Adsr::new(
+                0.8 * NOTE_LEN,
+                0.2 * NOTE_LEN,
+                Vol::new(0.8),
+                1.5 * NOTE_LEN,
+            ),
         )
     };
 

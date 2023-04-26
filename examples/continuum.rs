@@ -34,7 +34,7 @@ fn main() {
                     // Saw-triangle wave with specified frequency.
                     LoopGen::new_curve(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
-                    Adsr::new(NOTE_LEN, Time::ZERO, 1.0, RELEASE_LEN),
+                    Adsr::new(NOTE_LEN, Time::ZERO, Vol::FULL, RELEASE_LEN),
                 ),
                 OneshotGen::new_curve(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.

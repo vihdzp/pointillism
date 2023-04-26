@@ -188,9 +188,9 @@ pub struct Tremolo<S: Signal, E: Signal<Sample = Env>> {
 
 impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
-    pub fn new(sgn: S, env: E, vol: Vol) -> Self {
+    pub fn new(sgn: S, env: E) -> Self {
         Self {
-            inner: MutSgn::new(Volume::new(sgn, vol), env, Trem::new()),
+            inner: MutSgn::new(Volume::new(sgn, Vol::FULL), env, Trem::new()),
         }
     }
 

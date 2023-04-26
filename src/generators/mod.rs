@@ -218,6 +218,15 @@ where
         }
     }
 
+    /// Initializes a new [`LoopGen`] with a given phase.
+    pub fn new_phase(map: C, freq: Freq, phase: f64) -> Self {
+        Self {
+            map,
+            freq,
+            val: phase.rem_euclid(1.0),
+        }
+    }
+
     /// A reference to the curve being played.
     pub const fn map(&self) -> &C {
         &self.map
