@@ -14,8 +14,6 @@
 //! This will hopefully be replaced with some macro code eventually.
 
 // In case we decide to swap back to `f64`.
-#![allow(clippy::excessive_precision)]
-#![allow(clippy::unreadable_literal)]
 
 use super::{Freq, MidiNote};
 
