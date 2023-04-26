@@ -123,6 +123,10 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 /// The resulting WAV file will be mono or stereo, depending on whether the
 /// passed function returns [`Mono`](crate::prelude::Mono) or
 /// [`Stereo`](crate::prelude::Stereo).
+///
+/// ## Errors
+///
+/// This should only return an error in case of an IO error.
 pub fn create_from_sgn<P: AsRef<std::path::Path>, S: Signal>(
     filename: P,
     length: Time,

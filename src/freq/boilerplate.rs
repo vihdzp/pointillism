@@ -16,8 +16,10 @@
 impl super::MidiNote {
     // OCTAVE -1
 
+    /// The note B#-2.
+    pub const BSN2: Self = Self::new(0);
     /// The note C-1.
-    pub const CN1: Self = Self::new(0);
+    pub const CN1: Self = Self::BSN2;
 
     /// The note C#-1.
     pub const CSN1: Self = Self::new(1);
@@ -70,8 +72,10 @@ impl super::MidiNote {
 
     // OCTAVE 0
 
+    /// The note B#-1.
+    pub const BSN1: Self = Self::new(12);
     /// The note C0.
-    pub const C0: Self = Self::new(12);
+    pub const C0: Self = Self::BSN1;
 
     /// The note C#0.
     pub const CS0: Self = Self::new(13);
@@ -124,8 +128,10 @@ impl super::MidiNote {
 
     // OCTAVE 1
 
+    /// The note B#0.
+    pub const BS0: Self = Self::new(24);
     /// The note C1.
-    pub const C1: Self = Self::new(24);
+    pub const C1: Self = Self::BS0;
 
     /// The note C#1.
     pub const CS1: Self = Self::new(25);
@@ -178,8 +184,10 @@ impl super::MidiNote {
 
     // OCTAVE 2
 
+    /// The note B#1.
+    pub const BS1: Self = Self::new(36);
     /// The note C2.
-    pub const C2: Self = Self::new(36);
+    pub const C2: Self = Self::BS1;
 
     /// The note C#2.
     pub const CS2: Self = Self::new(37);
@@ -232,8 +240,10 @@ impl super::MidiNote {
 
     // OCTAVE 3
 
+    /// The note B#2.
+    pub const BS2: Self = Self::new(48);
     /// The note C3.
-    pub const C3: Self = Self::new(48);
+    pub const C3: Self = Self::BS2;
 
     /// The note C#3.
     pub const CS3: Self = Self::new(49);
@@ -286,8 +296,10 @@ impl super::MidiNote {
 
     // OCTAVE 4
 
+    /// The note B#3.
+    pub const BS3: Self = Self::new(60);
     /// The note C4.
-    pub const C4: Self = Self::new(60);
+    pub const C4: Self = Self::BS3;
 
     /// The note C#4.
     pub const CS4: Self = Self::new(61);
@@ -340,8 +352,10 @@ impl super::MidiNote {
 
     // OCTAVE 5
 
+    /// The note B#4.
+    pub const BS4: Self = Self::new(72);
     /// The note C5.
-    pub const C5: Self = Self::new(72);
+    pub const C5: Self = Self::BS4;
 
     /// The note C#5.
     pub const CS5: Self = Self::new(73);
@@ -394,8 +408,10 @@ impl super::MidiNote {
 
     // OCTAVE 6
 
+    /// The note B#5.
+    pub const BS5: Self = Self::new(84);
     /// The note C6.
-    pub const C6: Self = Self::new(84);
+    pub const C6: Self = Self::BS5;
 
     /// The note C#6.
     pub const CS6: Self = Self::new(85);
@@ -448,8 +464,10 @@ impl super::MidiNote {
 
     // OCTAVE 7
 
+    /// The note B#6.
+    pub const BS6: Self = Self::new(96);
     /// The note C7.
-    pub const C7: Self = Self::new(96);
+    pub const C7: Self = Self::BS6;
 
     /// The note C#7.
     pub const CS7: Self = Self::new(97);
@@ -502,8 +520,10 @@ impl super::MidiNote {
 
     // OCTAVE 8
 
+    /// The note B#7.
+    pub const BS7: Self = Self::new(108);
     /// The note C8.
-    pub const C8: Self = Self::new(108);
+    pub const C8: Self = Self::BS7;
 
     /// The note C#8.
     pub const CS8: Self = Self::new(109);
@@ -557,7 +577,9 @@ impl super::MidiNote {
     // OCTAVE 9
 
     /// The note C9.
-    pub const C9: Self = Self::new(120);
+    pub const BS8: Self = Self::new(120);
+    /// The note C9.
+    pub const C9: Self = Self::BS8;
 
     /// The note C#9.
     pub const CS9: Self = Self::new(121);
@@ -610,8 +632,10 @@ impl super::MidiNote {
 
     // OCTAVE 10
 
+    /// The note B#9.
+    pub const BS9: Self = Self::new(132);
     /// The note C10.
-    pub const C10: Self = Self::new(132);
+    pub const C10: Self = Self::BS9;
 
     /// The note C#10.
     pub const CS10: Self = Self::new(133);
@@ -666,8 +690,10 @@ impl super::MidiNote {
 impl super::Freq {
     // OCTAVE -1
 
+    /// The note B#-2.
+    pub const BSN2: Self = Self::new(8.175_798_915_643_707);
     /// The note C-1.
-    pub const CN1: Self = Self::new(8.175_798_915_643_707);
+    pub const CN1: Self = Self::BSN2;
 
     /// The note C#-1.
     pub const CSN1: Self = Self::new(8.661_957_218_027_252);
@@ -720,8 +746,10 @@ impl super::Freq {
 
     // OCTAVE 0
 
+    /// The note B#-1.
+    pub const BSN1: Self = Self::new(16.351_597_831_287_414);
     /// The note C0.
-    pub const C0: Self = Self::new(16.351_597_831_287_414);
+    pub const C0: Self = Self::BSN1;
 
     /// The note C#0.
     pub const CS0: Self = Self::new(17.323_914_436_054_505);
@@ -774,8 +802,10 @@ impl super::Freq {
 
     // OCTAVE 1
 
+    /// The note B#0.
+    pub const BS0: Self = Self::new(32.703_195_662_574_83);
     /// The note C1.
-    pub const C1: Self = Self::new(32.703_195_662_574_83);
+    pub const C1: Self = Self::BS0;
 
     /// The note C#1.
     pub const CS1: Self = Self::new(34.647_828_872_109_01);
@@ -828,8 +858,10 @@ impl super::Freq {
 
     // OCTAVE 2
 
+    /// The note B#1.
+    pub const BS1: Self = Self::new(65.406_391_325_149_66);
     /// The note C2.
-    pub const C2: Self = Self::new(65.406_391_325_149_66);
+    pub const C2: Self = Self::BS1;
 
     /// The note C#2.
     pub const CS2: Self = Self::new(69.295_657_744_218_02);
@@ -882,8 +914,10 @@ impl super::Freq {
 
     // OCTAVE 3
 
+    /// The note B#2.
+    pub const BS2: Self = Self::new(130.812_782_650_299_3);
     /// The note C3.
-    pub const C3: Self = Self::new(130.812_782_650_299_3);
+    pub const C3: Self = Self::BS2;
 
     /// The note C#3.
     pub const CS3: Self = Self::new(138.591_315_488_436_04);
@@ -936,8 +970,10 @@ impl super::Freq {
 
     // OCTAVE 4
 
+    /// The note B#3.
+    pub const BS3: Self = Self::new(261.625_565_300_598_6);
     /// The note C4.
-    pub const C4: Self = Self::new(261.625_565_300_598_6);
+    pub const C4: Self = Self::BS3;
 
     /// The note C#4.
     pub const CS4: Self = Self::new(277.182_630_976_872_1);
@@ -990,8 +1026,10 @@ impl super::Freq {
 
     // OCTAVE 5
 
+    /// The note B#4.
+    pub const BS4: Self = Self::new(523.251_130_601_197_2);
     /// The note C5.
-    pub const C5: Self = Self::new(523.251_130_601_197_2);
+    pub const C5: Self = Self::BS4;
 
     /// The note C#5.
     pub const CS5: Self = Self::new(554.365_261_953_744_2);
@@ -1044,8 +1082,10 @@ impl super::Freq {
 
     // OCTAVE 6
 
+    /// The note B#5.
+    pub const BS5: Self = Self::new(1_046.502_261_202_394_5);
     /// The note C6.
-    pub const C6: Self = Self::new(1_046.502_261_202_394_5);
+    pub const C6: Self = Self::BS5;
 
     /// The note C#6.
     pub const CS6: Self = Self::new(1_108.730_523_907_488_3);
@@ -1098,8 +1138,10 @@ impl super::Freq {
 
     // OCTAVE 7
 
+    /// The note B#6.
+    pub const BS6: Self = Self::new(2_093.004_522_404_789);
     /// The note C7.
-    pub const C7: Self = Self::new(2_093.004_522_404_789);
+    pub const C7: Self = Self::BS6;
 
     /// The note C#7.
     pub const CS7: Self = Self::new(2_217.461_047_814_976_6);
@@ -1152,8 +1194,10 @@ impl super::Freq {
 
     // OCTAVE 8
 
+    /// The note B#7.
+    pub const BS7: Self = Self::new(4_186.009_044_809_578);
     /// The note C8.
-    pub const C8: Self = Self::new(4_186.009_044_809_578);
+    pub const C8: Self = Self::BS7;
 
     /// The note C#8.
     pub const CS8: Self = Self::new(4_434.922_095_629_953);
@@ -1206,8 +1250,10 @@ impl super::Freq {
 
     // OCTAVE 9
 
+    /// The note B#8.
+    pub const BS8: Self = Self::new(8_372.018_089_619_156);
     /// The note C9.
-    pub const C9: Self = Self::new(8_372.018_089_619_156);
+    pub const C9: Self = Self::BS8;
 
     /// The note C#9.
     pub const CS9: Self = Self::new(8_869.844_191_259_906);
@@ -1260,8 +1306,10 @@ impl super::Freq {
 
     // OCTAVE 10
 
+    /// The note B#9.
+    pub const BS9: Self = Self::new(16_744.036_179_238_312);
     /// The note C10.
-    pub const C10: Self = Self::new(16_744.036_179_238_312);
+    pub const C10: Self = Self::BS9;
 
     /// The note C#10.
     pub const CS10: Self = Self::new(17_739.688_382_519_813);

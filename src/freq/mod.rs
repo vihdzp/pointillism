@@ -11,6 +11,9 @@ use std::{
     str::FromStr,
 };
 
+/// This magic number corresponds to the MIDI index of A4.
+pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
+
 /// Checked conversion from `f64` to `u8`.
 ///
 /// ## Panics
@@ -282,13 +285,13 @@ impl Freq {
     /// Initializes a frequency from a MIDI note.
     #[must_use]
     pub fn new_midi(a4: Freq, note: MidiNote) -> Self {
-        Self::new_edo_note(a4, 12, f64::from(note.note) - 69.0)
+        Self::new_edo_note(a4, 12, f64::from(note.note) - A4_MIDI)
     }
 
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
     fn round_midi_aux(self, a4: Freq) -> f64 {
-        (self.hz() / a4.hz()).log2() * 12.0 + 69.0
+        (self.hz() / a4.hz()).log2() * 12.0 + A4_MIDI
     }
 
     /// Rounds this frequency to the nearest MIDI note.

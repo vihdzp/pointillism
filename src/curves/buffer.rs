@@ -106,6 +106,8 @@ impl<S: Sample> Buffer<S> {
     /// rate of 44.1 kHz.
     #[must_use]
     pub fn time(&self) -> Time {
+        // Any precision loss should be insignificant.
+        #[allow(clippy::cast_precision_loss)]
         Time::new_frames(self.data.len() as f64)
     }
 
