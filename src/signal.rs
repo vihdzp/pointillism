@@ -125,6 +125,8 @@ pub trait Done: Signal {
 
 /// Represents a signal that can be stopped.
 ///
+/// You can think of the `stop` method as an analog to a MIDI note off event.
+///
 /// Note that stopping a signal doesn't mean it will immediately stop producing
 /// sound. Use [`Panic`] for this purpose.
 pub trait Stop: Signal {
@@ -134,8 +136,8 @@ pub trait Stop: Signal {
 
 /// Represents a signal that can be stopped abruptly.
 ///
-/// All sound or envelope data will stop being produced once the `panic` method
-/// is called.
+/// All sound or envelope data should stop being produced once the `panic`
+/// method is called.
 ///
 /// Depending on how your code is structured, it might be easier to simply stop
 /// calling `next` on your signal.
