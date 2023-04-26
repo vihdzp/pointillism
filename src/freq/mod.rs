@@ -26,7 +26,23 @@ fn f64_to_u8(x: f64) -> u8 {
         #[allow(clippy::cast_possible_truncation)]
         (x as u8)
     } else {
-        panic!("value {x} too big for u8")
+        panic!("value {x} not in range of u8")
+    }
+}
+
+/// Checked conversion from `f64` to `u8`.
+///
+/// ## Panics
+///
+/// This will panic if `x < -128.0` or `x >= 128.0`.
+fn f64_to_i8(x: f64) -> i8 {
+    if (-128.0..128.0).contains(&x) {
+        // We've done the check.
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        (x as i8)
+    } else {
+        panic!("value {x} not in range of i8")
     }
 }
 
@@ -257,7 +273,7 @@ impl Freq {
     /// # use pointillism::prelude::*;
     /// // C5 is 3 semitones above A4.
     /// let C5 = Freq::new_edo_note(Freq::A4, 12, 3.0);
-    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-3);
+    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-7);
     /// ```
     #[must_use]
     pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
@@ -275,7 +291,7 @@ impl Freq {
     /// # use pointillism::prelude::*;
     /// // C5 is 3 semitones above A4.
     /// let C5 = Freq::new_note(Freq::A4, 3.0);
-    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-3);
+    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-7);
     /// ```
     #[must_use]
     pub fn new_note(base: Freq, note: f64) -> Self {
@@ -325,7 +341,7 @@ impl Freq {
     /// let (note, semitones) = Freq::C5.midi_semitones(Freq::A4);
     ///
     /// assert_eq!(note, MidiNote::C5);
-    /// assert!(semitones.abs() < 1e-3);
+    /// assert!(semitones.abs() < 1e-7);
     /// ```
     #[must_use]
     pub fn midi_semitones(self, a4: Freq) -> (MidiNote, f64) {
@@ -346,10 +362,7 @@ impl Debug for Freq {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         if f.alternate() {
             let (note, semitones) = self.midi_semitones(Freq::A4);
-
-            // Truncation shouldn't be possible here.
-            #[allow(clippy::cast_possible_truncation)]
-            let cents = (semitones * 100.0) as i8;
+            let cents = f64_to_i8(semitones * 100.0);
 
             write!(f, "{note} {cents:+}c")
         } else {
@@ -396,11 +409,16 @@ impl DivAssign<f64> for Freq {
 
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]
-    fn a4() {
+    fn print_a4() {
         assert_eq!(format!("{:#?}", Freq::A4), "A4 +0c");
+    }
+
+    #[test]
+    fn parse_a4() {
+        let a4: Freq = "A4".parse().unwrap();
+        assert!((a4.hz - Freq::A4.hz).abs() < 1e-7);
     }
 }

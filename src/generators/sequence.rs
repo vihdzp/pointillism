@@ -78,9 +78,13 @@ impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
     }
 
     /// The number of events.
-    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
-        self.times.len()
+        self.times().len()
+    }
+
+    /// Whether there are no events in the sequence.
+    pub fn is_empty(&self) -> bool {
+        self.times().is_empty()
     }
 
     /// Attempts to read a single event, returns whether it was successful.
@@ -189,9 +193,13 @@ impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
     }
 
     /// The number of events in the loop.
-    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.seq.times.len()
+    }
+
+    /// Whether there are no events in the loop.
+    pub fn is_empty(&self) -> bool {
+        self.seq.times.is_empty()
     }
 }
 
