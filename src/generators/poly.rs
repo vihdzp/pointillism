@@ -5,8 +5,6 @@ use std::{collections::HashMap, hash::Hash};
 
 use crate::prelude::*;
 
-// Todo: use a generic hashmap instead.
-
 /// A polyphonic signal.
 ///
 /// This stores multiple instances of a signal `S`, which can be added and
@@ -41,7 +39,7 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     ///
     /// **Note that this is subject to change.**
     #[must_use]
-    pub fn signals(&self) -> &HashMap<K, S> {
+    pub const fn signals(&self) -> &HashMap<K, S> {
         &self.signals
     }
 
@@ -82,6 +80,8 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     {
         self.modify(key, S::stop)
     }
+
+    // We don't implement `panic` as it would clash with the `Panic` impl.
 }
 
 impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
