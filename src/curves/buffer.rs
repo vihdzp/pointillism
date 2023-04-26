@@ -102,6 +102,13 @@ impl<S: Sample> Buffer<S> {
         self.data.is_empty()
     }
 
+    /// Returns the time that takes to play this buffer at a standard sample
+    /// rate of 44.1 kHz.
+    #[must_use]
+    pub fn time(&self) -> Time {
+        Time::new_frames(self.data.len() as f64)
+    }
+
     /// Gets an exact sample at a given index.
     ///
     /// We return `0` for any sample outside of the buffer.
@@ -424,6 +431,8 @@ impl Buffer<Stereo> {
 #[non_exhaustive]
 pub enum Interpolate {
     /// Drop-sample interpolation, alias "take the previous sample".
+    ///
+    /// This is not recommended if fidelity is the intended result.
     Drop,
 
     /// Linear interpolation between a sample and the next.
@@ -530,6 +539,9 @@ impl BufCurve<Mono> {
     /// Creates a [`Mono`] buffer from a wav file, with a given [`WavSample`]
     /// format.
     ///
+    /// There are two different implementations of this method for `Mono` and
+    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
+    ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///
     /// ## Errors
@@ -549,6 +561,9 @@ impl BufCurve<Mono> {
 
     /// Creates a [`Mono`] buffer from a wav file.
     ///
+    /// There are two different implementations of this method for `Mono` and
+    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
+    ///
     /// See [`Self::from_wav_gen`] for a generic version.
     ///
     /// ## Errors
@@ -566,6 +581,9 @@ impl BufCurve<Mono> {
 impl BufCurve<Stereo> {
     /// Creates a [`Stereo`] buffer from a wav file, with a given [`WavSample`]
     /// format.
+    ///
+    /// There are two different implementations of this method for `Mono` and
+    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
     ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///
@@ -585,6 +603,9 @@ impl BufCurve<Stereo> {
     }
 
     /// Creates a [`Stereo`] buffer from a wav file.
+    ///
+    /// There are two different implementations of this method for `Mono` and
+    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
     ///
     /// See [`Self::from_wav_gen`] for a generic version.
     ///

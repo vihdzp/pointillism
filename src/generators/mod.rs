@@ -168,6 +168,9 @@ pub type OneshotCurveGen<S, C> = OneshotGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = f64, Output = f64>> OneshotCurveGen<S, C> {
     /// Initializes a new [`OneshotCurveGen`].
+    ///
+    /// You might need to explicitly specify the type of sample this curve will
+    /// produce, via `OneshotCurveGen::<S, _>::new_curve`.
     pub const fn new_curve(curve: C, time: Time) -> Self {
         Self::new(CurvePlayer::new(curve), time)
     }
@@ -285,6 +288,9 @@ pub type LoopCurveGen<S, C> = LoopGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopCurveGen<S, C> {
     /// Initializes a new [`LoopCurveGen`].
+    ///
+    /// You might need to explicitly specify the type of sample this curve will
+    /// produce, via `LoopCurveGen::<S, _>::new_curve`.
     pub const fn new_curve(curve: C, freq: Freq) -> Self {
         Self::new(CurvePlayer::new(curve), freq)
     }

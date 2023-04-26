@@ -59,10 +59,9 @@ pub mod sample;
 pub mod signal;
 pub mod time;
 
-use freq::Freq;
+use prelude::*;
+
 use hound::{Result, SampleFormat, WavSpec, WavWriter};
-use sample::Audio;
-use time::Time;
 
 /// The sample rate for the audio file, in samples per second.
 pub const SAMPLE_RATE: u16 = 44100;
@@ -117,4 +116,20 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     }
 
     writer.finalize()
+}
+
+/// A convenience function to [`create`] a song from a given signal.
+///
+/// The resulting WAV file will be mono or stereo, depending on whether the
+/// passed function returns [`Mono`](crate::prelude::Mono) or
+/// [`Stereo`](crate::prelude::Stereo).
+pub fn create_from_sgn<P: AsRef<std::path::Path>, S: Signal>(
+    filename: P,
+    length: Time,
+    mut sgn: S,
+) -> Result<()>
+where
+    S::Sample: Audio,
+{
+    create(filename, length, |_| sgn.next())
 }

@@ -52,7 +52,6 @@ fn main() {
     );
 
     // This gives a really weird effect.
-    let mut dist = PwMapSgn::cubic(poly_loop);
-
-    pointillism::create("examples/poly_5edo.wav", 10.0 * NOTE_LEN, |_| dist.next()).unwrap();
+    let dist = PwMapSgn::cubic(poly_loop);
+    pointillism::create_from_sgn("examples/poly_5edo.wav", 10.0 * NOTE_LEN, dist).unwrap();
 }
