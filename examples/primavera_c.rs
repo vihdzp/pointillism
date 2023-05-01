@@ -46,7 +46,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
             freq,
             PwMapSgn::new_pw(
                 LoopGen::new(Sin::sin(), VIB_FREQ),
-                Linear::rescale(-1.0, 1.0, 0.99, 1.01),
+                Linear::rescale_sgn(0.99, 1.01),
             ),
         )
     };

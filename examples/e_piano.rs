@@ -74,7 +74,7 @@ impl Signal for EPiano {
 fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
     // The volume follows a rescaled sine wave curve.
     let env = LoopGen::new(
-        Comp::new(Sin::sin(), Linear::rescale(-1.0, 1.0, 0.8, 1.0)),
+        Comp::new(Sin::sin(), Linear::rescale_sgn(0.8, 1.0)),
         vib_freq,
     );
 

@@ -24,7 +24,7 @@ fn main() {
     const NOTE_COUNT: u16 = 200;
 
     // Envelope for the wave shape.
-    let shape_env = Comp::new(Saw::new(), Linear::rescale(-1.0, 1.0, 0.75, 0.5));
+    let shape_env = Comp::new(Saw::new(), Linear::rescale_sgn(0.75, 0.5));
 
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {

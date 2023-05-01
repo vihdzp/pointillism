@@ -135,6 +135,20 @@ impl Linear {
         let slope = (end_hi - end_lo) / (init_hi - init_lo);
         Self::new(slope, end_lo - slope * init_lo)
     }
+
+    /// Initializes the linear map that rescales the unit interval `[0.0, 1.0]`
+    /// to another `[lo, hi]`.
+    #[must_use]
+    pub fn rescale_unit(lo: f64, hi: f64) -> Self {
+        Self::rescale(0.0, 1.0, lo, hi)
+    }
+
+    /// Initializes the linear map that rescales the interval `[-1.0, 1.0]` to
+    /// another `[lo, hi]`.
+    #[must_use]
+    pub fn rescale_sgn(lo: f64, hi: f64) -> Self {
+        Self::rescale(-1.0, 1.0, lo, hi)
+    }
 }
 
 impl Map for Linear {
