@@ -37,7 +37,7 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
 
 fn binaural() -> impl Signal<Sample = Stereo> {
     // A sine wave.
-    let wave = |freq| LoopGen::new_curve(Sin::sin(), freq);
+    let wave = |freq| LoopGen::new(Sin::sin(), freq);
 
     // Vibrato sine wave.
     let vib = |freq| {
@@ -45,7 +45,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
             wave(freq),
             freq,
             PwMapSgn::new_pw(
-                LoopGen::new_curve(Sin::sin(), VIB_FREQ),
+                LoopGen::new(Sin::sin(), VIB_FREQ),
                 Linear::rescale(-1.0, 1.0, 0.99, 1.01),
             ),
         )
@@ -60,12 +60,12 @@ fn melody() -> impl Signal<Sample = Mono> {
     let mut freq = 2.0 * Freq::A4;
     let notes = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
-    let wave = |freq| LoopGen::new_curve(SawTri::tri(), freq);
+    let wave = |freq| LoopGen::new(SawTri::tri(), freq);
     let shape = move |freq| {
         MutSgn::new(
             wave(freq),
-            OneshotGen::new_curve(PosSaw::new(), Time::new(5.0)),
-            FnWrapper::new(|sgn: &mut LoopCurveGen<_, SawTri>, val: f64| {
+            OnceGen::new(PosSaw::new(), Time::new(5.0)),
+            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: f64| {
                 sgn.curve_mut().shape = 1.0 - val.powf(0.2) / 2.0;
             }),
         )
@@ -73,7 +73,7 @@ fn melody() -> impl Signal<Sample = Mono> {
     let trem = move |freq| {
         StopTremolo::new(
             shape(freq),
-            OneshotGen::new_curve(PosInvSaw::new(), Time::new(10.0)),
+            OnceGen::new(PosInvSaw::new(), Time::new(10.0)),
         )
     };
 

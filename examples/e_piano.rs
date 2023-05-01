@@ -16,7 +16,7 @@ const HARMONICS: [f64; 10] = [
 #[derive(Default)]
 pub struct EPiano {
     /// Oscillators at the fundamental frequency, twice that, etc.
-    oscs: [LoopCurveGen<Mono, Sin>; 10],
+    oscs: [LoopGen<Mono, Sin>; 10],
 }
 
 impl EPiano {
@@ -73,7 +73,7 @@ impl Signal for EPiano {
 /// An electric piano with a slight tremolo effect applied.
 fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
     // The volume follows a rescaled sine wave curve.
-    let env = LoopCurveGen::new_curve(
+    let env = LoopGen::new(
         Comp::new(Sin::sin(), Linear::rescale(-1.0, 1.0, 0.8, 1.0)),
         vib_freq,
     );

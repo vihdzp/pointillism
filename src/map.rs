@@ -3,7 +3,7 @@
 //! These traits serve two main purposes:
 //!
 //! - Implementing custom curves, that can be played back as samples via
-//! [`OneshotGen`](crate::prelude::OneshotGen) or
+//! [`OnceGen`](crate::prelude::OnceGen) or
 //! [`LoopGen`](crate::prelude::LoopGen). See the [`crate::generators`] module
 //! for more info.
 //!

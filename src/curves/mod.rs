@@ -1,5 +1,5 @@
 //! Declares basic curves that may be to generate audio via
-//! [`OneshotGen`](crate::prelude::OneshotGen) or
+//! [`OnceGen`](crate::prelude::OnceGen) or
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
 //! For convenience, we provide four variants of a saw wave: [`Saw`],
@@ -23,6 +23,7 @@
 //! types implementing [`Map<Input = f64>`](Map)` where Output: Sample`.
 
 pub mod buffer;
+pub mod interpolate;
 
 use crate::map::{Comp, Map};
 

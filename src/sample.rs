@@ -79,9 +79,30 @@ pub trait Sample: SampleLike {
     /// bounds.
     fn get_unchecked(&self, idx: u8) -> f64;
 
-    /// Gets a reference to the value from channel `idx`. Reads the last channel
-    /// if out of bounds.
+    /// Gets a mutable reference to the value from channel `idx`. Reads the last
+    /// channel if out of bounds.
     fn get_mut_unchecked(&mut self, idx: u8) -> &mut f64;
+
+    /// Gets the value from the first channel.
+    fn fst(&self) -> f64 {
+        self.get_unchecked(0)
+    }
+
+    /// Gets a mutable reference to the value from the first channel.
+    fn fst_mut(&mut self) -> &mut f64 {
+        self.get_mut_unchecked(0)
+    }
+
+    /// Gets the value from the second channel, defaulting to the first.
+    fn snd(&self) -> f64 {
+        self.get_unchecked(1)
+    }
+
+    /// Gets a mutable reference to the value from the second channel,
+    /// defaulting to the first.
+    fn snd_mut(&mut self) -> &mut f64 {
+        self.get_mut_unchecked(1)
+    }
 
     /// Gets the value from channel `idx`.
     ///
@@ -180,7 +201,7 @@ pub trait Audio: Sample {
     /// Duplicates a mono signal to convert it into stereo. Leaves a stereo
     /// signal unchanged.
     fn duplicate(&self) -> Stereo {
-        Stereo(self.get_unchecked(0), self.get_unchecked(1))
+        Stereo(self.fst(), self.snd())
     }
 
     /// Writes the sample to a WAV file.

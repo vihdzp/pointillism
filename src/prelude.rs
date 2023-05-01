@@ -1,10 +1,7 @@
 //! Imports the most commmon traits and structures.
 
 pub use crate::{
-    curves::{
-        buffer::{BufCurve, Buffer, Interpolate},
-        *,
-    },
+    curves::{buffer::Buffer, *},
     effects::{
         adsr::{Adsr, Envelope},
         freq::*,

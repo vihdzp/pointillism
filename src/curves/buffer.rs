@@ -20,50 +20,6 @@ use crate::{prelude::*, sample::WavSample};
 /// A reader for a WAV file.
 pub type WavFileReader = WavReader<io::BufReader<std::fs::File>>;
 
-/// Returns the integer and fractional part of a float.
-fn index_frac(val: f64) -> (isize, f64) {
-    // Hopefully we never deal with files so large that truncation can occur.
-    #[allow(clippy::cast_possible_truncation)]
-    (val.floor() as isize, val.fract())
-}
-
-/// Linearly interpolates two samples `x0` and `x1`.
-///
-/// The variable `t` should range between `0` and `1`.
-pub fn linear_inter<S: SampleLike>(x0: S, x1: S, t: f64) -> S {
-    x0 * (1.0 - t) + x1 * t
-}
-
-/// Interpolates cubically between `x1` and `x2`. Makes use of the previous
-/// sample `x0` and the next sample `x3`.
-///
-/// The variable `t` should range between `0` and `1`.
-///
-/// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic_inter<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
-    let a0 = x3 - x2 - x0 + x1;
-    let a1 = x0 - x1 - a0;
-    let a2 = x2 - x0;
-    let a3 = x1;
-
-    a0 * (t * t * t) + a1 * (t * t) + a2 * t + a3
-}
-
-/// Applies Hermite interpolation between `x1` and `x2`. Makes use of the
-/// previous sample `x0` and the next sample `x3`.
-///
-/// The variable `t` should range between `0` and `1`.
-///
-/// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite_inter<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
-    let diff = x1 - x2;
-    let c1 = x2 - x0;
-    let c3 = x3 - x0 + diff * 3.0;
-    let c2 = -(diff * 2.0 + c1 + c3);
-
-    ((c3 * t + c2) * t + c1) * t * 0.5 + x1
-}
-
 /// A sample buffer.
 #[derive(Clone, Debug, Default)]
 pub struct Buffer<S: Sample> {
@@ -90,6 +46,11 @@ impl<S: Sample> Buffer<S> {
         self.data.as_slice()
     }
 
+    /// Returns a mutable reference to the inner slice.
+    pub fn as_mut_slice(&mut self) -> &mut [S] {
+        self.data.as_mut_slice()
+    }
+
     /// Returns the number of samples in the buffer.
     #[must_use]
     pub fn len(&self) -> usize {
@@ -111,33 +72,35 @@ impl<S: Sample> Buffer<S> {
         Time::new_frames(self.data.len() as f64)
     }
 
-    /// Gets an exact sample at a given index.
-    ///
-    /// We return `0` for any sample outside of the buffer.
-    #[must_use]
-    pub fn get(&self, index: isize) -> S {
-        if index < 0 {
-            S::ZERO
-        } else {
-            // Hopefully this is never an issue.
-            #[allow(clippy::cast_sign_loss)]
-            self.data.get(index as usize).copied().unwrap_or_default()
-        }
+    pub fn get(&self, index: usize) -> Option<&S> {
+        self.data.get(index)
     }
 
-    /// Gets an exact sample at a given index, wrapping around to fit the
-    /// buffer.
-    ///
-    /// We return `0` for any sample outside of the buffer.
-    #[must_use]
-    pub fn get_loop(&self, index: isize) -> S {
-        if self.is_empty() {
-            S::ZERO
-        } else {
-            // Hopefully this is never an issue.
-            #[allow(clippy::cast_possible_wrap)]
-            self.get(index.rem_euclid(self.len() as isize))
-        }
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut S> {
+        self.data.get_mut(index)
+    }
+
+    pub fn get_loop(&self, index: usize) -> &S {
+        &self[index.rem_euclid(self.len())]
+    }
+
+    pub fn get_loop_mut(&mut self, index: usize) -> &mut S {
+        let len = self.len();
+        &mut self[index.rem_euclid(len)]
+    }
+}
+
+impl<S: Sample> std::ops::Index<usize> for Buffer<S> {
+    type Output = S;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.as_slice()[index]
+    }
+}
+
+impl<S: Sample> std::ops::IndexMut<usize> for Buffer<S> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.as_mut_slice()[index]
     }
 }
 
@@ -390,8 +353,6 @@ impl Buffer<Stereo> {
         let ptr = Buffer::get_ptr(length);
 
         // This should be guaranteed by the `WavReader::open` function itself.
-        // We don't make this a debug assertion, as safety of what follows
-        // depends on this.
         debug_assert_eq!(length % 2, 0);
 
         // Safety: the memory area has the correct length.
@@ -428,49 +389,21 @@ impl Buffer<Stereo> {
     }
 }
 
-/// Represents a mode of interpolating between samples.
-#[derive(Clone, Copy, Debug, Default)]
-#[non_exhaustive]
-pub enum Interpolate {
-    /// Drop-sample interpolation, alias "take the previous sample".
-    ///
-    /// This is not recommended if fidelity is the intended result.
-    Drop,
-
-    /// Linear interpolation between a sample and the next.
-    #[default]
-    Linear,
-    /// Linear interpolation between a sample and the next. Loops back to the
-    /// beginning.
-    LoopLinear,
-
-    /// Cubic interpolation between a sample, the previous, and the next two.
-    Cubic,
-    /// Cubic interpolation between a sample, the previous, and the next two.
-    /// Loops back to the beginning.
-    LoopCubic,
-
-    /// Hermite interpolation between a sample, the previous, and the next two.
-    Hermite,
-    /// Hermite interpolation between a sample, the previous, and the next two.
-    /// Loops back to the beginning.
-    LoopHermite,
-}
-
-/// A sample curve read from a buffer.
-pub struct BufCurve<S: Sample> {
+/// A generator that reads through an audio buffer, once.
+#[derive(Clone, Debug)]
+pub struct OnceBufGen<S: Sample> {
     /// The inner buffer.
     buffer: Buffer<S>,
 
-    /// The interpolation mode.
-    inter: Interpolate,
+    /// The sample being read.
+    idx: usize,
 }
 
-impl<S: Sample> BufCurve<S> {
-    /// Initializes a new [`BufCurve`].
+impl<S: Sample> OnceBufGen<S> {
+    /// Initializes a new [`OnceBufGen`].
     #[must_use]
-    pub const fn new(buffer: Buffer<S>, inter: Interpolate) -> Self {
-        Self { buffer, inter }
+    pub const fn new(buffer: Buffer<S>) -> Self {
+        Self { buffer, idx: 0 }
     }
 
     /// Returns a reference to the underlying buffer.
@@ -479,157 +412,69 @@ impl<S: Sample> BufCurve<S> {
         &self.buffer
     }
 
-    /// Convenience method for calling [`Buffer::get`] on the inner buffer.
-    #[must_use]
-    pub fn get(&self, index: isize) -> S {
-        self.buffer().get(index)
-    }
-
-    /// Convenience method for calling [`Buffer::get_loop`] on the inner buffer.
-    #[must_use]
-    pub fn get_loop(&self, index: isize) -> S {
-        self.buffer().get_loop(index)
-    }
-
-    /// Gets a sample from the buffer via the given interpolation mode.
-    #[must_use]
-    pub fn get_inter(&self, val: f64) -> S {
-        let (index, t) = index_frac(val);
-
-        match self.inter {
-            Interpolate::Drop => self.buffer().get(index),
-
-            Interpolate::Linear => linear_inter(self.get(index), self.get(index + 1), t),
-            Interpolate::LoopLinear => {
-                linear_inter(self.get_loop(index), self.get_loop(index + 1), t)
-            }
-
-            Interpolate::Cubic => cubic_inter(
-                self.get(index - 1),
-                self.get(index),
-                self.get(index + 1),
-                self.get(index + 2),
-                t,
-            ),
-            Interpolate::LoopCubic => cubic_inter(
-                self.get_loop(index - 1),
-                self.get_loop(index),
-                self.get_loop(index + 1),
-                self.get_loop(index + 2),
-                t,
-            ),
-
-            Interpolate::Hermite => hermite_inter(
-                self.get(index - 1),
-                self.get(index),
-                self.get(index + 1),
-                self.get(index + 2),
-                t,
-            ),
-            Interpolate::LoopHermite => hermite_inter(
-                self.get_loop(index - 1),
-                self.get_loop(index),
-                self.get_loop(index + 1),
-                self.get_loop(index + 2),
-                t,
-            ),
-        }
+    /// Returns a mutable reference to the underlying buffer.
+    pub fn buffer_mut(&mut self) -> &mut Buffer<S> {
+        &mut self.buffer
     }
 }
 
-impl BufCurve<Mono> {
-    /// Creates a [`Mono`] buffer from a wav file, with a given [`WavSample`]
-    /// format.
-    ///
-    /// There are two different implementations of this method for `Mono` and
-    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
-    ///
-    /// See [`Self::from_wav`] for a non-generic version.
-    ///
-    /// ## Errors
-    ///
-    /// This can error for various possible reasons:
-    ///
-    /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
-    /// - Some IO error related to opening the file.
-    /// - The WAV file has more than one channel.
-    pub fn from_wav_gen<P: AsRef<Path>, S: WavSample>(
-        path: P,
-        inter: Interpolate,
-    ) -> Result<Self, Error> {
-        Buffer::<Mono>::from_wav_gen::<P, S>(path).map(|buf| Self::new(buf, inter))
+impl<S: Sample> Signal for OnceBufGen<S> {
+    type Sample = S;
+
+    fn get(&self) -> S {
+        self.buffer().get(self.idx).copied().unwrap_or_default()
     }
 
-    /// Creates a [`Mono`] buffer from a wav file.
-    ///
-    /// There are two different implementations of this method for `Mono` and
-    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
-    ///
-    /// See [`Self::from_wav_gen`] for a generic version.
-    ///
-    /// ## Errors
-    ///
-    /// This can error for various possible reasons:
-    ///
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
-    /// - Some IO error related to opening the file.
-    /// - The WAV file has more than one channel.
-    pub fn from_wav<P: AsRef<Path>>(path: P, inter: Interpolate) -> Result<Self, Error> {
-        Buffer::<Mono>::from_wav(path).map(|buf| Self::new(buf, inter))
+    fn advance(&mut self) {
+        self.idx += 1;
+    }
+
+    fn retrigger(&mut self) {
+        self.idx = 0;
     }
 }
 
-impl BufCurve<Stereo> {
-    /// Creates a [`Stereo`] buffer from a wav file, with a given [`WavSample`]
-    /// format.
-    ///
-    /// There are two different implementations of this method for `Mono` and
-    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
-    ///
-    /// See [`Self::from_wav`] for a non-generic version.
-    ///
-    /// ## Errors
-    ///
-    /// This can error for various possible reasons:
-    ///
-    /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
-    /// - Some IO error related to opening the file.
-    /// - The WAV file doesn't have 2 channels.
-    pub fn from_wav_gen<P: AsRef<Path>, S: WavSample>(
-        path: P,
-        inter: Interpolate,
-    ) -> Result<Self, Error> {
-        Buffer::<Stereo>::from_wav_gen::<P, S>(path).map(|buf| Self::new(buf, inter))
+/// A generator that loops an audio buffer.
+#[derive(Clone, Debug)]
+pub struct LoopBufGen<S: Sample> {
+    /// The inner buffer.
+    buffer: Buffer<S>,
+
+    /// The sample being read.
+    idx: usize,
+}
+
+impl<S: Sample> LoopBufGen<S> {
+    /// Initializes a new [`LoopBufGen`].
+    #[must_use]
+    pub const fn new(buffer: Buffer<S>) -> Self {
+        Self { buffer, idx: 0 }
     }
 
-    /// Creates a [`Stereo`] buffer from a wav file.
-    ///
-    /// There are two different implementations of this method for `Mono` and
-    /// `Stereo` buffers, so you'll often have to specify this type explicitly.
-    ///
-    /// See [`Self::from_wav_gen`] for a generic version.
-    ///
-    /// ## Errors
-    ///
-    /// This can error for various possible reasons:
-    ///
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
-    /// - Some IO error related to opening the file.
-    /// - The WAV file doesn't have 2 channels.
-    pub fn from_wav<P: AsRef<Path>>(path: P, inter: Interpolate) -> Result<Self, Error> {
-        Buffer::<Stereo>::from_wav(path).map(|buf| Self::new(buf, inter))
+    /// Returns a reference to the underlying buffer.
+    #[must_use]
+    pub const fn buffer(&self) -> &Buffer<S> {
+        &self.buffer
+    }
+
+    /// Returns a mutable reference to the underlying buffer.
+    pub fn buffer_mut(&mut self) -> &mut Buffer<S> {
+        &mut self.buffer
     }
 }
 
-impl<S: Sample> Map for BufCurve<S> {
-    type Input = f64;
-    type Output = S;
+impl<S: Sample> Signal for LoopBufGen<S> {
+    type Sample = S;
 
-    fn eval(&self, val: f64) -> S {
-        // Any precision loss is hopefully insignificant.
-        #[allow(clippy::cast_precision_loss)]
-        self.get_inter(val * self.buffer().len() as f64)
+    fn get(&self) -> S {
+        *self.buffer().get_loop(self.idx)
+    }
+
+    fn advance(&mut self) {
+        self.idx += 1;
+    }
+
+    fn retrigger(&mut self) {
+        self.idx = 0;
     }
 }
