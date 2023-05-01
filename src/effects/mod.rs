@@ -312,22 +312,30 @@ impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f64>> Panic for MutSgn<S, E, F
     }
 }
 
-/// Modifies a signal according to a given envelope.
+/// Modifies a signal according to a given envelope. In contrast to [`MutSgn`],
+/// which [`Stops`](Stop) when the original signal does, this signal
+/// [`Stops`](Stop) when the envelope does.
 ///
-/// This signal stops whenever the envelope does. If you instead want a signal
-/// that stops when the signal does, use [`MutSgn`].
+/// The signal is otherwise unchanged, so if you don't need this functionality,
+/// use [`MutSgn`] instead.
 #[derive(Clone, Debug)]
 pub struct ModSgn<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> {
     /// Inner data.
     inner: MutSgn<S, E, F>,
 }
 
+/// Turns a [`MutSgn`] into a [`ModSgn`]. This changes the functionality of the
+/// signal when stopped, as described in the [`ModSgn`] docs.
+impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> From<MutSgn<S, E, F>> for ModSgn<S, E, F> {
+    fn from(inner: MutSgn<S, E, F>) -> Self {
+        Self { inner }
+    }
+}
+
 impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> ModSgn<S, E, F> {
     /// Initializes a new [`ModSgn`].
     pub fn new(sgn: S, env: E, func: F) -> Self {
-        Self {
-            inner: MutSgn::new(sgn, env, func),
-        }
+        MutSgn::new(sgn, env, func).into()
     }
 
     /// Returns a reference to the original signal.

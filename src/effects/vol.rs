@@ -176,7 +176,7 @@ impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
     }
 }
 
-/// Applies tremolo to a signal according to an envelope.
+/// Applies tremolo (change in volume) to a signal according to an envelope.
 ///
 /// This signal stops whenever the original signal does. If you instead want a
 /// signal that stops when the envelope does, use [`StopTremolo`].
@@ -190,6 +190,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, env: E) -> Self {
         Self {
+            // The volume is unimportant, as it immediately gets rewritten.
             inner: MutSgn::new(Volume::new(sgn, Vol::FULL), env, Trem::new()),
         }
     }
@@ -271,22 +272,32 @@ impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
     }
 }
 
-/// Applies tremolo to a signal according to an envelope.
+/// Applies tremolo (change in volume) to a signal according to an envelope.
+/// In contrast to [`Tremolo`], which [`Stops`](Stop) when the original signal
+/// does, this signal [`Stops`](Stop) when the envelope does.
 ///
-/// This signal stops whenever the envelope does. If you instead want a signal
-/// that stops when the original signal does, use [`Tremolo`].
+/// The signal is otherwise unchanged, so if you don't need this functionality,
+/// use [`Tremolo`] instead.
 #[derive(Clone, Debug)]
 pub struct StopTremolo<S: Signal, E: Stop<Sample = Env>> {
     /// Inner data.
     inner: ModSgn<Volume<S>, E, Trem<S>>,
 }
 
-impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
-    /// Initializes a new [`Tremolo`].
-    pub fn new(sgn: S, env: E, vol: Vol) -> Self {
+/// Turns a [`Tremolo`] into a [`StopTremolo`]. This changes the functionality
+/// of the signal when stopped, as described in the [`StopTremolo`] docs.
+impl<S: Signal, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E> {
+    fn from(value: Tremolo<S, E>) -> Self {
         Self {
-            inner: ModSgn::new(Volume::new(sgn, vol), env, Trem::new()),
+            inner: value.inner.into(),
         }
+    }
+}
+
+impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
+    /// Initializes a new [`StopTremolo`].
+    pub fn new(sgn: S, env: E) -> Self {
+        Tremolo::new(sgn, env).into()
     }
 
     /// Returns a reference to the signal whose volume is modified.

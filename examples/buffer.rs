@@ -9,11 +9,11 @@ fn main() {
     pointillism::create_from_sgn(FILENAME, Time::SEC, LoopCurveGen::<Mono, Sin>::default())
         .unwrap();
 
-    // Read back the file, stretch it to 10 seconds.
+    // Read back the file, stretch it to 5 seconds.
     //
     // This lowers the pitch, and may introduce some artifacts depending on the
     // interpolation method.
-    const FACTOR: f64 = 0.1;
+    const FACTOR: f64 = 5.0;
     let buf_curve = BufCurve::<Mono>::from_wav(FILENAME, Interpolate::Drop).unwrap();
     let time = buf_curve.buffer().time();
     pointillism::create_from_sgn(

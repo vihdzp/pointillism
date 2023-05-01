@@ -74,7 +74,6 @@ fn melody() -> impl Signal<Sample = Mono> {
         StopTremolo::new(
             shape(freq),
             OneshotGen::new_curve(PosInvSaw::new(), Time::new(10.0)),
-            Vol::FULL,
         )
     };
 

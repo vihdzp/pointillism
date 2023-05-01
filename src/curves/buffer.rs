@@ -30,7 +30,7 @@ fn index_frac(val: f64) -> (isize, f64) {
 /// Linearly interpolates two samples `x0` and `x1`.
 ///
 /// The variable `t` should range between `0` and `1`.
-pub fn linear_inter<S: Sample>(x0: S, x1: S, t: f64) -> S {
+pub fn linear_inter<S: SampleLike>(x0: S, x1: S, t: f64) -> S {
     x0 * (1.0 - t) + x1 * t
 }
 
@@ -40,7 +40,7 @@ pub fn linear_inter<S: Sample>(x0: S, x1: S, t: f64) -> S {
 /// The variable `t` should range between `0` and `1`.
 ///
 /// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
+pub fn cubic_inter<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     let a0 = x3 - x2 - x0 + x1;
     let a1 = x0 - x1 - a0;
     let a2 = x2 - x0;
@@ -55,7 +55,7 @@ pub fn cubic_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
 /// The variable `t` should range between `0` and `1`.
 ///
 /// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite_inter<S: Sample>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
+pub fn hermite_inter<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     let diff = x1 - x2;
     let c1 = x2 - x0;
     let c3 = x3 - x0 + diff * 3.0;

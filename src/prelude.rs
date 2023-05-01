@@ -21,7 +21,7 @@ pub use crate::{
     },
     map::*,
     pos,
-    sample::{Audio, Env, Mono, Sample, Stereo},
+    sample::{Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,
     time::*,

@@ -37,11 +37,13 @@ pub struct Stereo(pub f64, pub f64);
 #[repr(C)]
 pub struct Env(pub f64);
 
-/// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
+/// A trait for things that one can perform arithmetic on, like a sample.
+/// This includes anything implementing [`Sample`] as well as `f64`.
 ///
-/// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples
-/// can be used for envelopes such as in an LFO.
-pub trait Sample:
+/// This trait exists mostly for convenient, general implementations of methods
+/// such as [`linear_inter`](crate::curves::buffer::linear_inter), which make
+/// sense both for samples and for floating point values.
+pub trait SampleLike:
     Copy
     + Default
     + Debug
@@ -56,11 +58,21 @@ pub trait Sample:
     + DivAssign<f64>
     + Sum
 {
+    /// The zero value.
+    const ZERO: Self;
+}
+
+impl SampleLike for f64 {
+    const ZERO: Self = 0.0;
+}
+
+/// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
+///
+/// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples
+/// can be used for envelopes such as in an LFO.
+pub trait Sample: SampleLike {
     /// The number of values stored in the sample.
     const CHANNELS: u8;
-
-    /// The zero sample.
-    const ZERO: Self;
 
     /// Gets the value from channel `idx`. Reads the last channel if out of
     /// bounds.
@@ -189,9 +201,12 @@ pub trait Audio: Sample {
     }
 }
 
+impl SampleLike for Mono {
+    const ZERO: Self = Self(0.0);
+}
+
 impl Sample for Mono {
     const CHANNELS: u8 = 1;
-    const ZERO: Self = Self(0.0);
 
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0
@@ -204,9 +219,12 @@ impl Sample for Mono {
 
 impl Audio for Mono {}
 
+impl SampleLike for Stereo {
+    const ZERO: Self = Self(0.0, 0.0);
+}
+
 impl Sample for Stereo {
     const CHANNELS: u8 = 2;
-    const ZERO: Self = Self(0.0, 0.0);
 
     fn get_unchecked(&self, idx: u8) -> f64 {
         if idx == 0 {
@@ -227,9 +245,12 @@ impl Sample for Stereo {
 
 impl Audio for Stereo {}
 
+impl SampleLike for Env {
+    const ZERO: Self = Self(0.0);
+}
+
 impl Sample for Env {
     const CHANNELS: u8 = 1;
-    const ZERO: Self = Self(0.0);
 
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0

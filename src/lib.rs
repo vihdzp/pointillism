@@ -30,8 +30,17 @@
 //! names are suffixed by `Gen`. Signals that modify the output from another
 //! signal are called *effects*.
 //!
+//! ## Compile-time
+//!
 //! You can think of pointillism as a compile-time modular synthesizer, where
 //! every new struct is its own module.
+//!
+//! Advantages of this design are extensibility and generality. It's relatively
+//! easy to create a highly customizable and complex signal with many layers by
+//! composing some functions together.
+//!
+//! The downside is that these synths end up having unwieldy type signatures.
+//! Moreso, it's really hard to build synths in real time.
 //!
 //! ## Versions
 //!
