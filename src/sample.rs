@@ -43,6 +43,7 @@ pub struct Env(pub f64);
 /// This trait exists mostly for convenient, general implementations of methods
 /// such as [`linear_inter`](crate::curves::buffer::linear_inter), which make
 /// sense both for samples and for floating point values.
+#[allow(clippy::module_name_repetitions)]
 pub trait SampleLike:
     Copy
     + Default
