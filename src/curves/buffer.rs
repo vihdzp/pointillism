@@ -410,14 +410,14 @@ pub struct OnceBufGen<S: Sample> {
     buffer: Buffer<S>,
 
     /// The sample being read.
-    idx: usize,
+    index: usize,
 }
 
 impl<S: Sample> OnceBufGen<S> {
     /// Initializes a new [`OnceBufGen`].
     #[must_use]
     pub const fn new(buffer: Buffer<S>) -> Self {
-        Self { buffer, idx: 0 }
+        Self { buffer, index: 0 }
     }
 
     /// Returns a reference to the underlying buffer.
@@ -436,15 +436,45 @@ impl<S: Sample> Signal for OnceBufGen<S> {
     type Sample = S;
 
     fn get(&self) -> S {
-        self.buffer().get(self.idx).unwrap_or_default()
+        self.buffer().get(self.index).unwrap_or_default()
     }
 
     fn advance(&mut self) {
-        self.idx += 1;
+        self.index += 1;
     }
 
     fn retrigger(&mut self) {
-        self.idx = 0;
+        self.index = 0;
+    }
+}
+
+impl<S: Sample> Base for OnceBufGen<S> {
+    type Base = Self;
+
+    fn base(&self) -> &Self::Base {
+        self
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self
+    }
+}
+
+impl<S: Sample> Stop for OnceBufGen<S> {
+    fn stop(&mut self) {
+        self.index = self.buffer().len();
+    }
+}
+
+impl<S: Sample> Done for OnceBufGen<S> {
+    fn is_done(&self) -> bool {
+        self.index >= self.buffer().len()
+    }
+}
+
+impl<S: Sample> Panic for OnceBufGen<S> {
+    fn panic(&mut self) {
+        self.stop();
     }
 }
 
@@ -490,5 +520,17 @@ impl<S: Sample> Signal for LoopBufGen<S> {
 
     fn retrigger(&mut self) {
         self.idx = 0;
+    }
+}
+
+impl<S: Sample> Base for LoopBufGen<S> {
+    type Base = Self;
+
+    fn base(&self) -> &Self::Base {
+        self
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self
     }
 }
