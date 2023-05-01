@@ -69,16 +69,6 @@ impl<S: Frequency, E: Signal<Sample = Env>> Vibrato<S, E> {
     pub fn env_mut(&mut self) -> &mut E {
         self.inner.env_mut()
     }
-
-    /// The base frequency for the vibrato.
-    pub const fn base_freq(&self) -> Freq {
-        self.inner.func().base
-    }
-
-    /// Returns a mutable reference to the base frequency for the vibrato.
-    pub fn base_freq_mut(&mut self) -> &mut Freq {
-        &mut self.inner.func_mut().base
-    }
 }
 
 impl<S: Frequency, E: Signal<Sample = Env>> Signal for Vibrato<S, E> {
@@ -106,6 +96,16 @@ impl<S: Frequency + Base, E: Signal<Sample = Env>> Base for Vibrato<S, E> {
 
     fn base_mut(&mut self) -> &mut Self::Base {
         self.inner.base_mut()
+    }
+}
+
+impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Vibrato<S, E> {
+    fn freq(&self) -> Freq {
+        self.inner.func().base
+    }
+
+    fn freq_mut(&mut self) -> &mut Freq {
+        &mut self.inner.func_mut().base
     }
 }
 
