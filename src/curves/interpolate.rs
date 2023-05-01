@@ -1,9 +1,13 @@
+//! Implements functions for interpolating between samples.
+
 use crate::prelude::*;
 
 /// Returns the integer and fractional part of a float.
 fn int_frac(val: f64) -> (usize, f64) {
     // No truncation should occur under normal circumstances.
+    // Moreover, `val` should always be nonnegative.
     #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     (val.floor() as usize, val.fract())
 }
 
@@ -256,11 +260,11 @@ impl<S: Sample> Interpolate for Cubic<S> {
     const EMPTY: Self = Self([S::ZERO; 4]);
 
     fn load(&mut self, sample: S) {
-        load_gen(&mut self.0, sample)
+        load_gen(&mut self.0, sample);
     }
 
     fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        load_many_gen(&mut self.0, sgn, count)
+        load_many_gen(&mut self.0, sgn, count);
     }
 }
 
@@ -296,11 +300,11 @@ impl<S: Sample> Interpolate for Hermite<S> {
     const EMPTY: Self = Self([S::ZERO; 4]);
 
     fn load(&mut self, sample: S) {
-        load_gen(&mut self.0, sample)
+        load_gen(&mut self.0, sample);
     }
 
     fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        load_many_gen(&mut self.0, sgn, count)
+        load_many_gen(&mut self.0, sgn, count);
     }
 }
 
@@ -311,7 +315,7 @@ pub struct Stretch<S: Signal, I: Interpolate<Sample = S::Sample>> {
     sgn: S,
 
     /// The time stretching factor.
-    /// 
+    ///
     /// For instance, `2.0` means that the signal will be played twice as fast.
     factor: f64,
 

@@ -72,18 +72,32 @@ impl<S: Sample> Buffer<S> {
         Time::new_frames(self.data.len() as f64)
     }
 
-    pub fn get(&self, index: usize) -> Option<&S> {
-        self.data.get(index)
+    /// Gets a sample at a given index.
+    #[must_use]
+    pub fn get(&self, index: usize) -> Option<S> {
+        self.data.get(index).copied()
     }
 
+    /// Gets a mutable reference to a sample at a given index.
     pub fn get_mut(&mut self, index: usize) -> Option<&mut S> {
         self.data.get_mut(index)
     }
 
-    pub fn get_loop(&self, index: usize) -> &S {
-        &self[index.rem_euclid(self.len())]
+    /// Gets a sample at a given index, wrapping around.
+    ///
+    /// ## Panics
+    ///
+    /// This method will panic on empty buffers.
+    #[must_use]
+    pub fn get_loop(&self, index: usize) -> S {
+        self[index.rem_euclid(self.len())]
     }
 
+    /// Gets a reference to a sample at a given index, wrapping around.
+    ///
+    /// ## Panics
+    ///
+    /// This method will panic on empty buffers.
     pub fn get_loop_mut(&mut self, index: usize) -> &mut S {
         let len = self.len();
         &mut self[index.rem_euclid(len)]
@@ -422,7 +436,7 @@ impl<S: Sample> Signal for OnceBufGen<S> {
     type Sample = S;
 
     fn get(&self) -> S {
-        self.buffer().get(self.idx).copied().unwrap_or_default()
+        self.buffer().get(self.idx).unwrap_or_default()
     }
 
     fn advance(&mut self) {
@@ -467,7 +481,7 @@ impl<S: Sample> Signal for LoopBufGen<S> {
     type Sample = S;
 
     fn get(&self) -> S {
-        *self.buffer().get_loop(self.idx)
+        self.buffer().get_loop(self.idx)
     }
 
     fn advance(&mut self) {

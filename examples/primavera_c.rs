@@ -70,12 +70,8 @@ fn melody() -> impl Signal<Sample = Mono> {
             }),
         )
     };
-    let trem = move |freq| {
-        StopTremolo::new(
-            shape(freq),
-            OnceGen::new(PosInvSaw::new(), Time::new(10.0)),
-        )
-    };
+    let trem =
+        move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw::new(), Time::new(10.0)));
 
     let poly = Polyphony::new();
     let mut idx = 0;
