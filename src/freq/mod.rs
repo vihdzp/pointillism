@@ -213,7 +213,7 @@ pub struct Freq {
 ///
 /// ```
 /// # use pointillism::prelude::*;
-/// let osc = LoopCurveGen::<Mono, Sin>::default();
+/// let osc = LoopGen::<Mono, Sin>::default();
 /// ```
 ///
 /// will result in a 440 Hz sine wave.

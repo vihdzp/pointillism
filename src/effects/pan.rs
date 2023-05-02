@@ -188,31 +188,40 @@ where
     }
 }
 
-impl<S: Signal> Panner<S, Linear>
+/// A [`Linear`] panner.
+pub type LinearPanner<S> = Panner<S, Linear>;
+
+impl<S: Signal> LinearPanner<S>
 where
     S::Sample: Audio,
 {
-    /// Initializes a [`Linear`] panner with the specified angle.
+    /// Initializes a [`LinearPanner`] with the specified angle.
     pub const fn linear(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Linear { angle })
     }
 }
 
+/// A [`Power`] panner.
+pub type PowerPanner<S> = Panner<S, Power>;
+
 impl<S: Signal> Panner<S, Power>
 where
     S::Sample: Audio,
 {
-    /// Initializes a [`Power`] panner with the specified angle.
+    /// Initializes a [`PowerPanner`] with the specified angle.
     pub const fn power(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Power { angle })
     }
 }
 
+/// A [`Mixed`] panner.
+pub type MixedPanner<S> = Panner<S, Mixed>;
+
 impl<S: Signal> Panner<S, Mixed>
 where
     S::Sample: Audio,
 {
-    /// Initializes a [`Mixed`] panner with the specified angle.
+    /// Initializes a [`MixedPanner`] with the specified angle.
     pub const fn mixed(sgn: S, angle: f64) -> Self {
         Self::new_pan_law(sgn, Mixed { angle })
     }

@@ -12,6 +12,7 @@ pub use crate::{
         adsr::{Adsr, Envelope},
         freq::*,
         mix::*,
+        pan::{LinearPanner, MixedPanner, Panner, PowerPanner},
         trailing::*,
         vol::*,
         *,
