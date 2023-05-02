@@ -153,7 +153,7 @@ impl<S: Signal> Stop for Stopping<S> {
 /// # use pointillism::{prelude::*, effects::trailing::Retrigger};
 /// # let osc = LoopGen::<Mono, Sin>::default();
 /// // Retriggers the oscillator `osc` once per second.
-/// let mut song_loop = Loop::new(vec![Time::new(1.0)], osc, Retrigger::new());
+/// let mut song_loop = Loop::new(vec![Time::SEC], osc, Retrigger::new());
 /// ```
 #[derive(Clone, Copy, Debug)]
 pub struct Retrigger<Y> {
