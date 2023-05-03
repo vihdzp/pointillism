@@ -30,11 +30,14 @@ fn main() {
     let osc = |freq, angle| {
         pointillism::effects::pan::Panner::mixed(
             MutSgn::new(
-                AdsrEnvelope::new(
+                AdsrEnvelope::new_adsr(
                     // Saw-triangle wave with specified frequency.
                     LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
-                    Adsr::new(NOTE_LEN, Time::ZERO, Vol::FULL, RELEASE_LEN),
+                    NOTE_LEN,
+                    Time::ZERO,
+                    Vol::FULL,
+                    RELEASE_LEN,
                 ),
                 OnceGen::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
@@ -51,7 +54,7 @@ fn main() {
     // Frequency of note being played.
     let mut freq = BASE;
 
-    // Possible values to multiply a frequency by,
+    // Possible values to multiply a frequency by.
     let mults = [
         4.0 / 3.0,
         3.0 / 4.0,
@@ -67,7 +70,7 @@ fn main() {
     poly.add(idx, osc(freq, 0.5));
 
     // The song loop.
-    let mut poly_loop = Loop::new(
+    let poly_loop = Loop::new(
         vec![NOTE_LEN],
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>, time: Time| {
@@ -92,13 +95,11 @@ fn main() {
         }),
     );
 
-    pointillism::create(
+    pointillism::create_from_sgn(
         "examples/continuum.wav",
         NOTE_COUNT as f64 * NOTE_LEN,
-        |_| {
-            // 10.0 might be too much, but just to be safe from clipping.
-            poly_loop.next() / 10.0
-        },
+        // 10.0 might be too much, but just to be safe from clipping.
+        Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
     )
     .unwrap();
 }
