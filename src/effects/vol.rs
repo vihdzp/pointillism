@@ -299,7 +299,9 @@ impl<S: Signal, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E>
 }
 
 /// An envelope with attack and release.
-pub type ArEnvelope<S> = StopTremolo<S, OnceGen<<S as Signal>::Sample, SawTri>>;
+///
+/// Initialize with [`Self::new_ar`].
+pub type ArEnvelope<S> = StopTremolo<S, OnceGen<Env, SawTri>>;
 
 impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
     /// Initializes a new [`StopTremolo`].
@@ -325,6 +327,15 @@ impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
     /// Returns a mutable reference to the envelope controlling the volume.
     pub fn env_mut(&mut self) -> &mut E {
         self.inner.env_mut()
+    }
+}
+
+impl<S: Signal> ArEnvelope<S> {
+    /// Initializes a new [`ArEnvelope`].
+    pub fn new_ar(sgn: S, attack: Time, release: Time) -> Self {
+        let time = attack + release;
+        let shape = attack / time;
+        Self::new(sgn, OnceGen::new(SawTri::new(shape), time))
     }
 }
 

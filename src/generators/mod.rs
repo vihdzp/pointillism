@@ -48,6 +48,8 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Map for CurvePlayer<S, C> {
 
 /// Plays a sample curve at a specified speed, until it reaches the right endpoint.
 ///
+/// Initialize with [`Self::new_curve`].
+///
 /// See also [`LoopCurveGen`].
 #[derive(Clone, Debug)]
 pub struct OnceCurveGen<C: Map<Input = f64>>
@@ -178,6 +180,8 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> OnceGen<S, C> {
 }
 
 /// Loops a curve at a specified frequency.
+///
+/// Initialize with [`Self::new_curve`].
 ///
 /// See also [`OnceCurveGen`].
 #[derive(Clone, Debug, Default)]

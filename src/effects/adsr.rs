@@ -33,6 +33,8 @@ pub enum Stage {
 ///  ⟋                \ R
 /// •――――――――――――――――――•  [DC = 0]
 /// ```
+///
+/// You might instead want to use an [`ArEnvelope`].
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.

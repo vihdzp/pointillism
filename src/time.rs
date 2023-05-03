@@ -178,7 +178,7 @@ impl Mul<Time> for f64 {
 impl Mul<f64> for Time {
     type Output = Self;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self {
         rhs * self
     }
 }
@@ -203,10 +203,18 @@ impl DivAssign<f64> for Time {
     }
 }
 
+impl Div<Time> for Time {
+    type Output = f64;
+
+    fn div(self, rhs: Time) -> f64 {
+        self.seconds / rhs.seconds
+    }
+}
+
 impl Rem for Time {
     type Output = Self;
 
-    fn rem(self, rhs: Self) -> Self::Output {
+    fn rem(self, rhs: Self) -> Self {
         Self::new(self.seconds % rhs.seconds)
     }
 }

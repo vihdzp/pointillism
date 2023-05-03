@@ -467,6 +467,14 @@ impl DivAssign<f64> for Freq {
     }
 }
 
+impl Div<Freq> for Freq {
+    type Output = f64;
+
+    fn div(self, rhs: Freq) -> f64 {
+        self.hz / rhs.hz
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
