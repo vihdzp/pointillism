@@ -30,7 +30,7 @@ fn main() {
     let osc = |freq, angle| {
         pointillism::effects::pan::Panner::mixed(
             MutSgn::new(
-                Envelope::new(
+                AdsrEnvelope::new(
                     // Saw-triangle wave with specified frequency.
                     LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
@@ -38,9 +38,11 @@ fn main() {
                 ),
                 OnceGen::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper::new(|sgn: &mut Envelope<LoopGen<Stereo, SawTri>>, val: f64| {
-                    sgn.sgn_mut().curve_mut().shape = val;
-                }),
+                FnWrapper::new(
+                    |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: f64| {
+                        sgn.sgn_mut().curve_mut().shape = val;
+                    },
+                ),
             ),
             angle,
         )

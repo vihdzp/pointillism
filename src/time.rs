@@ -23,7 +23,7 @@ const YR_SECS: f64 = 365.0 * DAY_SECS;
 /// Represents an amount of time.
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Time {
-    /// Number of seconds.
+    /// Number of frames.
     pub seconds: f64,
 }
 
@@ -47,18 +47,24 @@ impl Time {
     pub const YR: Self = Self::new(YR_SECS);
 
     /// Initializes a time variable for the number of seconds.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
     #[must_use]
     pub const fn new(seconds: f64) -> Self {
         Self { seconds }
     }
 
     /// Initializes a time variable for the number of frames.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
     #[must_use]
     pub fn new_frames(frames: f64) -> Self {
         Self::new(frames / SAMPLE_RATE_F64)
     }
 
     /// The time for a single beat at a given BPM.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
     #[must_use]
     pub fn new_beat(bpm: f64) -> Self {
         Self::new(MIN_SECS / bpm)

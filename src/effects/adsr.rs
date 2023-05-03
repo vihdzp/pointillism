@@ -22,6 +22,17 @@ pub enum Stage {
 }
 
 /// An ADSR envelope. Outputs values between `0.0` and `1.0`.
+///
+/// The following diagram shows the four phases of an ADSR. Note that the release phase is only
+/// activated once the envelope is [stopped](Stop).
+///
+/// ```txt
+///        ⟋⟍ D
+///      ⟋    ⟍   S
+///  A ⟋        •――――•
+///  ⟋                \ R
+/// •――――――――――――――――――•  [DC = 0]
+/// ```
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.
@@ -41,8 +52,8 @@ pub struct Adsr {
 
     /// The value from which the sustain starts.
     ///
-    /// This can differ from the sustain value if the envelope is stopped before
-    /// the `Sustain` phase.
+    /// This can differ from the sustain value if the envelope is stopped before the `Sustain`
+    /// phase.
     sustain_val: Vol,
 
     /// A value from `0.0` to `1.0` representing how far along the phase we are.
@@ -52,7 +63,7 @@ pub struct Adsr {
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+    pub const fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self {
             attack,
             decay,
@@ -144,94 +155,12 @@ impl Panic for Adsr {
     }
 }
 
-/// A stoppable signal, hooked to an ADSR envelope.
-#[derive(Clone, Debug)]
-pub struct Envelope<S: Signal> {
-    /// The inner envelope.
-    inner: Tremolo<S, Adsr>,
-}
+/// Hooks up a signal to an [`Adsr`] envelope.
+///
+pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
-impl<S: Signal> Envelope<S> {
-    /// Initializes a new ADSR envelope.
-    pub fn new(sgn: S, env: Adsr) -> Self {
-        Self {
-            inner: Tremolo::new(sgn, env),
-        }
-    }
-
-    /// Returns a reference to the signal modified by the ADSR envelope.
-    pub fn sgn(&self) -> &S {
-        self.inner.sgn()
-    }
-
-    /// Returns a mutable reference to the signal modified by the ADSR envelope.
-    pub fn sgn_mut(&mut self) -> &mut S {
-        self.inner.sgn_mut()
-    }
-
-    /// Returns a reference to the ADSR signal.
-    pub fn adsr(&self) -> &Adsr {
-        self.inner.env()
-    }
-
-    /// Returns a mutable reference to the ADSR signal.
-    pub fn adsr_mut(&mut self) -> &mut Adsr {
-        self.inner.env_mut()
-    }
-}
-
-impl<S: Signal> Signal for Envelope<S> {
-    type Sample = S::Sample;
-
-    fn get(&self) -> S::Sample {
-        self.inner.get()
-    }
-
-    fn advance(&mut self) {
-        self.inner.advance();
-    }
-
-    fn retrigger(&mut self) {
-        self.inner.retrigger();
-    }
-}
-
-impl<S: Frequency> Frequency for Envelope<S> {
-    fn freq(&self) -> Freq {
-        self.sgn().freq()
-    }
-
-    fn freq_mut(&mut self) -> &mut Freq {
-        self.sgn_mut().freq_mut()
-    }
-}
-
-impl<S: Base> Base for Envelope<S> {
-    type Base = S::Base;
-
-    fn base(&self) -> &S::Base {
-        self.sgn().base()
-    }
-
-    fn base_mut(&mut self) -> &mut S::Base {
-        self.sgn_mut().base_mut()
-    }
-}
-
-impl<S: Signal> Done for Envelope<S> {
-    fn is_done(&self) -> bool {
-        self.adsr().is_done()
-    }
-}
-
-impl<S: Signal> Stop for Envelope<S> {
-    fn stop(&mut self) {
-        self.adsr_mut().stop();
-    }
-}
-
-impl<S: Signal> Panic for Envelope<S> {
-    fn panic(&mut self) {
-        self.adsr_mut().panic();
+impl<S: Signal> AdsrEnvelope<S> {
+    pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+        Self::new(sgn, Adsr::new(attack, decay, sustain, release))
     }
 }

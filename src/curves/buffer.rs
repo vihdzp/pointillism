@@ -182,10 +182,10 @@ impl Buffer<Mono> {
     ///
     /// This is useful for two reasons:
     ///
-    /// - It serves as an optimization. An audio buffer from a WAV file should
-    ///   have no reason to change in size.
-    /// - It allows us to transmute an interleaved array of `Mono` samples into
-    ///   an array of `Stereo` samples.
+    /// - It serves as an optimization. An audio buffer from a WAV file should have no reason to
+    ///   change in size.
+    /// - It allows us to transmute an interleaved array of `Mono` samples into an array of `Stereo`
+    ///   samples.
     fn get_ptr(length: usize) -> *mut Mono {
         // This must be handled separately, as `alloc::alloc` doesn't allow for
         // an empty layout.
@@ -449,15 +449,7 @@ impl<S: Sample> Signal for OnceBufGen<S> {
 }
 
 impl<S: Sample> Base for OnceBufGen<S> {
-    type Base = Self;
-
-    fn base(&self) -> &Self::Base {
-        self
-    }
-
-    fn base_mut(&mut self) -> &mut Self::Base {
-        self
-    }
+    impl_base!();
 }
 
 impl<S: Sample> Stop for OnceBufGen<S> {
@@ -524,13 +516,5 @@ impl<S: Sample> Signal for LoopBufGen<S> {
 }
 
 impl<S: Sample> Base for LoopBufGen<S> {
-    type Base = Self;
-
-    fn base(&self) -> &Self::Base {
-        self
-    }
-
-    fn base_mut(&mut self) -> &mut Self::Base {
-        self
-    }
+    impl_base!();
 }

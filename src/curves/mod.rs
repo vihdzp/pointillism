@@ -1,26 +1,22 @@
-//! Declares basic curves that may be to generate audio via
-//! [`OnceGen`](crate::prelude::OnceGen) or
+//! Declares basic curves that may be to generate audio via [`OnceGen`](crate::prelude::OnceGen) or
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
-//! For convenience, we provide four variants of a saw wave: [`Saw`],
-//! [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take
-//! values from `-1.0` to `1.0` or from `0.0` to `1.0`, and whether they go from
-//! left to right or right to left.
+//! For convenience, we provide four variants of a saw wave: [`Saw`], [`InvSaw`], [`PosSaw`],
+//! [`PosInvSaw`]. These vary on whether they take values from `-1.0` to `1.0` or from `0.0` to
+//! `1.0`, and whether they go from left to right or right to left.
 //!
-//! All other of the provided curves, by default, take values from `-1.0` to
-//! `1.0`. They can be rescaled via the [`Comp::pos`], [`Comp::sgn`], and
-//! [`Comp::neg`] methods.
+//! All other of the provided curves, by default, take values from `-1.0` to `1.0`. They can be
+//! rescaled via the [`Comp::pos`], [`Comp::sgn`], and [`Comp::neg`] methods.
 //!
 //! ## Terminology
 //!
-//! We distinguish between two kinds of curves. The most basic curves like
-//! [`Sin`], [`SawTri`], [`Pulse`], etc.) are all examples of
-//! **(plain) curves**, meaning types implementing
+//! We distinguish between two kinds of curves. The most basic curves like [`Sin`], [`SawTri`],
+//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing
 //! [`Map<Input = f64, Output = f64>`](Map).
 //!
-//! On the other hand, audio curves such as those generated from
-//! [`BufCurve`](crate::prelude::BufCurve) are called **sample curves**, meaning
-//! types implementing [`Map<Input = f64>`](Map)` where Output: Sample`.
+//! On the other hand, **sample curves**, are types implementing [`Map<Input = f64>`](Map)` where
+//! Output: Sample`. One can create a sample curve from a plain curve by using
+//! [`CurvePlayer`](crate::prelude::CurvePlayer).
 
 pub mod buffer;
 pub mod interpolate;
@@ -128,23 +124,22 @@ impl Linear {
         Self { slope, intercept }
     }
 
-    /// Initializes the linear map that rescales an interval
-    /// `[init_lo, init_hi]` to another `[end_lo, end_hi]`.
+    /// Initializes the linear map that rescales an interval `[init_lo, init_hi]` to another
+    /// `[end_lo, end_hi]`.
     #[must_use]
     pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
         let slope = (end_hi - end_lo) / (init_hi - init_lo);
         Self::new(slope, end_lo - slope * init_lo)
     }
 
-    /// Initializes the linear map that rescales the unit interval `[0.0, 1.0]`
-    /// to another `[lo, hi]`.
+    /// Initializes the linear map that rescales the unit interval `[0.0, 1.0]` to another `[lo,
+    /// hi]`.
     #[must_use]
     pub fn rescale_unit(lo: f64, hi: f64) -> Self {
         Self::rescale(0.0, 1.0, lo, hi)
     }
 
-    /// Initializes the linear map that rescales the interval `[-1.0, 1.0]` to
-    /// another `[lo, hi]`.
+    /// Initializes the linear map that rescales the interval `[-1.0, 1.0]` to another `[lo, hi]`.
     #[must_use]
     pub fn rescale_sgn(lo: f64, hi: f64) -> Self {
         Self::rescale(-1.0, 1.0, lo, hi)
@@ -369,7 +364,16 @@ impl Map for Pulse {
 
 /// A curve interpolating between a saw and a triangle.
 ///
-/// Takes on values between `-1.0` and `1.0`.
+/// Takes on values between `-1.0` and `1.0`. The `shape` corresponds to the x-coordinate of its
+/// peak. For instance, a saw-tri with shape &approx; 2/3:
+///
+/// ```txt
+///        ⟋\
+///      ⟋   \
+/// ――――•―――――•―― [DC = 0]
+///   ⟋        \
+/// ⟋           \
+/// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SawTri {
     /// Position of the peak of the wave.
@@ -385,8 +389,7 @@ impl SawTri {
 
     /// A (left to right) saw wave.
     ///
-    /// Unless you want to merge between other triangle waves, consider using
-    /// [`Saw`] instead.
+    /// Unless you want to merge between other triangle waves, consider using [`Saw`] instead.
     #[must_use]
     pub const fn saw() -> Self {
         Self::new(1.0)
@@ -400,16 +403,15 @@ impl SawTri {
 
     /// A (right to left) saw wave.
     ///
-    /// Unless you want to merge between other triangle waves, consider using
-    /// [`InvSaw`] instead.
+    /// Unless you want to merge between other triangle waves, consider using [`InvSaw`] instead.
     #[must_use]
     pub const fn inv_saw() -> Self {
         Self::new(0.0)
     }
 }
 
-/// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between
-/// `1.0` and `-1.0` for `x ≥ shape`.
+/// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between `1.0` and `-1.0` for
+/// `x ≥ shape`.
 #[must_use]
 pub fn saw_tri(x: f64, shape: f64) -> f64 {
     /// We must do some size checks to avoid division by 0.
@@ -419,12 +421,12 @@ pub fn saw_tri(x: f64, shape: f64) -> f64 {
         if shape.abs() < EPS {
             1.0
         } else {
-            2.0 * x / shape - 1.0
+            interpolate::linear(-1.0, 1.0, x / shape)
         }
     } else if (1.0 - shape).abs() < EPS {
         1.0
     } else {
-        2.0 * (1.0 - x) / (1.0 - shape) - 1.0
+        interpolate::linear(-1.0, 1.0, (1.0 - x) / (1.0 - shape))
     }
 }
 

@@ -8,9 +8,8 @@ use crate::prelude::*;
 ///
 /// It can be stopped, but doing so won't actually change the output.
 ///
-/// **Important note**: Using this is somewhat of a hack. If used repeatedly in
-/// a [`Polyphony`](crate::prelude::Polyphony) struct, it will greatly slow down
-/// the code.
+/// **Important note**: Using this is somewhat of a hack. If used repeatedly in a
+/// [`Polyphony`](crate::prelude::Polyphony) struct, it will greatly slow down the code.
 pub struct Trailing<S: Signal> {
     /// The inner signal.
     pub sgn: S,
@@ -73,8 +72,8 @@ impl<S: Signal> Stop for Trailing<S> {
 
 /// Makes a signal stop immediately.
 ///
-/// After a signal is stopped, all subsequent outputs will be the zero sample.
-/// The signal will need to be retriggered in order to produce other outputs.
+/// After a signal is stopped, all subsequent outputs will be the zero sample. The signal will need
+/// to be retriggered in order to produce other outputs.
 pub struct Stopping<S: Signal> {
     /// The inner signal.
     pub sgn: S,

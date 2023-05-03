@@ -2,9 +2,7 @@
 
 use crate::prelude::*;
 
-/// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on
-/// each channel.
-#[allow(clippy::module_name_repetitions)]
+/// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on each channel.
 pub struct StereoMix<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, pub Y);
 
 impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoMix<X, Y> {
@@ -61,8 +59,8 @@ impl<X: Panic<Sample = Mono>, Y: Panic<Sample = Mono>> Panic for StereoMix<X, Y>
 
 /// Adds two signals together.
 ///
-/// If you want to mix more signals together (e.g. an entire song), it might be
-/// easier to manually add the samples instead.
+/// If you want to mix more signals together (e.g. an entire song), it might be easier to manually
+/// add the samples instead.
 pub struct Mix<X: Signal, Y: Signal<Sample = X::Sample>>(pub X, pub Y);
 
 impl<X: Signal, Y: Signal<Sample = X::Sample>> Mix<X, Y> {

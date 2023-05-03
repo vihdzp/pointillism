@@ -7,23 +7,22 @@ use crate::prelude::*;
 
 /// A polyphonic signal.
 ///
-/// This stores multiple instances of a signal `S`, which can be added and
-/// stopped. Signals are internally removed as they are done, to save processing
-/// power.
+/// This stores multiple instances of a signal `S`, which can be added and stopped. Signals are
+/// internally removed as they are done, to save processing power.
+///
+/// We currently use a [`HashMap`] to store these signals, but this is subject to change. Likewise,
+/// the exact trait requirements on `K` may change in the future, although unsigned integers and the
+/// like should always be supported.
 #[derive(Clone, Debug)]
 pub struct Polyphony<K: Eq + Hash + Clone, S: Done> {
     /// The signals currently playing.
     signals: HashMap<K, S>,
-
-    /// The number of signals that have been added in total.
-    idx: usize,
 }
 
 impl<K: Eq + Hash + Clone, S: Done> Default for Polyphony<K, S> {
     fn default() -> Self {
         Self {
-            signals: HashMap::default(),
-            idx: 0,
+            signals: HashMap::new(),
         }
     }
 }
@@ -35,20 +34,27 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
         Self::default()
     }
 
-    /// Returns a reference to the structure of currently played signals.
+    /// Returns an iterator over the inner signals and their keys.
     ///
-    /// **Note that this is subject to change.**
-    #[must_use]
-    pub const fn signals(&self) -> &HashMap<K, S> {
-        &self.signals
+    /// The exact data structure used to store this is subject to change, and thus not exposed in
+    /// the API.
+    pub fn signals(&self) -> impl Iterator<Item = (&K, &S)> {
+        self.signals.iter()
+    }
+
+    /// Returns an iterator over mutable references to the inner signals and their keys.
+    ///
+    /// The exact data structure used to store this is subject to change, and thus not exposed in
+    /// the API.
+    pub fn signals_mut(&mut self) -> impl Iterator<Item = (&K, &mut S)> {
+        self.signals.iter_mut()
     }
 
     /// Adds a signal, using a given key.
-    pub fn add(&mut self, key: K, sgn: S) -> usize {
-        let idx = self.idx;
+    ///
+    /// If the key was already in use, the signal is overwritten.
+    pub fn add(&mut self, key: K, sgn: S) {
         self.signals.insert(key, sgn);
-        self.idx += 1;
-        idx
     }
 
     /// Gets a reference to a particular signal.
@@ -63,6 +69,7 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     }
 
     /// Modifies a signal with the given key using the specified function.
+    ///
     /// Returns whether the signal was found.
     pub fn modify<F: Fn(&mut S)>(&mut self, key: &K, f: F) -> bool {
         if let Some(sgn) = self.get_mut(key) {
@@ -82,6 +89,16 @@ impl<K: Eq + Hash + Clone, S: Done> Polyphony<K, S> {
     }
 
     // We don't implement `panic` as it would clash with the `Panic` impl.
+
+    /// Stops all signals currently playing.
+    pub fn stop_all(&mut self)
+    where
+        S: Stop,
+    {
+        for (_, signal) in self.signals_mut() {
+            signal.stop();
+        }
+    }
 }
 
 impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
@@ -114,15 +131,7 @@ impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
 }
 
 impl<K: Eq + Hash + Clone, S: Done> Base for Polyphony<K, S> {
-    type Base = Self;
-
-    fn base(&self) -> &Self::Base {
-        self
-    }
-
-    fn base_mut(&mut self) -> &mut Self::Base {
-        self
-    }
+    impl_base!();
 }
 
 impl<K: Eq + Hash + Clone, S: Done> Panic for Polyphony<K, S> {

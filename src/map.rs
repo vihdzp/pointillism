@@ -3,19 +3,16 @@
 //! These traits serve two main purposes:
 //!
 //! - Implementing custom curves, that can be played back as samples via
-//! [`OnceGen`](crate::prelude::OnceGen) or
-//! [`LoopGen`](crate::prelude::LoopGen). See the [`crate::generators`] module
-//! for more info.
+//!   [`OnceGen`](crate::prelude::OnceGen) or [`LoopGen`](crate::prelude::LoopGen). See the
+//!   [`crate::generators`] module for more info.
 //!
-//! - Create signals that modify others, either sample-wise via
-//! [`MapSgn`](crate::prelude::MapSgn), or by directly tweaking
-//! parameters via [`MutSgn`](crate::prelude::MutSgn) or
-//! [`ModSgn`](crate::prelude::ModSgn).
+//! - Create signals that modify others, either sample-wise via [`MapSgn`](crate::prelude::MapSgn),
+//!   or by directly tweaking parameters via [`MutSgn`](crate::prelude::MutSgn) or
+//!   [`ModSgn`](crate::prelude::ModSgn).
 //!
-//! In many cases, one can use a Rust function, wrapped in an [`FnWrapper`]
-//! struct. However, in cases where one wants control over this function, or to
-//! create multiple instances of it, one is encouraged to implement these traits
-//! for their own custom structs.
+//! In many cases, one can use a Rust function, wrapped in an [`FnWrapper`] struct. However, in
+//! cases where one wants control over this function, or to create multiple instances of it, one is
+//! encouraged to implement these traits for their own custom structs.
 
 use std::marker::PhantomData;
 
@@ -23,8 +20,8 @@ use crate::generators::Sample;
 
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
-/// Due to orphan rules, this trait can't be implemented directly for Rust
-/// functions. Instead, you must wrap your function in an [`FnWrapper`].
+/// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
+/// must wrap your function in an [`FnWrapper`].
 pub trait Map {
     /// Input type for the map.
     type Input;
@@ -36,11 +33,10 @@ pub trait Map {
     fn eval(&self, x: Self::Input) -> Self::Output;
 }
 
-/// An abstract trait for a structure representing a function taking `&mut X`
-/// and `Y`.
+/// An abstract trait for a structure representing a function taking `&mut X` and `Y`.
 ///
-/// Due to orphan rules, this trait can't be implemented directly for Rust
-/// functions. Instead, you must wrap your function in an [`FnWrapper`].
+/// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
+/// must wrap your function in an [`FnWrapper`].
 pub trait Mut<X, Y> {
     /// Modifies `x` according to `y`.
     fn modify(&mut self, x: &mut X, y: Y);
@@ -48,8 +44,8 @@ pub trait Mut<X, Y> {
 
 /// A wrapper for a Rust function which converts it into a [`Map`] or [`Mut`].
 ///
-/// It may be necessary to explicitly write down the types of the arguments to
-/// the function.
+/// Unfortunately, it may be necessary to explicitly write down the types of the arguments to the
+/// function.
 #[derive(Clone, Copy, Debug)]
 pub struct FnWrapper<X, Y, F> {
     /// Dummy value.

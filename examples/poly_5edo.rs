@@ -15,7 +15,7 @@ fn main() {
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
-        Envelope::new(
+        AdsrEnvelope::new(
             // Sine wave with specified frequency.
             LoopGen::<Stereo, _>::new(Sin::sin(), freq),
             // ADSR envelope with long attack, long release.

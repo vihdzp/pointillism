@@ -18,8 +18,8 @@ pub fn linear<S: SampleLike>(x0: S, x1: S, t: f64) -> S {
     x0 * (1.0 - t) + x1 * t
 }
 
-/// Interpolates cubically between `x1` and `x2`. Makes use of the previous
-/// sample `x0` and the next sample `x3`.
+/// Interpolates cubically between `x1` and `x2`. Makes use of the previous sample `x0` and the next
+/// sample `x3`.
 ///
 /// The variable `t` should range between `0` and `1`.
 ///
@@ -48,20 +48,26 @@ pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     ((c3 * t + c2) * t + c1) * t * 0.5 + x1
 }
 
-/// A trait for a buffer, which is used in order to apply some interpolation
-/// algorithm.
+/// A trait for a buffer, which is used in order to apply some interpolation algorithm.
 ///
-/// By interpolation, we mean a process of creating new [`Samples`](Sample)
-/// between two others. We refer to the first of these samples as the "current"
-/// sample, and the second as the "next" sample.
+/// By interpolation, we mean a process of creating new [`Samples`](Sample) between two others. We
+/// refer to the first of these samples as the "current" sample, and the second as the "next"
+/// sample.
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 ///
+/// ## Implementing the trait
+///
+/// The current design doesn't really lend itself to generality, unless you want to implement more
+/// "experimental" interpolation methods that work with small buffers. As such, we don't recommend
+/// implementing this trait for custom types. See also the to-do section below.
+///
 /// ## Todo
 ///
-/// It might be more computationally efficient to make larger buffers. That way,
-/// we can write from the signal "in one go", instead of having to constantly
-/// read values and shift them.
+/// Having a rolling window probably works well enough for the sample sizes we currently use. For
+/// anything larger, it might be more computationally efficient to make larger buffers. That way, we
+/// can write from the signal "in one go", instead of having to constantly read values and shift
+/// them.
 pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
     type Sample: Sample;
@@ -82,6 +88,9 @@ pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
     fn load_many<S: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut S, count: usize);
 
     /// Initializes a buffer from a signal.
+    ///
+    /// This will advance the signal once for the current frame, and once for every
+    /// [`Self::LOOK_AHEAD`] frame.
     fn init<S: Signal<Sample = Self::Sample>>(sgn: &mut S) -> Self {
         let mut inter = Self::EMPTY;
         inter.load_many(sgn, Self::LOOK_AHEAD as usize + 1);
@@ -91,9 +100,8 @@ pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
 
 /// A buffer for drop-sample [interpolation](Interpolate).
 ///
-/// Drop-sample interpolation simply consists on taking the previously read
-/// sample. This is terrible for audio fidelity, but can create some interesting
-/// bit-crush effects.
+/// Drop-sample interpolation simply consists on taking the previously read sample. This is terrible
+/// for audio fidelity, but can create some interesting bit-crush effects.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Drop<S: Sample>(pub S);
 
@@ -136,9 +144,9 @@ impl<S: Sample> Interpolate for Drop<S> {
 
 /// A buffer for linear [interpolation](Interpolate).
 ///
-/// Linear interpolation consists of drawing a straight line between consecutive
-/// samples. Although better than [`Drop`] interpolation, both [`Cubic`] and
-/// [`Hermite`] interpolation will generally give "cleaner" results.
+/// Linear interpolation consists of drawing a straight line between consecutive samples. Although
+/// better than [`Drop`] interpolation, both [`Cubic`] and [`Hermite`] interpolation will generally
+/// give "cleaner" results.
 pub struct Linear<S: Sample> {
     /// The current sample.
     pub cur: S,
@@ -191,6 +199,8 @@ impl<S: Sample> Interpolate for Linear<S> {
 }
 
 /// An implementation of the `load` method for buffers of arbitrary size.
+///
+/// We currently only use this for `N = 4`.
 fn load_gen<S: Copy, const N: usize>(buf: &mut [S; N], sample: S) {
     for i in 0..(N - 1) {
         buf[i] = buf[i + 1];
@@ -204,8 +214,7 @@ fn load_many_gen<S: Signal>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usize)
         0 => {}
         1 => load_gen(buf, sgn.next()),
 
-        // The hope here is that the compiler can optimize away redundant
-        // writes.
+        // The hope here is that the compiler can optimize away redundant writes.
         2 => {
             load_gen(buf, sgn.next());
             load_gen(buf, sgn.next());
@@ -231,9 +240,9 @@ fn load_many_gen<S: Signal>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usize)
 /// A buffer for cubic [interpolation](Interpolate).
 ///
 /// Cubic interpolation uses the cubic
-/// [Lagrange polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial)
-/// for the previous, current, next, and next next samples. This will often
-/// yield good results, along with [`Hermite`] interpolation.
+/// [Lagrange polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous,
+/// current, next, and next next samples. This will often yield good results, along with [`Hermite`]
+/// interpolation.
 pub struct Cubic<S: Sample>(pub [S; 4]);
 
 impl<S: Sample> Cubic<S> {
@@ -271,9 +280,9 @@ impl<S: Sample> Interpolate for Cubic<S> {
 /// A buffer for (cubic) Hermite [interpolation](Interpolate).
 ///
 /// Hermite interpolation uses a
-/// [Catmull-Rom spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline)
-/// (a special case of the cubic Hermite spline) for interpolation. This will
-/// often yield good results, along with [`Cubic`] interpolation.
+/// [Catmull-Rom spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the
+/// cubic Hermite spline) for interpolation. This will often yield good results, along with
+/// [`Cubic`] interpolation.
 pub struct Hermite<S: Sample>(pub [S; 4]);
 
 impl<S: Sample> Hermite<S> {
@@ -308,8 +317,7 @@ impl<S: Sample> Interpolate for Hermite<S> {
     }
 }
 
-/// Samples a signal and time-stretches it. Both pitch and speed will be
-/// modified.
+/// Samples a signal and time-stretches it. Both pitch and speed will be modified.
 pub struct Stretch<S: Signal, I: Interpolate<Sample = S::Sample>> {
     /// The signal being sampled.
     sgn: S,
@@ -329,9 +337,9 @@ pub struct Stretch<S: Signal, I: Interpolate<Sample = S::Sample>> {
 impl<S: Signal, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
     /// Initializes a new [`Stretch`].
     ///
-    /// If you call this function, you'll have to write down the interpolation
-    /// mode explicitly. Consider instead calling [`new_linear`],
-    /// [`new_hermite`], etc.
+    /// If you call this function, you'll have to write down the interpolation mode explicitly.
+    /// Consider instead calling one of [`Self::new_drop`], [`Self::new_linear`],
+    /// [`Self::new_cubic`] or [`Self::new_hermite`].
     pub fn new(mut sgn: S, factor: f64) -> Self {
         Self {
             inter: I::init(&mut sgn),
@@ -342,14 +350,17 @@ impl<S: Signal, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
     }
 
     /// Returns a reference to the original signal.
+    ///
+    /// Note that the signal might have been read a few samples ahead of what's currently playing,
+    /// depending on the interpolation method.
     pub const fn sgn(&self) -> &S {
         &self.sgn
     }
 
     /// Returns a mutable reference to the original signal.
     ///
-    /// Note that the signal might have been read a few samples ahead of what's
-    /// currently playing, depending on the interpolation method.
+    /// Note that the signal might have been read a few samples ahead of what's currently playing,
+    /// depending on the interpolation method.
     pub fn sgn_mut(&mut self) -> &mut S {
         &mut self.sgn
     }

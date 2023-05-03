@@ -1,9 +1,8 @@
-//! Defines the [`Sample`] trait, and implements it for types [`Mono`],
-//! [`Stereo`], and [`Env`].
+//! Defines the [`Sample`] trait, and implements it for types [`Mono`], [`Stereo`], and [`Env`].
 //!
-//! [`Mono`] and [`Stereo`] are [`Audio`] samples, meaning that they can be
-//! written to a WAV file in order to produce sound. [`Env`] is reserved for
-//! outputs from envelopes, such as an [`Adsr`](crate::effects::adsr::Adsr).
+//! [`Mono`] and [`Stereo`] are [`Audio`] samples, meaning that they can be written to a WAV file in
+//! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
+//! [`Adsr`](crate::effects::adsr::Adsr).
 
 use hound::WavWriter;
 use rand::{distributions::Standard, prelude::Distribution, Rng};
@@ -15,35 +14,33 @@ use std::{
 
 /// A sample of mono audio, typically holding a value between `-1.0` and `1.0`.
 ///
-/// This is distinguished from [`Env`] as they have different uses, but one may
-/// freely convert one to the other if so needed.
-#[derive(Clone, Copy, Debug, Default)]
+/// This is distinguished from [`Env`], as they have different uses. There shouldn't be much reason
+/// to convert one to the other.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Mono(pub f64);
 
 /// A sample of stereo audio, typically holding values between `-1.0` and `1.0`.
 ///
 /// The left channel is stored in `.0`, the right channel is stored in `.1`.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Stereo(pub f64, pub f64);
 
-/// A data sample from an envelope, typically holding a value between `-1.0` and
-/// `1.0`.
+/// A data sample from an envelope, typically holding a value between `-1.0` and `1.0`.
 ///
-/// This is distinguished from [`Mono`] as they have different uses, but one may
-/// freely convert one to the other if so needed.
-#[derive(Clone, Copy, Debug, Default)]
+/// This is distinguished from [`Mono`], as they have different uses. There shouldn't be much reason
+/// to convert one to the other.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Env(pub f64);
 
-/// A trait for things that one can perform arithmetic on, like a sample.
-/// This includes anything implementing [`Sample`] as well as `f64`.
+/// A trait for things that one can perform arithmetic on, like a sample. This includes anything
+/// implementing [`Sample`] as well as `f64`.
 ///
-/// This trait exists mostly for convenient, general implementations of methods
-/// such as [`linear_inter`](crate::curves::buffer::linear_inter), which make
-/// sense both for samples and for floating point values.
-#[allow(clippy::module_name_repetitions)]
+/// This trait exists mostly for convenient, general implementations of methods such as
+/// [`linear_inter`](crate::curves::interpolate::linear), which make sense both for samples and for
+/// floating point values.
 pub trait SampleLike:
     Copy
     + Default
@@ -69,8 +66,8 @@ impl SampleLike for f64 {
 
 /// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
 ///
-/// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples
-/// can be used for envelopes such as in an LFO.
+/// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
+/// envelopes such as in an LFO.
 pub trait Sample: SampleLike {
     /// The number of values stored in the sample.
     const CHANNELS: u8;
@@ -168,9 +165,9 @@ pub trait Sample: SampleLike {
 
     /// Generates a random sample from a given `Rng` object.
     ///
-    /// We use this, instead of `rng.gen()`, in order to avoid having to write
-    /// down `where Standard: Distribution<S>` everywhere. However, all three
-    /// instances of [`Sample`] implement this trait individually.
+    /// We use this, instead of `rng.gen()`, in order to avoid having to write down `where Standard:
+    /// Distribution<S>` everywhere. However, all three instances of [`Sample`] implement this trait
+    /// individually.
     #[must_use]
     fn rand_with<R: Rng + ?Sized>(rng: &mut R) -> Self {
         Self::from_fn(|_| crate::sgn(rng.gen::<f64>()))
@@ -178,9 +175,9 @@ pub trait Sample: SampleLike {
 
     /// Generates a random sample.
     ///
-    /// We use this, instead of `thread_rng().gen()`, in order to avoid having
-    /// to write down `where Standard: Distribution<S>` everywhere. However, all
-    /// three instances of [`Sample`] implement this individually.
+    /// We use this, instead of `thread_rng().gen()`, in order to avoid having to write down `where
+    /// Standard: Distribution<S>` everywhere. However, all three instances of [`Sample`] implement
+    /// this individually.
     #[must_use]
     fn rand() -> Self {
         Self::rand_with(&mut rand::thread_rng())
@@ -198,8 +195,7 @@ pub trait Sample: SampleLike {
 
 /// A [`Sample`] specifically for audio, meaning [`Mono`] or [`Stereo`].
 pub trait Audio: Sample {
-    /// Duplicates a mono signal to convert it into stereo. Leaves a stereo
-    /// signal unchanged.
+    /// Duplicates a mono signal to convert it into stereo. Leaves a stereo signal unchanged.
     fn duplicate(&self) -> Stereo {
         Stereo(self.fst(), self.snd())
     }
@@ -382,8 +378,7 @@ impl_all!(Mono, Stereo, Env);
 
 /// A numeric type that can store a raw sample from a WAV file.
 ///
-/// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f64`.
-#[allow(clippy::module_name_repetitions)]
+/// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f32`.
 pub trait WavSample: hound::Sample {
     /// Re-scales and converts the sample into `Mono`.
     fn into_mono(self) -> Mono;
@@ -416,6 +411,7 @@ mod test {
     use super::*;
     use std::mem::{align_of, size_of};
 
+    /// Tests that all the [`Sample`] types have the expected size and alignment.
     #[test]
     fn size_align() {
         assert_eq!(size_of::<Mono>(), 8);
@@ -424,5 +420,14 @@ mod test {
         assert_eq!(align_of::<Stereo>(), 8);
         assert_eq!(size_of::<Env>(), 8);
         assert_eq!(align_of::<Env>(), 8);
+    }
+
+    /// Tests that we can transmute an array of [`Mono`] into an array of [`Stereo`]. This is needed
+    /// for reading a stereo [`Buffer`](crate::curves::buffer::Buffer).
+    #[test]
+    fn transmute_test() {
+        let stereo: [Stereo; 2] =
+            unsafe { std::mem::transmute([Mono(1.0), Mono(2.0), Mono(3.0), Mono(4.0)]) };
+        assert_eq!(stereo, [Stereo(1.0, 2.0), Stereo(3.0, 4.0)])
     }
 }

@@ -176,10 +176,14 @@ impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
     }
 }
 
-/// Applies tremolo (change in volume) to a signal according to an envelope.
+/// Applies tremolo to a signal.
 ///
-/// This signal stops whenever the original signal does. If you instead want a
-/// signal that stops when the envelope does, use [`StopTremolo`].
+/// Note that "tremolo" here just means a **change** in volume controlled by an envelope. This is
+/// more general than the usual meaning of tremolo, this being **oscillation** in volume. For
+/// instance, [`AdsrEnvelope`] is a special case of [`Tremolo`] (technically [`StopTremolo`]).
+///
+/// This signal stops whenever the original signal does. If you instead want a signal that stops
+/// when the envelope does, use [`StopTremolo`].
 #[derive(Clone, Debug)]
 pub struct Tremolo<S: Signal, E: Signal<Sample = Env>> {
     /// Inner data.
@@ -272,12 +276,12 @@ impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
     }
 }
 
-/// Applies tremolo (change in volume) to a signal according to an envelope.
-/// In contrast to [`Tremolo`], which [`Stops`](Stop) when the original signal
-/// does, this signal [`Stops`](Stop) when the envelope does.
+/// Applies tremolo (change in volume) to a signal according to an envelope. In contrast to
+/// [`Tremolo`], which [`Stops`](Stop) when the original signal does, this signal [`Stops`](Stop)
+/// when the envelope does.
 ///
-/// The signal is otherwise unchanged, so if you don't need this functionality,
-/// use [`Tremolo`] instead.
+/// The signal is otherwise unchanged, so if you don't need this functionality, use [`Tremolo`]
+/// instead.
 #[derive(Clone, Debug)]
 pub struct StopTremolo<S: Signal, E: Stop<Sample = Env>> {
     /// Inner data.
@@ -293,6 +297,9 @@ impl<S: Signal, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E>
         }
     }
 }
+
+/// An envelope with attack and release.
+pub type ArEnvelope<S> = StopTremolo<S, OnceGen<<S as Signal>::Sample, SawTri>>;
 
 impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
     /// Initializes a new [`StopTremolo`].

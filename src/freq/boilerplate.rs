@@ -1,19 +1,19 @@
-//! We initialize constants for [`Freq`] and [`MidiNote`]. For instance,
-//! [`Freq::A4`] = 440 Hz.
+//! We initialize constants for [`Freq`] and [`MidiNote`]. For instance, [`Freq::A4`] = 440 Hz.
 //!
-//! Each name is made out of a pitch letter, followed by an optional `S` or `B`
-//! for sharps and flats, followed by the octave number. We use `N1` for `-1`.
+//! Each name is made out of a pitch letter, followed by an optional `S` or `B` for sharps and
+//! flats, followed by the octave number. We use `N` for a negative sign.
 //!
-//! Enharmonic notes are given their individual constant names, for good
-//! measure.
+//! Enharmonic notes are given their individual constant names, for good measure.
 //!
-//! We only implement the notes from octaves -1 to 10, as anything lower is
-//! unsupported as a [`MidiNote`], and anything higher is too high-pitched to be
-//! practical. This range well-covers the human hearing range.
+//! We only implement the notes from octaves -1 to 10, as anything lower is unsupported as a
+//! [`MidiNote`], and anything higher is too high-pitched to be practical. This range well-covers
+//! the human hearing range.
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-impl super::MidiNote {
+use super::{Freq, MidiNote};
+
+impl MidiNote {
     // OCTAVE -1
 
     /// The note B#-2.
@@ -687,7 +687,7 @@ impl super::MidiNote {
     pub const CB11: Self = Self::B10;
 }
 
-impl super::Freq {
+impl Freq {
     // OCTAVE -1
 
     /// The note B#-2.

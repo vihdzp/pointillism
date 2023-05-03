@@ -9,7 +9,7 @@ pub use crate::{
         *,
     },
     effects::{
-        adsr::{Adsr, Envelope},
+        adsr::{Adsr, AdsrEnvelope},
         freq::*,
         mix::*,
         pan::{LinearPanner, MixedPanner, Panner, PowerPanner},

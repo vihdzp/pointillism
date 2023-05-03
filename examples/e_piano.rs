@@ -86,7 +86,7 @@ fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
         Time::new(0.1),
     );
 
-    Envelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
+    AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
 }
 
 fn main() {

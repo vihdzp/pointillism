@@ -5,13 +5,11 @@ use crate::{freq::Freq, sample::Sample};
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
 /// This data can either be audio data, meaning [`Mono`](crate::sample::Mono) or
-/// [`Stereo`](crate::sample::Stereo), or envelope data
-/// [`Env`](crate::sample::Env).
+/// [`Stereo`](crate::sample::Stereo), or envelope data [`Env`](crate::sample::Env).
 ///
 /// ## Implementing the trait
 ///
-/// In order to implement this trait on your custom type, you only need to
-/// define three methods:
+/// In order to implement this trait on your custom type, you only need to define three methods:
 ///
 /// - [`get`](Signal::get): Gets the next sample from the signal.
 /// - [`advance`](Signal::advance): Advances the state of the signal by a frame.
@@ -19,8 +17,7 @@ use crate::{freq::Freq, sample::Sample};
 ///
 /// ## Example
 ///
-/// The following example is a simplified implementation of
-/// [`NoiseGen`](crate::prelude::NoiseGen).
+/// The following example is a simplified implementation of [`NoiseGen`](crate::prelude::NoiseGen).
 ///
 /// ```
 /// # use pointillism::prelude::*;
@@ -56,8 +53,8 @@ pub trait Signal {
 
     /// Gets the next sample from the signal.
     ///
-    /// This should return the same result when called repeatedly, as long as
-    /// the signal isn't modified, and `advance` or `retrigger` is not called.
+    /// This should return the same result when called repeatedly, as long as the signal isn't
+    /// modified, and `advance` or `retrigger` is not called.
     fn get(&self) -> Self::Sample;
 
     /// Advances the state of the signal by a frame.
@@ -79,8 +76,7 @@ pub trait Signal {
 /// Not to be confused with [`Freq`].
 ///
 /// This is implemented both for signals that have a frequency parameter such as
-/// [`LoopGen`](crate::generators::LoopGen), as well as straightforward wrappers
-/// for these signals.
+/// [`LoopGen`](crate::generators::LoopGen), as well as straightforward wrappers for these signals.
 pub trait Frequency: Signal {
     /// The "main" frequency of the signal.
     fn freq(&self) -> Freq;
@@ -93,8 +89,8 @@ pub trait Frequency: Signal {
 ///
 /// This is often a generator in a chain of effects.
 ///
-/// This is implemented both for basic signals that don't depend on others, as
-/// well as straightforward wrappers of these.
+/// This is implemented both for basic signals that don't depend on others, as well as
+/// straightforward wrappers of these.
 pub trait Base: Signal {
     /// The "base" signal type.
     type Base: Signal;
@@ -106,20 +102,37 @@ pub trait Base: Signal {
     fn base_mut(&mut self) -> &mut Self::Base;
 }
 
+/// Implements the [`Base`] trait on a base signal.
+macro_rules! impl_base {
+    () => {
+        type Base = Self;
+
+        fn base(&self) -> &Self {
+            self
+        }
+
+        fn base_mut(&mut self) -> &mut Self {
+            self
+        }
+    };
+}
+
+pub(crate) use impl_base;
+
 /// Represents a signal that ends.
 ///
-/// Is used in [`Polyphony`](crate::prelude::Polyphony) so that a synth can be
-/// cleared from memory when it stops.
+/// Is used in [`Polyphony`](crate::prelude::Polyphony) so that a synth can be cleared from memory
+/// when it stops.
 ///
-/// If a signal never ends, it should not implement this trait. If you really
-/// want to use such a signal within a `Polyphony` object, wrap it in the
-/// [`Trailing`](crate::prelude::Trailing) structure.
+/// If a signal never ends, it should not implement this trait. If you really want to use such a
+/// signal within a `Polyphony` object, wrap it in the [`Trailing`](crate::prelude::Trailing)
+/// structure.
 pub trait Done: Signal {
     /// Returns whether the signal has stopped producing any sound altogether.
     ///
-    /// If this returns `true` once, it must return `true` in all successive
-    /// times, unless retriggered. Further, if this returns `true`, then getting
-    /// a sample from the signal must always return zero.
+    /// If this returns `true` once, it must return `true` in all successive times, unless
+    /// retriggered. Further, if this returns `true`, then getting a sample from the signal must
+    /// always return zero.
     fn is_done(&self) -> bool;
 }
 
@@ -127,8 +140,8 @@ pub trait Done: Signal {
 ///
 /// You can think of the `stop` method as an analog to a MIDI note off event.
 ///
-/// Note that stopping a signal doesn't mean it will immediately stop producing
-/// sound. Use [`Panic`] for this purpose.
+/// Note that stopping a signal doesn't necessarily mean it will immediately stop producing sound.
+/// Use [`Panic`] for this purpose.
 pub trait Stop: Signal {
     /// Releases a note.
     fn stop(&mut self);
@@ -136,11 +149,10 @@ pub trait Stop: Signal {
 
 /// Represents a signal that can be stopped abruptly.
 ///
-/// All sound or envelope data should stop being produced once the `panic`
-/// method is called.
+/// All sound or envelope data should stop being produced once the `panic` method is called.
 ///
-/// Depending on how your code is structured, it might be easier to simply stop
-/// calling `next` on your signal.
+/// Depending on how your code is structured, it might be easier to simply stop calling `next` on
+/// your signal.
 pub trait Panic: Signal {
     /// Stops all subsequent sound.
     fn panic(&mut self);

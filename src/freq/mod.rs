@@ -11,7 +11,7 @@ use std::{
     str::FromStr,
 };
 
-/// This magic number corresponds to the MIDI index of A4.
+/// This magic number `69.0` corresponds to the MIDI index of A4.
 pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
 
 /// Checked conversion from `f64` to `u8`.
@@ -299,9 +299,20 @@ impl Freq {
     }
 
     /// Initializes a frequency from a MIDI note.
+    ///
+    /// This allows the user to specify the `A4` tuning. Use [`Self::new_midi`] for the default of
+    /// 440 Hz.
     #[must_use]
-    pub fn new_midi(a4: Freq, note: MidiNote) -> Self {
+    pub fn new_midi_with(a4: Freq, note: MidiNote) -> Self {
         Self::new_edo_note(a4, 12, f64::from(note.note) - A4_MIDI)
+    }
+
+    /// Initializes a frequency from a MIDI note.
+    ///
+    /// See [`Self::new_midi_with`] in order to specify the `A4` tuning.
+    #[must_use]
+    pub fn new_midi(note: MidiNote) -> Self {
+        Self::new_midi_with(Freq::A4, note)
     }
 
     /// Rounds this frequency to the nearest (fractional) MIDI note.
@@ -312,6 +323,9 @@ impl Freq {
 
     /// Rounds this frequency to the nearest MIDI note.
     ///
+    /// This allows the user to specify the `A4` tuning. Use [`Self::round_midi`] for the default of
+    /// 440 Hz.
+    ///
     /// ## Panics
     ///
     /// Panics if this frequency is outside of the range for a [`MidiNote`].
@@ -319,16 +333,17 @@ impl Freq {
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// // C5 is 3 semitones above A4.
-    /// assert_eq!(Freq::C5.round_midi(Freq::A4), MidiNote::C5);
+    /// // The nearest note to `C5` is indeed `C5`.
+    /// assert_eq!(Freq::C5.round_midi_with(Freq::A4), MidiNote::C5);
     /// ```
     #[must_use]
-    pub fn round_midi(self, a4: Freq) -> MidiNote {
+    pub fn round_midi_with(self, a4: Freq) -> MidiNote {
         MidiNote::new(f64_to_u8(self.round_midi_aux(a4).round()))
     }
 
-    /// Rounds this frequency to the nearest MIDI note, and how many semitones
-    /// away from this note it is.
+    /// Rounds this frequency to the nearest MIDI note.
+    ///
+    /// See [`Self::new_midi_with`] in order to specify the `A4` tuning.
     ///
     /// ## Panics
     ///
@@ -337,33 +352,78 @@ impl Freq {
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// // C5 is 3 semitones above A4.
-    /// let (note, semitones) = Freq::C5.midi_semitones(Freq::A4);
+    /// // The nearest note to `C5` is indeed `C5`.
+    /// assert_eq!(Freq::C5.round_midi(), MidiNote::C5);
+    /// ```
+    #[must_use]
+    pub fn round_midi(self) -> MidiNote {
+        self.round_midi_with(Freq::A4)
+    }
+
+    /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
+    /// it is.
     ///
+    /// This allows the user to specify the `A4` tuning. Use [`Self::midi_semitones`] for the
+    /// default of 440 Hz.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    ///
+    /// ## Example
+    /// ```
+    /// # use pointillism::prelude::*;
+    /// let (note, semitones) = Freq::C5.midi_semitones_with(Freq::A4);
+    ///
+    /// // The nearest note to `C5` is indeed `C5`.
     /// assert_eq!(note, MidiNote::C5);
     /// assert!(semitones.abs() < 1e-7);
     /// ```
     #[must_use]
-    pub fn midi_semitones(self, a4: Freq) -> (MidiNote, f64) {
+    pub fn midi_semitones_with(self, a4: Freq) -> (MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
         (MidiNote::new(f64_to_u8(round)), note - round)
+    }
+
+    /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
+    /// it is.
+    ///   
+    /// See [`Self::midi_semitones_with`] in order to specify the `A4` tuning.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    ///
+    /// ## Example
+    /// ```
+    /// # use pointillism::prelude::*;
+    /// let (note, semitones) = Freq::C5.midi_semitones();
+    ///
+    /// // The nearest note to `C5` is indeed `C5`.
+    /// assert_eq!(note, MidiNote::C5);
+    /// assert!(semitones.abs() < 1e-7);
+    /// ```
+    #[must_use]
+    pub fn midi_semitones(self) -> (MidiNote, f64) {
+        self.midi_semitones_with(Freq::A4)
     }
 }
 
 /// We use A4 = 440 Hz.
 impl From<MidiNote> for Freq {
     fn from(note: MidiNote) -> Self {
-        Self::new_midi(Freq::A4, note)
+        Self::new_midi(note)
     }
 }
 
+/// By default, we format a note as `"{hz} Hz"`. The alternate formatting mode results in `"{note}
+/// {cents}c"`.
 impl Debug for Freq {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         if f.alternate() {
-            let (note, semitones) = self.midi_semitones(Freq::A4);
+            let (note, semitones) = self.midi_semitones();
             let cents = f64_to_i8(semitones * 100.0);
-
             write!(f, "{note} {cents:+}c")
         } else {
             write!(f, "{} Hz", self.hz())

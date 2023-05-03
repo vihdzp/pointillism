@@ -50,12 +50,11 @@ impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
 
 /// Maps a signal to another via a specified map.
 ///
-/// This map should send in most cases send the zero sample to itself. That
-/// ensures that there is no DC offset if the signal stops.
+/// This map should send in most cases send the zero sample to itself. That ensures that there is no
+/// DC offset if the signal stops.
 ///
-/// Note that the map here takes in a sample and outputs a sample. If you
-/// instead want to map the floating point values of the sample pointwise, wrap
-/// the function in [`Pw`].
+/// Note that the map here takes in a sample and outputs a sample. If you instead want to map the
+/// floating point values of the sample pointwise, wrap the function in [`Pw`].
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MapSgn<S: Signal, F: Map<Input = S::Sample>>
 where
@@ -73,6 +72,9 @@ where
     F::Output: Sample,
 {
     /// Initializes a generic [`MapSgn`].
+    ///
+    /// If the signal implements the [`Stop`] or [`Panic`] trait, the function must map zero to
+    /// itself, as otherwise this will create a DC offset.
     pub const fn new(sgn: S, map: F) -> Self {
         Self { sgn, map }
     }
@@ -202,8 +204,8 @@ impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
 
 /// Modifies a signal according to a given envelope.
 ///
-/// This signal stops whenever the original signal does. If you instead want a
-/// signal that stops when the envelope does, use [`ModSgn`].
+/// This signal stops whenever the original signal does. If you instead want a signal that stops
+/// when the envelope does, use [`ModSgn`].
 #[derive(Clone, Debug)]
 pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
     /// The signal to modify.
@@ -218,6 +220,9 @@ pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> {
 
 impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, f64>> MutSgn<S, E, F> {
     /// Initializes a new [`MutSgn`].
+    ///
+    /// The state of the signal will immediately get updated according to the function and the first
+    /// value of the envelope.
     pub fn new(mut sgn: S, env: E, mut func: F) -> Self {
         func.modify(&mut sgn, env.get().0);
         Self { sgn, env, func }
@@ -312,20 +317,20 @@ impl<S: Panic, E: Signal<Sample = Env>, F: Mut<S, f64>> Panic for MutSgn<S, E, F
     }
 }
 
-/// Modifies a signal according to a given envelope. In contrast to [`MutSgn`],
-/// which [`Stops`](Stop) when the original signal does, this signal
-/// [`Stops`](Stop) when the envelope does.
+/// Modifies a signal according to a given envelope. In contrast to [`MutSgn`], which
+/// [`Stops`](Stop) when the original signal does, this signal [`Stops`](Stop) when the envelope
+/// does.
 ///
-/// The signal is otherwise unchanged, so if you don't need this functionality,
-/// use [`MutSgn`] instead.
+/// The signal is otherwise unchanged, so if you don't need this functionality, use [`MutSgn`]
+/// instead.
 #[derive(Clone, Debug)]
 pub struct ModSgn<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> {
     /// Inner data.
     inner: MutSgn<S, E, F>,
 }
 
-/// Turns a [`MutSgn`] into a [`ModSgn`]. This changes the functionality of the
-/// signal when stopped, as described in the [`ModSgn`] docs.
+/// Turns a [`MutSgn`] into a [`ModSgn`]. This changes the functionality of the signal when stopped,
+/// as described in the [`ModSgn`] docs.
 impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> From<MutSgn<S, E, F>> for ModSgn<S, E, F> {
     fn from(inner: MutSgn<S, E, F>) -> Self {
         Self { inner }
@@ -334,6 +339,9 @@ impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> From<MutSgn<S, E, F>> for
 
 impl<S: Signal, E: Stop<Sample = Env>, F: Mut<S, f64>> ModSgn<S, E, F> {
     /// Initializes a new [`ModSgn`].
+    ///
+    /// The state of the signal will immediately get updated according to the function and the first
+    /// value of the envelope.
     pub fn new(sgn: S, env: E, func: F) -> Self {
         MutSgn::new(sgn, env, func).into()
     }
