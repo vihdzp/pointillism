@@ -276,6 +276,9 @@ where
     C::Output: Sample,
 {
     fn modify(&mut self, sgn: &mut UnisonCurve<C>, val: Env) {
+        // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
+        // truncation.
+        #[allow(clippy::cast_possible_truncation)]
         let num = sgn.len() as u8;
 
         for (int, detune) in sgn
@@ -287,14 +290,21 @@ where
     }
 }
 
+/// Detunes various copies of a curve according to an envelope. 
+/// 
+/// See also [`Detune`].
 pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 
+/// Detunes various copies of a curve according to an envelope. 
+/// 
+/// See also [`Detune`].
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 
 impl<C: Map<Input = Val>, E: Signal<Sample = Env>> DetuneCurveSgn<C, E>
 where
     C::Output: Sample,
 {
+    /// Initializes a [`DetuneCurveSgn`].
     pub fn new_detune_curve(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new(
             UnisonCurve::new_curve(
@@ -309,6 +319,7 @@ where
 }
 
 impl<S: Sample, C: Map<Input = Val, Output = f64>, E: Signal<Sample = Env>> DetuneSgn<S, C, E> {
+    /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new_detune_curve(CurvePlayer::new(map), base, num, env)
     }

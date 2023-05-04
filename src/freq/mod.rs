@@ -1,13 +1,21 @@
-//! Defines [`Freq`] and its basic methods.
+//! Defines structures pertaining to frequency, of sounds and other oscillators.
+//!
+//! [`Freq`] represents a frequency in Hertz, while [`Interval`] represents the ratio between two
+//! frequencies. Arithmetic on these types is defined in a sensible manner.
 //!
 //! ## Equal division of the octave
 //!
-//! TODO: write something here
-//! [equal division of the octave](https://en.wikipedia.org/wiki/Equal_temperament)
+//! Most music is written using 12 notes. These form an [equal division of the
+//! octave](https://en.wikipedia.org/wiki/Equal_temperament). However, there exists (and can exist)
+//! many interesting music that uses other more complicated scales. For this reason, although we
+//! provide convenience methods for 12-EDO, we also provide many other methods that allow you to
+//! specify your own equal division of the octave. If you want something even more general, you can
+//! always input the raw numbers yourself.
 
 pub mod boilerplate;
 pub mod midi;
 
+use midi::{MidiNote, NameError, A4_MIDI};
 use crate::time::Time;
 
 use std::{
@@ -15,8 +23,6 @@ use std::{
     ops::{Div, DivAssign, Mul, MulAssign},
     str::FromStr,
 };
-
-use self::midi::{MidiNote, NameError, A4_MIDI};
 
 /// Represents an interval, or a ratio between notes.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

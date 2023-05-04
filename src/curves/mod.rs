@@ -145,11 +145,11 @@ impl Map for Linear {
 /// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
 ///
 /// ```txt
-/// ⟍
-///   ⟍
+///        ⟋
+///      ⟋
 /// ――――•――――  [DC = 0]
-///      ⟍
-///        ⟍
+///   ⟋
+/// ⟋
 /// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Saw;
@@ -166,22 +166,14 @@ impl Map for Saw {
 /// A right-to-left saw wave, taking values from `1.0` to `-1.0`.
 ///
 /// ```txt
-///        ⟋
-///      ⟋
+/// ⟍
+///   ⟍
 /// ――――•――――  [DC = 0]
-///   ⟋
-/// ⟋
+///      ⟍
+///        ⟍
 /// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InvSaw;
-
-impl InvSaw {
-    /// Initializes a new [`InvSaw`].
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
 
 impl Map for InvSaw {
     type Input = Val;
@@ -222,14 +214,6 @@ impl Map for PosSaw {
 /// ――――――――•  [DC = 0]
 /// ```
 pub struct PosInvSaw;
-
-impl PosInvSaw {
-    /// Initializes a new [`PosInvSaw`].
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
 
 impl Map for PosInvSaw {
     type Input = Val;
@@ -278,19 +262,27 @@ impl Map for Cos {
     }
 }
 
-/// Returns `1` if `x < shape`, returns `-1` otherwise.
+/// Returns `-1` if `x < shape`, returns `1` otherwise.
 #[must_use]
 pub fn pulse(x: f64, shape: f64) -> f64 {
     if x < shape {
-        1.0
-    } else {
         -1.0
+    } else {
+        1.0
     }
 }
 
 /// A square wave.
 ///
 /// Takes on values between `-1.0` and `1.0`.
+///
+/// ```txt
+///     •――――
+///     |
+/// ―――――――――  [DC = 0]
+///     |
+/// ――――•
+/// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sq;
 
