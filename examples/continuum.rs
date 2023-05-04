@@ -24,7 +24,7 @@ fn main() {
     const NOTE_COUNT: u16 = 200;
 
     // Envelope for the wave shape.
-    let shape_env = Comp::new(Saw::new(), Linear::rescale_sgn(0.75, 0.5));
+    let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
 
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
@@ -42,8 +42,8 @@ fn main() {
                 OnceGen::new(shape_env, NOTE_LEN),
                 // Smoothly interpolates between a saw and a triangle wave.
                 FnWrapper::new(
-                    |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: f64| {
-                        sgn.sgn_mut().curve_mut().shape = val;
+                    |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: Env| {
+                        sgn.sgn_mut().curve_mut().shape = val.0;
                     },
                 ),
             ),

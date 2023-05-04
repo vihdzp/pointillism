@@ -46,7 +46,7 @@ impl Interval {
 
     /// Relative pitch corresponding to a note in 12-EDO.
     ///
-    /// See also [`edo_note`].
+    /// See also [`Self::edo_note`].
     #[must_use]
     pub fn note(note: f64) -> Self {
         Self::edo_note(12, note)
@@ -152,9 +152,10 @@ impl Freq {
     ///
     /// ```
     /// # use pointillism::prelude::*;
+    /// # use assert_approx_eq::assert_approx_eq;
     /// // C5 is 3 semitones above A4.
     /// let C5 = Freq::new_edo_note(Freq::A4, 12, 3.0);
-    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-7);
+    /// assert_approx_eq!(C5.hz, Freq::C5.hz);
     /// ```
     #[must_use]
     pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
@@ -170,9 +171,10 @@ impl Freq {
     ///
     /// ```
     /// # use pointillism::prelude::*;
+    /// # use assert_approx_eq::assert_approx_eq;
     /// // C5 is 3 semitones above A4.
     /// let C5 = Freq::new_note(Freq::A4, 3.0);
-    /// assert!((C5.hz - Freq::C5.hz).abs() < 1e-7);
+    /// assert_approx_eq!(C5.hz, Freq::C5.hz);
     /// ```
     #[must_use]
     pub fn new_note(base: Freq, note: f64) -> Self {
@@ -296,13 +298,14 @@ impl Freq {
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
+    /// # use assert_approx_eq::assert_approx_eq;
     /// // Pitch-bend A4 by 60 cents.
     /// let freq = Freq::A4.bend(0.6);
     /// let (note, semitones) = freq.midi_semitones();
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
     /// assert_eq!(note, MidiNote::AS4);
-    /// assert!((semitones + 0.4).abs() < 1e-7);
+    /// assert_approx_eq!(semitones, -0.4);
     /// ```
     #[must_use]
     pub fn midi_semitones(self) -> (MidiNote, f64) {
@@ -437,6 +440,6 @@ mod test {
     #[test]
     fn parse_a4() {
         let a4: Freq = "A4".parse().unwrap();
-        assert!((a4.hz - Freq::A4.hz).abs() < 1e-7);
+        assert_approx_eq::assert_approx_eq!(a4.hz, Freq::A4.hz);
     }
 }

@@ -13,7 +13,7 @@ pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
 ///
 /// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
 /// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`Freq`] into [`MidiNote`] and viceversa don't run out of range.
+/// convert [`Freq`](crate::freq::Freq) into [`MidiNote`] and viceversa don't run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MidiNote {
     /// The MIDI note index.

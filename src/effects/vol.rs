@@ -170,9 +170,9 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> Mut<Volume<S>, f64> for Trem<S> {
-    fn modify(&mut self, sgn: &mut Volume<S>, gain: f64) {
-        sgn.vol_mut().gain = gain;
+impl<S: Signal> Mut<Volume<S>, Env> for Trem<S> {
+    fn modify(&mut self, sgn: &mut Volume<S>, gain: Env) {
+        sgn.vol_mut().gain = gain.0;
     }
 }
 

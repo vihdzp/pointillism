@@ -23,8 +23,8 @@ fn main() {
             LoopGen::new_phase(Sin, (NUM_OSC as f64 * TIME).freq(), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
-            FnWrapper::new(|sgn: &mut LoopGen<_, _>, val| {
-                *sgn.freq_mut() = BASE * (val / 2.0 + 1.0);
+            FnWrapper::new(|sgn: &mut LoopGen<_, _>, val: Env| {
+                *sgn.freq_mut() = BASE * (val.0 / 2.0 + 1.0);
             }),
         )
     };

@@ -10,6 +10,7 @@ repository = "https://github.com/vihdzp/pointillism"
 version = "0.2.9"
 
 [dependencies]
+assert_approx_eq = "1.1.0"
 hound = "3.5.0"
 human-duration = "0.1.0"
 rand = "0.8.5"

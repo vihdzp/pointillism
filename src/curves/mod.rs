@@ -30,14 +30,6 @@ use crate::{
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Pos;
 
-impl Pos {
-    /// The [`crate::pos`] function.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
 impl Map for Pos {
     type Input = f64;
     type Output = f64;
@@ -57,14 +49,6 @@ impl<F: Map<Output = f64>> Comp<F, Pos> {
 /// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sgn;
-
-impl Sgn {
-    /// The [`crate::sgn`] function.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
 
 impl Map for Sgn {
     type Input = f64;
@@ -170,14 +154,6 @@ impl Map for Linear {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Saw;
 
-impl Saw {
-    /// Initializes a new [`Saw`].
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
 impl Map for Saw {
     type Input = Val;
     type Output = f64;
@@ -227,14 +203,6 @@ impl Map for InvSaw {
 /// ```
 pub struct PosSaw;
 
-impl PosSaw {
-    /// Initializes a new [`PosSaw`].
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
 impl Map for PosSaw {
     type Input = Val;
     type Output = f64;
@@ -278,14 +246,6 @@ impl Map for PosInvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sin;
 
-impl Sin {
-    /// A sine wave.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
 impl Map for Sin {
     type Input = Val;
     type Output = f64;
@@ -318,7 +278,32 @@ impl Map for Cos {
     }
 }
 
-/// A pulse wave.
+/// Returns `1` if `x < shape`, returns `-1` otherwise.
+#[must_use]
+pub fn pulse(x: f64, shape: f64) -> f64 {
+    if x < shape {
+        1.0
+    } else {
+        -1.0
+    }
+}
+
+/// A square wave.
+///
+/// Takes on values between `-1.0` and `1.0`.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Sq;
+
+impl Map for Sq {
+    type Input = Val;
+    type Output = f64;
+
+    fn eval(&self, x: Self::Input) -> Self::Output {
+        pulse(x.val(), 0.5)
+    }
+}
+
+/// A pulse wave with a given shape.
 ///
 /// Takes on values between `-1.0` and `1.0`.
 #[derive(Clone, Copy, Debug)]
@@ -344,16 +329,6 @@ impl Pulse {
 impl Default for Pulse {
     fn default() -> Self {
         Self::sq()
-    }
-}
-
-/// Returns `1` if `x < shape`, returns `-1` otherwise.
-#[must_use]
-pub fn pulse(x: f64, shape: f64) -> f64 {
-    if x < shape {
-        1.0
-    } else {
-        -1.0
     }
 }
 

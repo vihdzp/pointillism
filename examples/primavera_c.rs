@@ -61,9 +61,9 @@ fn melody() -> impl Signal<Sample = Mono> {
     let shape = move |freq| {
         MutSgn::new(
             wave(freq),
-            OnceGen::new(PosSaw::new(), Time::new(5.0)),
-            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: f64| {
-                sgn.curve_mut().shape = 1.0 - val.powf(0.2) / 2.0;
+            OnceGen::new(PosSaw, Time::new(5.0)),
+            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
+                sgn.curve_mut().shape = 1.0 - val.0.powf(0.2) / 2.0;
             }),
         )
     };
