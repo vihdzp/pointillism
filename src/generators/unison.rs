@@ -1,26 +1,25 @@
+//! Declares the [`Unison`] struct.
+//!
+//! This can be used in order to more efficiently play multiple copies of a base signal.
+
 use crate::prelude::*;
 
-/// A bundled value for a curve, and a frequency multiplier. By bundling data like this, we save on
+/// A bundled [`Val`] for a curve, and an [`Interval`]. By bundling data like this, we save on
 /// allocations.
-#[derive(Clone, Copy, Debug)]
-pub struct ValFreq {
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ValInter {
     /// How far along some curve we are.
     pub val: Val,
 
-    /// Frequency multiplier for a curve.
-    pub freq_mul: f64,
+    /// An interval.
+    pub interval: Interval,
 }
 
-impl ValFreq {
+impl ValInter {
+    /// Initializes a new [`ValFreq`].
     #[must_use]
-    pub const fn new(val: Val, freq_mul: f64) -> Self {
-        Self { val, freq_mul }
-    }
-}
-
-impl Default for ValFreq {
-    fn default() -> Self {
-        Self::new(Val::ZERO, 1.0)
+    pub const fn new(val: Val, interval: Interval) -> Self {
+        Self { val, interval }
     }
 }
 
@@ -33,10 +32,10 @@ where
     map: C,
 
     /// The base frequency.
-    base_freq: Freq,
+    base: Freq,
 
-    /// The values and frequency multipliers for each curve.
-    val_freqs: Vec<ValFreq>,
+    /// The values and intervals from the base frequency for each curve.
+    val_inters: Vec<ValInter>,
 }
 
 impl<C: Map<Input = Val>> UnisonCurve<C>
@@ -47,32 +46,34 @@ where
     ///
     /// This will play multiple copies of a curve at the specified frequency multipliers, with the
     /// given initial phases.
-    pub const fn new_curve_phases(map: C, base: Freq, val_freqs: Vec<ValFreq>) -> Self {
+    pub const fn new_curve_phases(map: C, base: Freq, val_inters: Vec<ValInter>) -> Self {
         Self {
             map,
-            base_freq: base,
-            val_freqs,
+            base,
+            val_inters,
         }
     }
 
     /// Initializes a new [`UnisonCurve`].
     ///
-    /// This will play multiple copies of a curve at the specified frequency multipliers.
-    pub fn new_curve<I: Iterator<Item = f64>>(map: C, base: Freq, freq_muls: I) -> Self {
+    /// This will play multiple copies of a curve at the specified intervals from the base
+    /// frequency.
+    pub fn new_curve<I: Iterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
         Self {
             map,
-            base_freq: base,
-            val_freqs: freq_muls.map(|x| ValFreq::new(Val::ZERO, x)).collect(),
+            base,
+            val_inters: intervals.map(|x| ValInter::new(Val::ZERO, x)).collect(),
         }
     }
 
-/// Plays copies of a curve, spaced 
-    pub fn detune_curve(map: C, base: Freq, num: u8, detune: f64) -> Self {
+    /// Plays copies of a curve, centered at a certain base frequency, spaced out by a given
+    /// interval.
+    pub fn detune_curve(map: C, base: Freq, num: u8, detune: Interval) -> Self {
         // The lowest frequency detune.
         let low_freq_mul = if num % 2 == 0 {
-            detune.sqrt() * detune.powi(num as i32 / 2 - 1)
+            detune.sqrt() * detune.powi(i32::from(num) / 2 - 1)
         } else {
-            detune.powi(num as i32 / 2)
+            detune.powi(i32::from(num) / 2)
         };
         let mut freq_mul = low_freq_mul;
 
@@ -89,12 +90,12 @@ where
 
     /// The number of copies of the signal that play.
     pub fn len(&self) -> usize {
-        self.val_freqs.len()
+        self.val_inters.len()
     }
 
     /// Whether there are no signals to be played.
     pub fn is_empty(&self) -> bool {
-        self.val_freqs.is_empty()
+        self.val_inters.is_empty()
     }
 
     /// A reference to the curve being played.
@@ -115,20 +116,20 @@ where
     type Sample = C::Output;
 
     fn get(&self) -> C::Output {
-        self.val_freqs
+        self.val_inters
             .iter()
             .map(|vf| self.map().eval(vf.val))
             .sum()
     }
 
     fn advance(&mut self) {
-        for vf in &mut self.val_freqs {
-            vf.val.advance_freq(self.base_freq * vf.freq_mul);
+        for vf in &mut self.val_inters {
+            vf.val.advance_freq(self.base * vf.interval);
         }
     }
 
     fn retrigger(&mut self) {
-        for vf in &mut self.val_freqs {
+        for vf in &mut self.val_inters {
             vf.val.retrigger();
         }
     }
@@ -146,11 +147,11 @@ where
     C::Output: Sample,
 {
     fn freq(&self) -> Freq {
-        self.base_freq
+        self.base
     }
 
     fn freq_mut(&mut self) -> &mut Freq {
-        &mut self.base_freq
+        &mut self.base
     }
 }
 
@@ -165,19 +166,22 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     pub fn new_phases<I: Iterator<Item = f64>>(
         map: C,
         base: Freq,
-        val_freqs: Vec<ValFreq>,
+        val_freqs: Vec<ValInter>,
     ) -> Self {
         Self::new_curve_phases(CurvePlayer::new(map), base, val_freqs)
     }
 
-    /// Initializes a new [`UnisonCurve`].
+    /// Initializes a new [`Unison`].
     ///
-    /// This will play multiple copies of a curve at the specified frequency multipliers.
-    pub fn new<I: Iterator<Item = f64>>(map: C, base: Freq, freq_muls: I) -> Self {
-        Self::new_curve(CurvePlayer::new(map), base, freq_muls)
+    /// This will play multiple copies of a curve at the specified intervals from the base
+    /// frequency.
+    pub fn new<I: Iterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
+        Self::new_curve(CurvePlayer::new(map), base, intervals)
     }
 
-    pub fn detune(map: C, base: Freq, num: u8, detune: f64) -> Self {
+    /// Plays copies of a curve, centered at a certain base frequency, spaced out by a given
+    /// interval.
+    pub fn detune(map: C, base: Freq, num: u8, detune: Interval) -> Self {
         Self::detune_curve(CurvePlayer::new(map), base, num, detune)
     }
 }

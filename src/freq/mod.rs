@@ -33,6 +33,7 @@ impl Default for Interval {
 
 impl Interval {
     /// Initializes a new ratio.
+    #[must_use]
     pub const fn new(ratio: f64) -> Self {
         Self { ratio }
     }
@@ -52,8 +53,21 @@ impl Interval {
     }
 
     /// Returns the inverse ratio.
+    #[must_use]
     pub fn inv(self) -> Self {
         Self::new(1.0 / self.ratio)
+    }
+
+    pub fn sqrt(self) -> Self {
+        Self::new(self.ratio.sqrt())
+    }
+
+    pub fn powi(self, n: i32) -> Self {
+        Self::new(self.ratio.powi(n))
+    }
+
+    pub fn powf(self, n: f64) -> Self {
+        Self::new(self.ratio.powf(n))
     }
 }
 
@@ -85,6 +99,9 @@ impl Debug for Freq {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         if f.alternate() {
             let (note, semitones) = self.midi_semitones();
+
+            // Truncation should be impossible.
+            #[allow(clippy::cast_possible_truncation)]
             let cents = (semitones * 100.0) as i16;
             write!(f, "{note} {cents:+}c")
         } else {
@@ -120,9 +137,8 @@ impl Freq {
         Time::new(1.0 / self.hz())
     }
 
-    /// Initializes a frequency in a given `edo` (equal division of the octave),
-    /// a certain amount of `notes` above or below a `base` pitch (usually
-    /// [`A4`](Freq::A4)).
+    /// Initializes a frequency a certain amount of `notes` in a given `edo` above or below a `base`
+    /// pitch (usually [`A4`](Freq::A4)).
     ///
     /// ## Example
     ///
@@ -137,8 +153,8 @@ impl Freq {
         Interval::edo_note(edo, note) * base
     }
 
-    /// Initializes a frequency in 12-EDO, a certain amount of `notes` above or
-    /// below a `base` pitch (usually [`A4`](Freq::A4)).
+    /// Initializes a frequency a certain amount of `notes` in 12-EDO above or below a `base` pitch
+    /// (usually [`A4`](Freq::A4)).
     ///
     /// See also [`Freq::new_edo_note`].
     ///
@@ -155,11 +171,14 @@ impl Freq {
         Self::new_edo_note(base, 12, note)
     }
 
-    /// Bends a note by a given
+    /// Bends a note by a number of notes in a given `edo`.
+    #[must_use]
     pub fn bend_edo(self, edo: u16, bend: f64) -> Self {
         Interval::edo_note(edo, bend) * self
     }
 
+    /// Bends a note by a number of notes in 12-EDO.
+    #[must_use]
     pub fn bend(self, bend: f64) -> Self {
         self.bend_edo(12, bend)
     }
@@ -207,6 +226,8 @@ impl Freq {
     /// ```
     #[must_use]
     pub fn round_midi_with(self, a4: Freq) -> MidiNote {
+        // Truncation should not occur in practice.
+        #[allow(clippy::cast_possible_truncation)]
         MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
@@ -253,6 +274,9 @@ impl Freq {
     pub fn midi_semitones_with(self, a4: Freq) -> (MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
+
+        // Truncation should not occur in practice.
+        #[allow(clippy::cast_possible_truncation)]
         (MidiNote::new(round as i16), note - round)
     }
 
@@ -357,11 +381,39 @@ impl DivAssign<Interval> for Freq {
     }
 }
 
-impl Div<Freq> for Freq {
+impl Div for Freq {
     type Output = Interval;
 
     fn div(self, rhs: Freq) -> Interval {
         Interval::new(self.hz / rhs.hz)
+    }
+}
+
+impl Mul for Interval {
+    type Output = Self;
+
+    fn mul(self, rhs: Interval) -> Self {
+        Self::new(self.ratio * rhs.ratio)
+    }
+}
+
+impl MulAssign for Interval {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.ratio *= rhs.ratio;
+    }
+}
+
+impl Div for Interval {
+    type Output = Self;
+
+    fn div(self, rhs: Interval) -> Self {
+        Self::new(self.ratio / rhs.ratio)
+    }
+}
+
+impl DivAssign for Interval {
+    fn div_assign(&mut self, rhs: Self) {
+        self.ratio /= rhs.ratio;
     }
 }
 
