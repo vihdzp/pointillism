@@ -15,8 +15,8 @@
 pub mod boilerplate;
 pub mod midi;
 
-use midi::{MidiNote, NameError, A4_MIDI};
 use crate::time::Time;
+use midi::{MidiNote, NameError, A4_MIDI};
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},

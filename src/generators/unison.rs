@@ -159,7 +159,7 @@ where
     }
 
     /// Returns an iterator over the intervals for the different curves.
-    pub fn intervals<'a>(&'a self) -> impl Iterator<Item = Interval> + 'a {
+    pub fn intervals(&self) -> impl Iterator<Item = Interval> + '_ {
         self.val_inters.iter().map(|vf| vf.interval)
     }
 
@@ -169,7 +169,7 @@ where
     }
 
     /// Returns an iterator over the values for the different curves.
-    pub fn val<'a>(&'a self) -> impl Iterator<Item = Val> + 'a {
+    pub fn val(&self) -> impl Iterator<Item = Val> + '_ {
         self.val_inters.iter().map(|vf| vf.val)
     }
 
@@ -290,13 +290,13 @@ where
     }
 }
 
-/// Detunes various copies of a curve according to an envelope. 
-/// 
+/// Detunes various copies of a curve according to an envelope.
+///
 /// See also [`Detune`].
 pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 
-/// Detunes various copies of a curve according to an envelope. 
-/// 
+/// Detunes various copies of a curve according to an envelope.
+///
 /// See also [`Detune`].
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 

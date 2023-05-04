@@ -17,7 +17,7 @@ pub use crate::{
         vol::*,
         *,
     },
-    freq::*,
+    freq::{midi::MidiNote, *},
     generators::{
         poly::Polyphony,
         sequence::{Loop, Sequence},
