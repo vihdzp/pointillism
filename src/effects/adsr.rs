@@ -163,6 +163,7 @@ impl Panic for Adsr {
 pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
 impl<S: Signal> AdsrEnvelope<S> {
+    /// Initializes an [`AdsrEnvelope`] with the given parameters.
     pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self::new(sgn, Adsr::new(attack, decay, sustain, release))
     }

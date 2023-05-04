@@ -58,14 +58,22 @@ impl Interval {
         Self::new(1.0 / self.ratio)
     }
 
+    /// Takes the square root of an interval.
+    ///
+    /// For instance, a 12-EDO tritone is exactly the square root of an octave.
+    #[must_use]
     pub fn sqrt(self) -> Self {
         Self::new(self.ratio.sqrt())
     }
 
+    /// Raises an interval to an integer power.
+    #[must_use]
     pub fn powi(self, n: i32) -> Self {
         Self::new(self.ratio.powi(n))
     }
 
+    /// Raises an interval to a floating point power.
+    #[must_use]
     pub fn powf(self, n: f64) -> Self {
         Self::new(self.ratio.powf(n))
     }
