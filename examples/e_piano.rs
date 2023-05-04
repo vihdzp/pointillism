@@ -23,7 +23,7 @@ impl EPiano {
     /// Randomize the phases of the oscillators.
     fn rand_phases(&mut self) {
         for osc in &mut self.oscs {
-            osc.curve_mut().phase = rand::thread_rng().gen();
+            *osc.val_mut() = rand::thread_rng().gen();
         }
     }
 
@@ -73,10 +73,7 @@ impl Signal for EPiano {
 /// An electric piano with a slight tremolo effect applied.
 fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
     // The volume follows a rescaled sine wave curve.
-    let env = LoopGen::new(
-        Comp::new(Sin::sin(), Linear::rescale_sgn(0.8, 1.0)),
-        vib_freq,
-    );
+    let env = LoopGen::new(Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
 
     // Some subtle ADSR.
     let adsr = Adsr::new(

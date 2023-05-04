@@ -37,17 +37,14 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
 
 fn binaural() -> impl Signal<Sample = Stereo> {
     // A sine wave.
-    let wave = |freq| LoopGen::new(Sin::sin(), freq);
+    let wave = |freq| LoopGen::new(Sin, freq);
 
     // Vibrato sine wave.
     let vib = |freq| {
         Vibrato::new(
             wave(freq),
             freq,
-            PwMapSgn::new_pw(
-                LoopGen::new(Sin::sin(), VIB_FREQ),
-                Linear::rescale_sgn(0.99, 1.01),
-            ),
+            PwMapSgn::new_pw(LoopGen::new(Sin, VIB_FREQ), Linear::rescale_sgn(0.99, 1.01)),
         )
     };
 
@@ -58,7 +55,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
 fn melody() -> impl Signal<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
     let mut freq = 2.0 * Freq::A4;
-    let notes = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
+    let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
     let wave = |freq| LoopGen::new(SawTri::tri(), freq);
     let shape = move |freq| {
@@ -70,8 +67,7 @@ fn melody() -> impl Signal<Sample = Mono> {
             }),
         )
     };
-    let trem =
-        move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw::new(), Time::new(10.0)));
+    let trem = move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw, Time::new(10.0)));
 
     let poly = Polyphony::new();
     let mut idx = 0;
@@ -80,7 +76,7 @@ fn melody() -> impl Signal<Sample = Mono> {
         vec![Time::new(4.0)],
         poly,
         FnWrapper::new(move |poly: &mut Polyphony<_, _>, _| {
-            freq *= notes[idx % notes.len()];
+            freq *= intervals[idx % intervals.len()];
             poly.add(idx, trem(freq));
             idx += 1;
         }),

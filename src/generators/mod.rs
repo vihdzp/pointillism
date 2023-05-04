@@ -333,6 +333,11 @@ where
         self.val
     }
 
+    /// Returns a mutable reference to how far along the curve we are.
+    pub fn val_mut(&mut self) -> &mut Val {
+        &mut self.val
+    }
+
     /// The frequency at which the curve is played.
     pub const fn freq(&self) -> Freq {
         self.freq

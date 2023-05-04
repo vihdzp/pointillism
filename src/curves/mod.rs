@@ -276,36 +276,14 @@ impl Map for PosInvSaw {
 ///
 /// Takes on values between `-1.0` and `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Sin {
-    /// Phase of the sine curve, from `0.0` to `1.0`.
-    pub phase: f64,
-}
+pub struct Sin;
 
 impl Sin {
-    /// A sine wave with a given phase.
-    #[must_use]
-    pub const fn new(phase: f64) -> Self {
-        Self { phase }
-    }
-
     /// A sine wave.
-    #[allow(clippy::self_named_constructors)]
     #[must_use]
-    pub const fn sin() -> Self {
-        Self::new(0.0)
+    pub const fn new() -> Self {
+        Self
     }
-
-    /// A cosine wave.
-    #[must_use]
-    pub const fn cos() -> Self {
-        Self::new(0.25)
-    }
-}
-
-/// Evaluates `sin((x + phase) * τ)`.
-#[must_use]
-pub fn sin(x: f64, phase: f64) -> f64 {
-    ((x + phase) * std::f64::consts::TAU).sin()
 }
 
 impl Map for Sin {
@@ -313,7 +291,30 @@ impl Map for Sin {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        sin(x.val(), self.phase)
+        (x.val() * std::f64::consts::TAU).sin()
+    }
+}
+
+/// A cosine curve.
+///
+/// Takes on values between `-1.0` and `1.0`.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Cos;
+
+impl Cos {
+    /// A cosine wave.
+    #[must_use]
+    pub const fn new() -> Self {
+        Self
+    }
+}
+
+impl Map for Cos {
+    type Input = Val;
+    type Output = f64;
+
+    fn eval(&self, x: Val) -> f64 {
+        (x.val() * std::f64::consts::TAU).cos()
     }
 }
 
