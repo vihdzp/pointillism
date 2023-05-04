@@ -21,7 +21,10 @@
 pub mod buffer;
 pub mod interpolate;
 
-use crate::map::{Comp, Map};
+use crate::{
+    map::{Comp, Map},
+    prelude::Val,
+};
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
@@ -176,11 +179,11 @@ impl Saw {
 }
 
 impl Map for Saw {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        crate::sgn(x)
+    fn eval(&self, x: Val) -> f64 {
+        crate::sgn(x.val())
     }
 }
 
@@ -205,11 +208,11 @@ impl InvSaw {
 }
 
 impl Map for InvSaw {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        -crate::sgn(x)
+    fn eval(&self, x: Val) -> f64 {
+        -crate::sgn(x.val())
     }
 }
 
@@ -233,11 +236,11 @@ impl PosSaw {
 }
 
 impl Map for PosSaw {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        x
+    fn eval(&self, x: Val) -> f64 {
+        x.val()
     }
 }
 
@@ -261,11 +264,11 @@ impl PosInvSaw {
 }
 
 impl Map for PosInvSaw {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        1.0 - x
+    fn eval(&self, x: Val) -> f64 {
+        1.0 - x.val()
     }
 }
 
@@ -306,11 +309,11 @@ pub fn sin(x: f64, phase: f64) -> f64 {
 }
 
 impl Map for Sin {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        sin(x, self.phase)
+    fn eval(&self, x: Val) -> f64 {
+        sin(x.val(), self.phase)
     }
 }
 
@@ -354,11 +357,11 @@ pub fn pulse(x: f64, shape: f64) -> f64 {
 }
 
 impl Map for Pulse {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        pulse(x, self.shape)
+    fn eval(&self, x: Val) -> f64 {
+        pulse(x.val(), self.shape)
     }
 }
 
@@ -431,10 +434,10 @@ pub fn saw_tri(x: f64, shape: f64) -> f64 {
 }
 
 impl Map for SawTri {
-    type Input = f64;
+    type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: f64) -> f64 {
-        saw_tri(x, self.shape)
+    fn eval(&self, x: Val) -> f64 {
+        saw_tri(x.val(), self.shape)
     }
 }

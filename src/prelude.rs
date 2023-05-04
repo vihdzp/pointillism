@@ -21,6 +21,8 @@ pub use crate::{
     generators::{
         poly::Polyphony,
         sequence::{Loop, Sequence},
+        Val,
+        //unison::Unison,
         *,
     },
     map::*,

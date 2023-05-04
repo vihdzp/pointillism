@@ -159,6 +159,7 @@ impl Panic for Adsr {
 
 /// Hooks up a signal to an [`Adsr`] envelope.
 ///
+/// Initialize with [`Self::new_adsr`].
 pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
 impl<S: Signal> AdsrEnvelope<S> {

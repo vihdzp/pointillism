@@ -479,7 +479,7 @@ impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Gate<S, E> {
     }
 
     fn freq_mut(&mut self) -> &mut Freq {
-        self.sgn_mut().freq_mut()
+        self.sgn.freq_mut()
     }
 }
 

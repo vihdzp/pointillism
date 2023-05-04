@@ -6,7 +6,7 @@ use crate::time::Time;
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
-    num::{ParseIntError, TryFromIntError},
+    num::ParseIntError,
     ops::{Div, DivAssign, Mul, MulAssign},
     str::FromStr,
 };
@@ -14,54 +14,21 @@ use std::{
 /// This magic number `69.0` corresponds to the MIDI index of A4.
 pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
 
-/// Checked conversion from `f64` to `u8`.
-///
-/// ## Panics
-///
-/// This will panic if `x < 0.0` or `x >= 256.0`.
-fn f64_to_u8(x: f64) -> u8 {
-    if (0.0..256.0).contains(&x) {
-        // We've done the check.
-        #[allow(clippy::cast_sign_loss)]
-        #[allow(clippy::cast_possible_truncation)]
-        (x as u8)
-    } else {
-        panic!("value {x} not in range of u8")
-    }
-}
-
-/// Checked conversion from `f64` to `u8`.
-///
-/// ## Panics
-///
-/// This will panic if `x < -128.0` or `x >= 128.0`.
-fn f64_to_i8(x: f64) -> i8 {
-    if (-128.0..128.0).contains(&x) {
-        // We've done the check.
-        #[allow(clippy::cast_sign_loss)]
-        #[allow(clippy::cast_possible_truncation)]
-        (x as i8)
-    } else {
-        panic!("value {x} not in range of i8")
-    }
-}
-
 /// A MIDI note. Note that `C4 = 60`, `A4 = 69`.
 ///
-/// We use a larger range than the MIDI specification, namely 0-255. This
-/// shouldn't make much difference in practice, as note 135, at almost 20 kHz,
-/// lies beyond the hearing range of most adults. More than this will exceed the
-/// Nyquist rate at 44.1 kHz.
+/// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
+/// specification, which only uses values from 0-127. The main reason is so that methods that
+/// convert [`Freq`] into [`MidiNote`] and viceversa don't run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MidiNote {
     /// The MIDI note index.
-    note: u8,
+    note: i16,
 }
 
 impl MidiNote {
     /// Initializes a new [`MidiNote`].
     #[must_use]
-    pub const fn new(note: u8) -> Self {
+    pub const fn new(note: i16) -> Self {
         Self { note }
     }
 }
@@ -122,9 +89,6 @@ pub enum NameError {
     /// The string is not at least two characters long.
     Short,
 
-    /// The note is outside of the bounds for a [`MidiNote`].
-    OutOfBounds,
-
     /// An invalid letter name for a note was read.
     ///
     /// Note that this is case-sensitive.
@@ -140,17 +104,10 @@ impl From<ParseIntError> for NameError {
     }
 }
 
-impl From<TryFromIntError> for NameError {
-    fn from(_: TryFromIntError) -> Self {
-        NameError::OutOfBounds
-    }
-}
-
 impl Display for NameError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Short => write!(f, "the string was too short"),
-            Self::OutOfBounds => write!(f, "note is out of bounds (C-1 to D#20)"),
             Self::Letter(c) => write!(f, "letter {c} is invalid"),
             Self::Parse(err) => write!(f, "integer parsing error: {err}"),
         }
@@ -183,7 +140,7 @@ impl FromStr for MidiNote {
                 };
 
                 note += 12 * (name[idx..].parse::<i16>()? + 1);
-                Ok(MidiNote::new(note.try_into()?))
+                Ok(MidiNote::new(note))
             } else {
                 Err(NameError::Letter(letter))
             }
@@ -196,7 +153,12 @@ impl FromStr for MidiNote {
 impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let octave = isize::from(self.note / 12) - 1;
-        write!(f, "{}{}", note_to_letter(self.note % 12), octave)
+        write!(
+            f,
+            "{}{}",
+            note_to_letter(self.note.rem_euclid(12) as u8),
+            octave
+        )
     }
 }
 
@@ -223,6 +185,20 @@ impl Default for Freq {
     }
 }
 
+impl Debug for Freq {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if f.alternate() {
+            let (note, semitones) = self.midi_semitones();
+            let cents = (semitones * 100.0) as i16;
+            write!(f, "{note} {cents:+}c")
+        } else {
+            f.debug_struct("Freq").field("hz", &self.hz).finish()
+        }
+    }
+}
+
+/// By default, we format a note as `"{hz} Hz"`. The alternate formatting mode results in `"{note}
+/// {cents}c"`.
 impl Display for Freq {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{} Hz", self.hz())
@@ -338,7 +314,7 @@ impl Freq {
     /// ```
     #[must_use]
     pub fn round_midi_with(self, a4: Freq) -> MidiNote {
-        MidiNote::new(f64_to_u8(self.round_midi_aux(a4).round()))
+        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -383,7 +359,7 @@ impl Freq {
     pub fn midi_semitones_with(self, a4: Freq) -> (MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
-        (MidiNote::new(f64_to_u8(round)), note - round)
+        (MidiNote::new(round as i16), note - round)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -414,20 +390,6 @@ impl Freq {
 impl From<MidiNote> for Freq {
     fn from(note: MidiNote) -> Self {
         Self::new_midi(note)
-    }
-}
-
-/// By default, we format a note as `"{hz} Hz"`. The alternate formatting mode results in `"{note}
-/// {cents}c"`.
-impl Debug for Freq {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if f.alternate() {
-            let (note, semitones) = self.midi_semitones();
-            let cents = f64_to_i8(semitones * 100.0);
-            write!(f, "{note} {cents:+}c")
-        } else {
-            write!(f, "{} Hz", self.hz())
-        }
     }
 }
 

@@ -131,11 +131,11 @@ impl<S: Frequency, F: Map<Input = S::Sample>> Frequency for MapSgn<S, F>
 where
     F::Output: Sample,
 {
-    fn freq(&self) -> crate::Freq {
+    fn freq(&self) -> Freq {
         self.sgn().freq()
     }
 
-    fn freq_mut(&mut self) -> &mut crate::Freq {
+    fn freq_mut(&mut self) -> &mut Freq {
         self.sgn_mut().freq_mut()
     }
 }

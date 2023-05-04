@@ -81,7 +81,7 @@ pub trait Frequency: Signal {
     /// The "main" frequency of the signal.
     fn freq(&self) -> Freq;
 
-    /// A mutable reference to the "main" frequency of the signal.
+    /// Returns a mutable reference to the "main" frequency of the signal.
     fn freq_mut(&mut self) -> &mut Freq;
 }
 

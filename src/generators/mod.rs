@@ -7,16 +7,98 @@
 //! from a curve. See the [curves module docs](../curves/index.html#terminology) for an explanation
 //! on different kinds of curves.
 
-use std::marker::PhantomData;
+use std::{fmt::Display, marker::PhantomData};
+
+use rand::{distributions::Standard, prelude::Distribution};
 
 pub use crate::prelude::*;
 
 pub mod poly;
 pub mod sequence;
+pub mod unison;
+
+/// A value between `0.0` and `1.0` showing how far along a curve we are.
+///
+/// The methods of this type abstract away some basic logic used in other structs such as
+/// [`LoopCurveGen`] and [`OnceCurveGen`].
+///
+/// This is also the input type for a map. This gives us a guarantee that the values are in this
+/// specific range.
+#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+pub struct Val(f64);
+
+impl Val {
+    /// The zero value.
+    pub const ZERO: Self = Val(0.0);
+
+    /// The one value.
+    pub const ONE: Self = Val(1.0);
+
+    /// Initializes a [`Val`].
+    ///
+    /// The inner value must be between `0.0` and `1.0`.
+    pub fn new(val: f64) -> Self {
+        assert!((0.0..=1.0).contains(&val));
+        Self(val)
+    }
+
+    /// Initializes a [`Val`] without checking the range conditions.
+    ///
+    /// ## Safety
+    ///
+    /// This method is safe. However, it may lead to panicking and other unexpected behavior.
+    pub const fn new_unchecked(val: f64) -> Self {
+        Self(val)
+    }
+
+    /// Returns the inner value.
+    pub const fn val(&self) -> f64 {
+        self.0
+    }
+
+    /// Resets the value to `0.0`.
+    pub fn retrigger(&mut self) {
+        self.0 = 0.0;
+    }
+
+    /// Whether the value is equal to `1.0`.
+    pub fn is_done(&self) -> bool {
+        // We avoid clippy complaints by using `>=`.
+        self.0 >= 1.0
+    }
+
+    /// Sets the value to `1.0`.
+    pub fn stop(&mut self) {
+        self.0 = 1.0;
+    }
+
+    /// Advances the inner value in order to play a wave with the specified frequency.
+    pub fn advance_freq(&mut self, freq: Freq) {
+        self.0 = (self.0 + freq.hz() / SAMPLE_RATE_F64) % 1.0;
+    }
+
+    /// Advances the inner value in order to play a wave for the specified duration.
+    pub fn advance_time(&mut self, time: Time) {
+        self.0 += 1.0 / time.frames();
+        self.0 = self.0.min(1.0);
+    }
+}
+
+impl Display for Val {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Distribution<Val> for Standard {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Val {
+        Val(rng.gen())
+    }
+}
 
 /// Converts a plain curve into a sample curve that outputs a signal of the specified type.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct CurvePlayer<S: Sample, C: Map<Input = f64, Output = f64>> {
+pub struct CurvePlayer<S: Sample, C: Map<Input = Val, Output = f64>> {
     /// The inner plain curve.
     pub curve: C,
 
@@ -24,7 +106,7 @@ pub struct CurvePlayer<S: Sample, C: Map<Input = f64, Output = f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> CurvePlayer<S, C> {
+impl<S: Sample, C: Map<Input = Val, Output = f64>> CurvePlayer<S, C> {
     /// Initializes a new [`CurvePlayer`].
     ///
     /// You might need to explicitly specify the type of sample you want to play the curve as, via
@@ -37,11 +119,11 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> CurvePlayer<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> Map for CurvePlayer<S, C> {
-    type Input = f64;
+impl<S: Sample, C: Map<Input = Val, Output = f64>> Map for CurvePlayer<S, C> {
+    type Input = Val;
     type Output = S;
 
-    fn eval(&self, val: f64) -> S {
+    fn eval(&self, val: Val) -> S {
         S::from_val(self.curve.eval(val))
     }
 }
@@ -52,21 +134,21 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> Map for CurvePlayer<S, C> {
 ///
 /// See also [`LoopCurveGen`].
 #[derive(Clone, Debug)]
-pub struct OnceCurveGen<C: Map<Input = f64>>
+pub struct OnceCurveGen<C: Map<Input = Val>>
 where
     C::Output: Sample,
 {
-    /// The sample curve used to generate the samples.
-    pub map: C,
+    /// The curve we're playing.
+    map: C,
+
+    /// How far along the curve we are.
+    val: Val,
 
     /// The time for which the curve is played.
-    pub time: Time,
-
-    /// A value between `0.0` and `1.0` indicating what sample of the curve to play.
-    val: f64,
+    time: Time,
 }
 
-impl<C: Map<Input = f64>> OnceCurveGen<C>
+impl<C: Map<Input = Val>> OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -77,8 +159,8 @@ where
     pub const fn new_curve(map: C, time: Time) -> Self {
         Self {
             map,
+            val: Val::ZERO,
             time,
-            val: 0.0,
         }
     }
 
@@ -92,14 +174,23 @@ where
         &mut self.map
     }
 
-    /// Returns the value between `0.0` and `1.0` which represents how far along the curve we're
-    /// currently reading.
-    pub const fn val(&self) -> f64 {
+    /// Returns how far along the curve we are.
+    pub const fn val(&self) -> Val {
         self.val
+    }
+
+    /// The time for which the curve is played.
+    pub const fn time(&self) -> Time {
+        self.time
+    }
+
+    /// A mutable reference to the time for which this curve is played.
+    pub fn time_mut(&mut self) -> &mut Time {
+        &mut self.time
     }
 }
 
-impl<C: Map<Input = f64>> Signal for OnceCurveGen<C>
+impl<C: Map<Input = Val>> Signal for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -110,41 +201,40 @@ where
     }
 
     fn advance(&mut self) {
-        self.val += 1.0 / self.time.frames();
-        self.val = self.val.min(1.0);
+        self.val.advance_time(self.time());
     }
 
     fn retrigger(&mut self) {
-        self.val = 0.0;
+        self.val.retrigger();
     }
 }
 
-impl<C: Map<Input = f64>> Base for OnceCurveGen<C>
+impl<C: Map<Input = Val>> Base for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
     impl_base!();
 }
 
-impl<C: Map<Input = f64>> Done for OnceCurveGen<C>
+impl<C: Map<Input = Val>> Done for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
     fn is_done(&self) -> bool {
-        self.val >= 1.0
+        self.val().is_done()
     }
 }
 
-impl<C: Map<Input = f64>> Stop for OnceCurveGen<C>
+impl<C: Map<Input = Val>> Stop for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
     fn stop(&mut self) {
-        self.val = 1.0;
+        self.val.stop();
     }
 }
 
-impl<C: Map<Input = f64>> Panic for OnceCurveGen<C>
+impl<C: Map<Input = Val>> Panic for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -156,7 +246,7 @@ where
 /// Plays a given curve by reading its output as values of a given sample type.
 pub type OnceGen<S, C> = OnceCurveGen<CurvePlayer<S, C>>;
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> OnceGen<S, C> {
+impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
     /// Initializes a new [`OnceGen`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via
@@ -185,43 +275,39 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> OnceGen<S, C> {
 ///
 /// See also [`OnceCurveGen`].
 #[derive(Clone, Debug, Default)]
-pub struct LoopCurveGen<C: Map<Input = f64>>
+pub struct LoopCurveGen<C: Map<Input = Val>>
 where
     C::Output: Sample,
 {
-    /// The map used to generate the samples.
-    pub map: C,
+    /// The curve being played.
+    map: C,
+
+    /// How far along the curve we are.
+    val: Val,
 
     /// The frequency at which the curve is played.
-    pub freq: Freq,
-
-    /// A value between `0.0` and `1.0` indicating what sample of the curve to play.
-    val: f64,
+    freq: Freq,
 }
 
-impl<C: Map<Input = f64>> LoopCurveGen<C>
+impl<C: Map<Input = Val>> LoopCurveGen<C>
 where
     C::Output: Sample,
 {
+    /// Initializes a new [`LoopCurveGen`] with a given phase.
+    pub const fn new_curve_phase(map: C, freq: Freq, phase: Val) -> Self {
+        Self {
+            map,
+            freq,
+            val: phase,
+        }
+    }
+
     /// Initializes a new [`LoopCurveGen`].
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`LoopCurveGen`] from a plain curve, use [`LoopGen::new`].
     pub const fn new_curve(map: C, freq: Freq) -> Self {
-        Self {
-            map,
-            freq,
-            val: 0.0,
-        }
-    }
-
-    /// Initializes a new [`LoopCurveGen`] with a given phase.
-    pub fn new_phase(map: C, freq: Freq, phase: f64) -> Self {
-        Self {
-            map,
-            freq,
-            val: phase.rem_euclid(1.0),
-        }
+        Self::new_curve_phase(map, freq, Val::ZERO)
     }
 
     /// A reference to the curve being played.
@@ -234,34 +320,42 @@ where
         &mut self.map
     }
 
-    /// Returns the value between `0.0` and `1.0` which represents how far along the curve we're
-    /// currently reading.
-    pub fn val(&self) -> f64 {
+    /// Returns how far along the curve we are.
+    pub const fn val(&self) -> Val {
         self.val
+    }
+
+    /// The frequency at which the curve is played.
+    pub const fn freq(&self) -> Freq {
+        self.freq
+    }
+
+    /// A mutable reference to the frequency at which this curve is played.
+    pub fn time_mut(&mut self) -> &mut Freq {
+        &mut self.freq
     }
 }
 
-impl<C: Map<Input = f64>> Signal for LoopCurveGen<C>
+impl<C: Map<Input = Val>> Signal for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
     type Sample = C::Output;
 
     fn get(&self) -> C::Output {
-        self.map.eval(self.val)
+        self.map.eval(self.val())
     }
 
     fn advance(&mut self) {
-        self.val += self.freq.hz() / crate::SAMPLE_RATE_F64;
-        self.val %= 1.0;
+        self.val.advance_freq(self.freq());
     }
 
     fn retrigger(&mut self) {
-        self.val = 0.0;
+        self.val.retrigger();
     }
 }
 
-impl<C: Map<Input = f64>> Frequency for LoopCurveGen<C>
+impl<C: Map<Input = Val>> Frequency for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -274,7 +368,7 @@ where
     }
 }
 
-impl<C: Map<Input = f64>> Base for LoopCurveGen<C>
+impl<C: Map<Input = Val>> Base for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -284,7 +378,12 @@ where
 /// Loops a given curve by reading its output as values of a given sample type.
 pub type LoopGen<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
 
-impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
+impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
+    /// Initializes a new [`LoopGen`] with a given phase.
+    pub const fn new_phase(curve: C, freq: Freq, phase: Val) -> Self {
+        Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)
+    }
+
     /// Initializes a new [`LoopGen`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via
@@ -293,7 +392,7 @@ impl<S: Sample, C: Map<Input = f64, Output = f64>> LoopGen<S, C> {
     /// Note that this builds a [`LoopGen`]. In order to build a more general [`LoopCurveGen`], use
     /// `LoopCurveGen::new_curve`.
     pub const fn new(curve: C, freq: Freq) -> Self {
-        Self::new_curve(CurvePlayer::new(curve), freq)
+        Self::new_phase(curve, freq, Val::ZERO)
     }
 
     /// A reference to the curve being played.
