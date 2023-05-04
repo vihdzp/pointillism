@@ -7,7 +7,7 @@ edition = "2021"
 keywords = ["pointillism", "music", "audio", "modular", "synthesizer"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/vihdzp/pointillism"
-version = "0.2.9"
+version = "0.2.10"
 
 [dependencies]
 assert_approx_eq = "1.1.0"
