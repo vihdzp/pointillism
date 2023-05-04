@@ -1,164 +1,59 @@
 //! Defines [`Freq`] and its basic methods.
+//!
+//! ## Equal division of the octave
+//!
+//! TODO: write something here
+//! [equal division of the octave](https://en.wikipedia.org/wiki/Equal_temperament)
 
 pub mod boilerplate;
+pub mod midi;
 
 use crate::time::Time;
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
-    num::ParseIntError,
     ops::{Div, DivAssign, Mul, MulAssign},
     str::FromStr,
 };
 
-/// This magic number `69.0` corresponds to the MIDI index of A4.
-pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
+use self::midi::{MidiNote, NameError, A4_MIDI};
 
-/// A MIDI note. Note that `C4 = 60`, `A4 = 69`.
-///
-/// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
-/// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`Freq`] into [`MidiNote`] and viceversa don't run out of range.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct MidiNote {
-    /// The MIDI note index.
-    note: i16,
+/// Represents an interval, or a ratio between notes.
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Interval {
+    /// The ratio in question.
+    pub ratio: f64,
 }
 
-impl MidiNote {
-    /// Initializes a new [`MidiNote`].
-    #[must_use]
-    pub const fn new(note: i16) -> Self {
-        Self { note }
-    }
-}
-
-/// We use `A4` as a default note.
-impl Default for MidiNote {
+impl Default for Interval {
     fn default() -> Self {
-        Self::A4
+        Self::UNISON
     }
 }
 
-/// Converts a letter to a numeric note, from 0 to 11.
-///
-/// Returns `None` if anything other than a letter `A` - `G` is passed.
-#[must_use]
-pub const fn letter_to_note(letter: char) -> Option<u8> {
-    match letter {
-        'C' => Some(0),
-        'D' => Some(2),
-        'E' => Some(4),
-        'F' => Some(5),
-        'G' => Some(7),
-        'A' => Some(9),
-        'B' => Some(11),
-        _ => None,
+impl Interval {
+    /// Initializes a new ratio.
+    pub const fn new(ratio: f64) -> Self {
+        Self { ratio }
     }
-}
 
-/// Converts a numeric note to a letter, from 0 to 11.
-///
-/// For consistency, we use sharps and no flats in the letter names.
-///
-/// ## Panics
-///
-/// Panics if anything other than a number from 0 to 11 is passed.
-#[must_use]
-pub const fn note_to_letter(note: u8) -> &'static str {
-    match note {
-        0 => "C",
-        1 => "C#",
-        2 => "D",
-        3 => "D#",
-        4 => "E",
-        5 => "F",
-        6 => "F#",
-        7 => "G",
-        8 => "G#",
-        9 => "A",
-        10 => "A#",
-        11 => "B",
-        _ => panic!("invalid note"),
+    /// Relative pitch corresponding to a note in a given EDO.
+    #[must_use]
+    pub fn edo_note(edo: u16, note: f64) -> Self {
+        Self::new(2f64.powf(note / f64::from(edo)))
     }
-}
 
-/// An error in [`MidiNote::from_str`].
-#[derive(Clone, Debug)]
-pub enum NameError {
-    /// The string is not at least two characters long.
-    Short,
-
-    /// An invalid letter name for a note was read.
+    /// Relative pitch corresponding to a note in 12-EDO.
     ///
-    /// Note that this is case-sensitive.
-    Letter(char),
-
-    /// The integer after the letter name could not be parsed.
-    Parse(ParseIntError),
-}
-
-impl From<ParseIntError> for NameError {
-    fn from(value: ParseIntError) -> Self {
-        NameError::Parse(value)
+    /// See also [`edo_note`].
+    #[must_use]
+    pub fn note(note: f64) -> Self {
+        Self::edo_note(12, note)
     }
-}
 
-impl Display for NameError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Short => write!(f, "the string was too short"),
-            Self::Letter(c) => write!(f, "letter {c} is invalid"),
-            Self::Parse(err) => write!(f, "integer parsing error: {err}"),
-        }
-    }
-}
-
-impl std::error::Error for NameError {}
-
-impl FromStr for MidiNote {
-    type Err = NameError;
-
-    fn from_str(name: &str) -> Result<Self, NameError> {
-        let mut chars = name.chars();
-
-        if let (Some(letter), Some(next)) = (chars.next(), chars.next()) {
-            if let Some(note) = letter_to_note(letter) {
-                // We do auxiliary calculations with higher range.
-                let mut note = i16::from(note);
-
-                let idx = match next {
-                    '#' => {
-                        note += 1;
-                        2
-                    }
-                    'b' => {
-                        note -= 1;
-                        2
-                    }
-                    _ => 1,
-                };
-
-                note += 12 * (name[idx..].parse::<i16>()? + 1);
-                Ok(MidiNote::new(note))
-            } else {
-                Err(NameError::Letter(letter))
-            }
-        } else {
-            Err(NameError::Short)
-        }
-    }
-}
-
-impl Display for MidiNote {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let octave = isize::from(self.note / 12) - 1;
-        write!(
-            f,
-            "{}{}",
-            note_to_letter(self.note.rem_euclid(12) as u8),
-            octave
-        )
+    /// Returns the inverse ratio.
+    pub fn inv(self) -> Self {
+        Self::new(1.0 / self.ratio)
     }
 }
 
@@ -185,8 +80,9 @@ impl Default for Freq {
     }
 }
 
+/// The alternate formatting mode results in `"{note} {cents}c"`.
 impl Debug for Freq {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         if f.alternate() {
             let (note, semitones) = self.midi_semitones();
             let cents = (semitones * 100.0) as i16;
@@ -197,25 +93,10 @@ impl Debug for Freq {
     }
 }
 
-/// By default, we format a note as `"{hz} Hz"`. The alternate formatting mode results in `"{note}
-/// {cents}c"`.
 impl Display for Freq {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{} Hz", self.hz())
     }
-}
-
-/// Relative pitch corresponding to a note in a given EDO or
-/// [equal division of the octave](https://en.wikipedia.org/wiki/Equal_temperament).
-#[must_use]
-pub fn edo_note(edo: u16, note: f64) -> f64 {
-    2f64.powf(note / f64::from(edo))
-}
-
-/// Relative pitch corresponding to a note in 12-EDO. See also [`edo_note`].
-#[must_use]
-pub fn note(note: f64) -> f64 {
-    edo_note(12, note)
 }
 
 impl Freq {
@@ -253,7 +134,7 @@ impl Freq {
     /// ```
     #[must_use]
     pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
-        edo_note(edo, note) * base
+        Interval::edo_note(edo, note) * base
     }
 
     /// Initializes a frequency in 12-EDO, a certain amount of `notes` above or
@@ -272,6 +153,15 @@ impl Freq {
     #[must_use]
     pub fn new_note(base: Freq, note: f64) -> Self {
         Self::new_edo_note(base, 12, note)
+    }
+
+    /// Bends a note by a given
+    pub fn bend_edo(self, edo: u16, bend: f64) -> Self {
+        Interval::edo_note(edo, bend) * self
+    }
+
+    pub fn bend(self, bend: f64) -> Self {
+        self.bend_edo(12, bend)
     }
 
     /// Initializes a frequency from a MIDI note.
@@ -309,8 +199,11 @@ impl Freq {
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// // The nearest note to `C5` is indeed `C5`.
-    /// assert_eq!(Freq::C5.round_midi_with(Freq::A4), MidiNote::C5);
+    /// // Pitch-bend A4 by 60 cents.
+    /// let freq = Freq::A4.bend(0.6);
+    ///
+    /// // The nearest note is `A#4`.
+    /// assert_eq!(freq.round_midi_with(Freq::A4), MidiNote::AS4);
     /// ```
     #[must_use]
     pub fn round_midi_with(self, a4: Freq) -> MidiNote {
@@ -328,8 +221,11 @@ impl Freq {
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// // The nearest note to `C5` is indeed `C5`.
-    /// assert_eq!(Freq::C5.round_midi(), MidiNote::C5);
+    /// // Pitch-bend A4 by 60 cents.
+    /// let freq = Freq::A4.bend(0.6);
+    ///
+    /// // The nearest note is `A#4`.
+    /// assert_eq!(freq.round_midi(), MidiNote::AS4);
     /// ```
     #[must_use]
     pub fn round_midi(self) -> MidiNote {
@@ -342,18 +238,16 @@ impl Freq {
     /// This allows the user to specify the `A4` tuning. Use [`Self::midi_semitones`] for the
     /// default of 440 Hz.
     ///
-    /// ## Panics
-    ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
-    ///
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// let (note, semitones) = Freq::C5.midi_semitones_with(Freq::A4);
+    /// // Pitch-bend A4 by 60 cents.
+    /// let freq = Freq::A4.bend(0.6);
+    /// let (note, semitones) = freq.midi_semitones_with(Freq::A4);
     ///
-    /// // The nearest note to `C5` is indeed `C5`.
-    /// assert_eq!(note, MidiNote::C5);
-    /// assert!(semitones.abs() < 1e-7);
+    /// // The nearest note is `A#4`, and it's -40 cents from it.
+    /// assert_eq!(note, MidiNote::AS4);
+    /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
     pub fn midi_semitones_with(self, a4: Freq) -> (MidiNote, f64) {
@@ -367,18 +261,16 @@ impl Freq {
     ///   
     /// See [`Self::midi_semitones_with`] in order to specify the `A4` tuning.
     ///
-    /// ## Panics
-    ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
-    ///
     /// ## Example
     /// ```
     /// # use pointillism::prelude::*;
-    /// let (note, semitones) = Freq::C5.midi_semitones();
+    /// // Pitch-bend A4 by 60 cents.
+    /// let freq = Freq::A4.bend(0.6);
+    /// let (note, semitones) = freq.midi_semitones();
     ///
-    /// // The nearest note to `C5` is indeed `C5`.
-    /// assert_eq!(note, MidiNote::C5);
-    /// assert!(semitones.abs() < 1e-7);
+    /// // The nearest note is `A#4`, and it's -40 cents from it.
+    /// assert_eq!(note, MidiNote::AS4);
+    /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
     pub fn midi_semitones(self) -> (MidiNote, f64) {
@@ -429,11 +321,47 @@ impl DivAssign<f64> for Freq {
     }
 }
 
-impl Div<Freq> for Freq {
-    type Output = f64;
+impl Mul<Interval> for Freq {
+    type Output = Self;
 
-    fn div(self, rhs: Freq) -> f64 {
-        self.hz / rhs.hz
+    fn mul(self, rhs: Interval) -> Self::Output {
+        rhs.ratio * self
+    }
+}
+
+impl Mul<Freq> for Interval {
+    type Output = Freq;
+
+    fn mul(self, rhs: Freq) -> Self::Output {
+        self.ratio * rhs
+    }
+}
+
+impl MulAssign<Interval> for Freq {
+    fn mul_assign(&mut self, rhs: Interval) {
+        self.hz *= rhs.ratio;
+    }
+}
+
+impl Div<Interval> for Freq {
+    type Output = Self;
+
+    fn div(self, rhs: Interval) -> Self {
+        Self::new(self.hz / rhs.ratio)
+    }
+}
+
+impl DivAssign<Interval> for Freq {
+    fn div_assign(&mut self, rhs: Interval) {
+        self.hz /= rhs.ratio;
+    }
+}
+
+impl Div<Freq> for Freq {
+    type Output = Interval;
+
+    fn div(self, rhs: Freq) -> Interval {
+        Interval::new(self.hz / rhs.hz)
     }
 }
 

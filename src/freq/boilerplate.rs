@@ -11,7 +11,39 @@
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-use super::{Freq, MidiNote};
+use super::{midi::MidiNote, Freq, Interval};
+
+impl Interval {
+    /// Unison interval `1/1`.
+    pub const UNISON: Self = Self::new(1.0);
+
+    /// Minor third `6/5`.
+    pub const MIN3: Self = Self::new(6.0 / 5.0);
+
+    /// Major third `5/4`.
+    pub const MAJ3: Self = Self::new(5.0 / 4.0);
+
+    /// Perfect fourth `4/3`.
+    pub const P4: Self = Self::new(4.0 / 3.0);
+
+    /// Perfect fifth `3/2`.
+    pub const P5: Self = Self::new(3.0 / 2.0);
+
+    /// Minor sixth `5/3`.
+    pub const MIN6: Self = Self::new(8.0 / 5.0);
+
+    /// Major sixth `5/3`.
+    pub const MAJ6: Self = Self::new(5.0 / 3.0);
+
+    /// Harmonic seventh `7/4`.
+    pub const H7: Self = Self::new(7.0 / 4.0);
+
+    /// Octave interval `2/1`.
+    pub const OCTAVE: Self = Self::new(2.0);
+
+    /// Tritave interval `3/1`.
+    pub const TRITAVE: Self = Self::new(3.0);
+}
 
 impl MidiNote {
     // OCTAVE -1

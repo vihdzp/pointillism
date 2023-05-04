@@ -37,6 +37,11 @@ impl Val {
     /// Initializes a [`Val`].
     ///
     /// The inner value must be between `0.0` and `1.0`.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the passed value isn't between `0.0` and `1.0`.
+    #[must_use]
     pub fn new(val: f64) -> Self {
         assert!((0.0..=1.0).contains(&val));
         Self(val)
@@ -47,11 +52,13 @@ impl Val {
     /// ## Safety
     ///
     /// This method is safe. However, it may lead to panicking and other unexpected behavior.
+    #[must_use]
     pub const fn new_unchecked(val: f64) -> Self {
         Self(val)
     }
 
     /// Returns the inner value.
+    #[must_use]
     pub const fn val(&self) -> f64 {
         self.0
     }
@@ -62,6 +69,7 @@ impl Val {
     }
 
     /// Whether the value is equal to `1.0`.
+    #[must_use]
     pub fn is_done(&self) -> bool {
         // We avoid clippy complaints by using `>=`.
         self.0 >= 1.0
@@ -85,7 +93,7 @@ impl Val {
 }
 
 impl Display for Val {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }

@@ -12,6 +12,7 @@ pub struct ValFreq {
 }
 
 impl ValFreq {
+    #[must_use]
     pub const fn new(val: Val, freq_mul: f64) -> Self {
         Self { val, freq_mul }
     }
@@ -65,7 +66,8 @@ where
         }
     }
 
-    pub fn detune_curve(map: C, base: Freq, num: usize, detune: f64) -> Self {
+/// Plays copies of a curve, spaced 
+    pub fn detune_curve(map: C, base: Freq, num: u8, detune: f64) -> Self {
         // The lowest frequency detune.
         let low_freq_mul = if num % 2 == 0 {
             detune.sqrt() * detune.powi(num as i32 / 2 - 1)
@@ -77,7 +79,7 @@ where
         Self::new_curve(
             map,
             base,
-            (0..num).into_iter().map(|_| {
+            (0..num).map(|_| {
                 let res = freq_mul;
                 freq_mul *= detune;
                 res
@@ -88,6 +90,11 @@ where
     /// The number of copies of the signal that play.
     pub fn len(&self) -> usize {
         self.val_freqs.len()
+    }
+
+    /// Whether there are no signals to be played.
+    pub fn is_empty(&self) -> bool {
+        self.val_freqs.is_empty()
     }
 
     /// A reference to the curve being played.
@@ -116,7 +123,7 @@ where
 
     fn advance(&mut self) {
         for vf in &mut self.val_freqs {
-            vf.val.advance_freq(self.base_freq * vf.freq_mul)
+            vf.val.advance_freq(self.base_freq * vf.freq_mul);
         }
     }
 
@@ -170,7 +177,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
         Self::new_curve(CurvePlayer::new(map), base, freq_muls)
     }
 
-    pub fn detune(map: C, base: Freq, num: usize, detune: f64) -> Self {
+    pub fn detune(map: C, base: Freq, num: u8, detune: f64) -> Self {
         Self::detune_curve(CurvePlayer::new(map), base, num, detune)
     }
 }

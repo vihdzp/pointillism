@@ -428,6 +428,6 @@ mod test {
     fn transmute_test() {
         let stereo: [Stereo; 2] =
             unsafe { std::mem::transmute([Mono(1.0), Mono(2.0), Mono(3.0), Mono(4.0)]) };
-        assert_eq!(stereo, [Stereo(1.0, 2.0), Stereo(3.0, 4.0)])
+        assert_eq!(stereo, [Stereo(1.0, 2.0), Stereo(3.0, 4.0)]);
     }
 }

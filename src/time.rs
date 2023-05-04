@@ -114,7 +114,7 @@ impl From<Time> for Duration {
 
 /// We use the [`human_duration`] crate for pretty-printing.
 impl Debug for Time {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         if f.alternate() {
             write!(f, "{}", human_duration::human_duration(&(*self).into()))
         } else {
@@ -126,7 +126,7 @@ impl Debug for Time {
 }
 
 impl Display for Time {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{} s", self.seconds())
     }
 }
