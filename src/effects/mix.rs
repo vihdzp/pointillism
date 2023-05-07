@@ -131,3 +131,23 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
         Self::new(sgn, Dup)
     }
 }
+
+/// A reference to another signal.
+///
+/// This can be used in order to route a signal. See the [`routing`] example
+pub struct Ref<'a, S: Signal>(pub &'a S);
+
+impl<'a, S: Signal> Ref<'a, S> {
+    /// Initializes a new [`Ref`].
+    pub const fn new(sgn: &'a S) -> Self {
+        Self(sgn)
+    }
+}
+
+impl<'a, S: Signal> Signal for Ref<'a, S> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> Self::Sample {
+        self.0.get()
+    }
+}

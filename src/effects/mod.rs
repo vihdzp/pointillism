@@ -212,7 +212,7 @@ impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`ModSgn`].
 #[derive(Clone, Debug)]
-pub struct MutSgn<S: SignalMut, E: SignalMut<Sample = Env>, F: Mut<S, Env>> {
+pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: Mut<S, Env>> {
     /// The signal to modify.
     sgn: S,
 
@@ -223,7 +223,7 @@ pub struct MutSgn<S: SignalMut, E: SignalMut<Sample = Env>, F: Mut<S, Env>> {
     func: F,
 }
 
-impl<S: SignalMut, E: SignalMut<Sample = Env>, F: Mut<S, Env>> MutSgn<S, E, F> {
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, Env>> MutSgn<S, E, F> {
     /// Initializes a new [`MutSgn`].
     ///
     /// The state of the signal will immediately get updated according to the function and the first
@@ -264,7 +264,7 @@ impl<S: SignalMut, E: SignalMut<Sample = Env>, F: Mut<S, Env>> MutSgn<S, E, F> {
     }
 }
 
-impl<S: SignalMut, E: SignalMut<Sample = Env>, F: Mut<S, Env>> Signal for MutSgn<S, E, F> {
+impl<S: Signal, E: Signal<Sample = Env>, F: Mut<S, Env>> Signal for MutSgn<S, E, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {

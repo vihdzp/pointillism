@@ -112,9 +112,12 @@ impl From<Time> for Duration {
     }
 }
 
-/// We use the [`human_duration`] crate for pretty-printing.
+
+/// If the `human_duration` feature is enabled, we use the [`human_duration`] crate for
+/// pretty-printing.
 impl Debug for Time {
     fn fmt(&self, f: &mut Formatter) -> Result {
+        #[cfg(feature = "human_duration")]
         if f.alternate() {
             write!(f, "{}", human_duration::human_duration(&(*self).into()))
         } else {
@@ -122,6 +125,11 @@ impl Debug for Time {
                 .field("seconds", &self.seconds)
                 .finish()
         }
+
+        #[cfg(not(feature = "human_duration"))]
+        f.debug_struct("Time")
+            .field("seconds", &self.seconds)
+            .finish()
     }
 }
 

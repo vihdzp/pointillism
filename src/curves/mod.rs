@@ -193,6 +193,7 @@ impl Map for InvSaw {
 ///   ⟋
 /// •――――――――  [DC = 0]
 /// ```
+#[derive(Clone, Copy, Debug, Default)]
 pub struct PosSaw;
 
 impl Map for PosSaw {
@@ -213,6 +214,7 @@ impl Map for PosSaw {
 ///       ⟍
 /// ――――――――•  [DC = 0]
 /// ```
+#[derive(Clone, Copy, Debug, Default)]
 pub struct PosInvSaw;
 
 impl Map for PosInvSaw {

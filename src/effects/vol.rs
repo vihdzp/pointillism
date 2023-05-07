@@ -151,12 +151,12 @@ impl<S: Panic> Panic for Volume<S> {
 
 /// The function that applies tremolo to a volume signal.
 #[derive(Clone, Copy, Debug)]
-pub struct Trem<S: SignalMut> {
+pub struct Trem<S: Signal> {
     /// Dummy value.
     phantom: PhantomData<S>,
 }
 
-impl<S: SignalMut> Trem<S> {
+impl<S: Signal> Trem<S> {
     /// Initializes a new [`Trem`].
     #[must_use]
     pub const fn new() -> Self {
@@ -166,13 +166,13 @@ impl<S: SignalMut> Trem<S> {
     }
 }
 
-impl<S: SignalMut> Default for Trem<S> {
+impl<S: Signal> Default for Trem<S> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<S: SignalMut> Mut<Volume<S>, Env> for Trem<S> {
+impl<S: Signal> Mut<Volume<S>, Env> for Trem<S> {
     fn modify(&mut self, sgn: &mut Volume<S>, gain: Env) {
         sgn.vol_mut().gain = gain.0;
     }
@@ -187,12 +187,12 @@ impl<S: SignalMut> Mut<Volume<S>, Env> for Trem<S> {
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`StopTremolo`].
 #[derive(Clone, Debug)]
-pub struct Tremolo<S: SignalMut, E: SignalMut<Sample = Env>> {
+pub struct Tremolo<S: Signal, E: Signal<Sample = Env>> {
     /// Inner data.
     inner: MutSgn<Volume<S>, E, Trem<S>>,
 }
 
-impl<S: SignalMut, E: SignalMut<Sample = Env>> Tremolo<S, E> {
+impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, env: E) -> Self {
         Self {
@@ -222,7 +222,7 @@ impl<S: SignalMut, E: SignalMut<Sample = Env>> Tremolo<S, E> {
     }
 }
 
-impl<S: SignalMut, E: SignalMut<Sample = Env>> Signal for Tremolo<S, E> {
+impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
