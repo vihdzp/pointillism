@@ -134,7 +134,34 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
 
 /// A reference to another signal.
 ///
-/// This can be used in order to route a signal. See the [`routing`] example
+/// This can be used as an efficient way to "clone" a signal, in order to then use its output across
+/// various other signals.
+///
+/// ## Example
+///
+/// In this simple example, we apply two different effects to a simple saw wave, and play them in
+/// both ears.
+///
+/// ```
+/// # use pointillism::prelude::*;
+/// // The original signals.
+/// let mut signal = LoopGen::new(Saw, Freq::A3);
+/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::new(3.0));
+///
+/// pointillism::create("examples/routing.wav", 5.0 * Time::SEC, |_| {
+///     // Thanks to `Ref`, we're able to re-use these signals.
+///     let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
+///     let sgn2 = Tremolo::new(Ref::new(&signal), Ref::new(&trem_env));
+///     let stereo = StereoMix::new(sgn1, sgn2);
+///
+///     // However, we must manually advance them.
+///     let res = stereo.get();
+///     signal.advance();
+///     trem_env.advance();
+///     res
+///   })
+///   .unwrap();
+/// ```
 pub struct Ref<'a, S: Signal>(pub &'a S);
 
 impl<'a, S: Signal> Ref<'a, S> {
@@ -147,7 +174,13 @@ impl<'a, S: Signal> Ref<'a, S> {
 impl<'a, S: Signal> Signal for Ref<'a, S> {
     type Sample = S::Sample;
 
-    fn get(&self) -> Self::Sample {
+    fn get(&self) -> S::Sample {
         self.0.get()
+    }
+}
+
+impl<'a, S: Done> Done for Ref<'a, S> {
+    fn is_done(&self) -> bool {
+        self.0.is_done()
     }
 }

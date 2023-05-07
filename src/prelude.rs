@@ -21,7 +21,7 @@ pub use crate::{
     generators::{
         poly::Polyphony,
         sequence::{Loop, Sequence},
-        unison::{DetuneCurveSgn, DetuneSgn, Unison, UnisonCurve},
+        unison::{DetuneCurveSgn, DetuneSgn, Unison, UnisonCurve, UnisonRef},
         Val, *,
     },
     map::*,

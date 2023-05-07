@@ -30,7 +30,7 @@ impl ValInter {
 
 /// An iterator that returns the detuning intervals for a given detune amount.
 pub struct DetuneIter {
-    /// The amount to detune.
+    /// The interval between two successive outputs.
     detune: Interval,
 
     /// The number of intervals to output.
@@ -45,6 +45,8 @@ pub struct DetuneIter {
 
 impl DetuneIter {
     /// Initializes a new [`Detune`] object.
+    ///
+    /// The `detune` interval passed is the distance between successive outputs.
     #[must_use]
     pub fn new(detune: Interval, num: u8) -> Self {
         // We initialize the output to the highest frequency detune.
@@ -90,6 +92,9 @@ impl Iterator for DetuneIter {
 }
 
 /// Plays multiple copies of a curve in unison.
+///
+/// It is strongly recommended you don't play 256 or more curves at once. Besides practical
+/// concerns, many methods don't support this.
 pub struct UnisonCurve<C: Map<Input = Val>>
 where
     C::Output: Sample,
@@ -134,6 +139,9 @@ where
 
     /// Plays copies of a curve, centered at a certain base frequency, spaced out by a given
     /// interval.
+    ///
+    /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
+    /// pitched.
     pub fn detune_curve(map: C, base: Freq, detune: Interval, num: u8) -> Self {
         Self::new_curve(map, base, DetuneIter::new(detune, num))
     }
@@ -176,6 +184,11 @@ where
     /// Returns an iterator over the mutable references to the values for the different curves.
     pub fn val_mut(&mut self) -> impl Iterator<Item = &mut Val> {
         self.val_inters.iter_mut().map(|vf| &mut vf.val)
+    }
+
+    /// Returns the current output from a given curve.
+    pub fn get_at(&self, index: u8) -> C::Output {
+        self.map().eval(self.val_inters[index as usize].val)
     }
 
     /// Randomizes the phases.
@@ -240,6 +253,9 @@ where
 }
 
 /// Plays a given curve by reading its output as values of a given sample type.
+///
+/// It is strongly recommended you don't play 256 or more curves at once. Besides practical
+/// concerns, many methods don't support this.
 pub type Unison<S, C> = UnisonCurve<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
@@ -265,6 +281,9 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
 
     /// Plays copies of a curve, centered at a certain base frequency, spaced out by a given
     /// interval.
+    ///
+    /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
+    /// pitched.
     pub fn detune(map: C, base: Freq, detune: Interval, num: u8) -> Self {
         Self::detune_curve(CurvePlayer::new(map), base, detune, num)
     }
@@ -297,12 +316,18 @@ where
 
 /// Detunes various copies of a curve according to an envelope.
 ///
-/// See also [`Detune`].
+/// The detune amount is between successive intervals. A value of `0.0` means no detune, while `1.0`
+/// means an octave detuning.
+///
+/// The curves within the [`UnisonCurve`] struct are indexed from highest to lowest pitched.
 pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 
 /// Detunes various copies of a curve according to an envelope.
 ///
-/// See also [`Detune`].
+/// The detune amount is between successive intervals. A value of `0.0` means no detune, while `1.0`
+/// means an octave detuning.
+///
+/// The curves within the [`Unison`] struct are indexed from highest to lowest pitched.
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 
 impl<C: Map<Input = Val>, E: SignalMut<Sample = Env>> DetuneCurveSgn<C, E>
@@ -327,5 +352,88 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
     /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new_detune_curve(CurvePlayer::new(map), base, num, env)
+    }
+}
+
+/// A reference to one of the curves played in a [`UnisonCurve`] or [`Unison`] object.
+///
+/// This allows you to freely route these signals into other effects.
+///
+/// See also [`Ref`].
+///
+/// ## Example
+///
+/// In this example, we progressively detune some saw waves, and then pan them left to right.
+///
+/// ```
+/// use pointillism::prelude::*;
+///
+/// /// The number of waves playing.
+/// const NUM: u8 = 7;
+/// const SCALE: f64 = 1.0 / NUM as f64;
+///
+/// /// Length of the detuning envelope.
+/// const LEN: Time = Time::new(5.0);
+///
+/// fn main() {
+///     // Plays a number of notes, and detunes them up to an octave.
+///     let mut unison = DetuneSgn::<Mono, _, _>::new_detune(
+///         Saw,
+///         Freq::A3,
+///         NUM,
+///         OnceGen::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), LEN),
+///     );
+///
+///     // If you play a large amount of curves and remove this, you'll get some wacky interference.
+///     unison.sgn_mut().randomize_phases();
+///
+///     pointillism::create("examples/detune.wav", 2.0 * LEN, |_| {
+///         // We pan every curve according to how much its detuned.
+///         let sgn: Stereo = (0..NUM)
+///             .into_iter()
+///             .map(|i| {
+///                 MixedPanner::new_pan(
+///                     UnisonRef::new(unison.base(), i),
+///                     i as f64 / (NUM - 1) as f64,
+///                 )
+///                 .get()
+///             })
+///             .sum();
+///
+///         unison.advance();
+///         sgn * SCALE
+///     })
+///     .unwrap();
+/// }
+/// ```
+pub struct UnisonRef<'a, C: Map<Input = Val>>
+where
+    C::Output: Sample,
+{
+    /// The underlying [`UnisonCurve`].
+    pub unison: &'a UnisonCurve<C>,
+
+    /// The index of the curve we're reading from.
+    pub index: u8,
+}
+
+impl<'a, C: Map<Input = Val>> UnisonRef<'a, C>
+where
+    C::Output: Sample,
+{
+    /// Initializes a new [`UnisonRef`].
+    pub const fn new(unison: &'a UnisonCurve<C>, idx: u8) -> Self {
+        Self { unison, index: idx }
+    }
+}
+
+impl<'a, C: Map<Input = Val>> Signal for UnisonRef<'a, C>
+where
+    C::Output: Sample,
+{
+    type Sample = C::Output;
+
+    fn get(&self) -> C::Output {
+        self.unison.get_at(self.index)
     }
 }

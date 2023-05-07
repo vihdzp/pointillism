@@ -44,8 +44,8 @@ use crate::{freq::Freq, sample::Sample};
 ///
 /// Most signals will implement the stronger trait [`SignalMut`], meaning that the state of the
 /// signal can be advanced. The main use case for this weaker trait is signal routing. For instance,
-/// you can create two references to a [`SignalMut`] via [`TODO`], and apply separate effects to
-/// them.
+/// you can create two references to a [`SignalMut`] via [`Ref`](crate::prelude::Ref), and apply
+/// separate effects to them.
 ///
 /// ## Implementing the trait
 ///

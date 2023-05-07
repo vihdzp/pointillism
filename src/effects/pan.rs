@@ -163,7 +163,7 @@ impl<A: Audio, P: Law> Map for Wrapper<A, P> {
 /// Applies a pan effect, using the specified pan [`Law`].
 pub type Panner<S, P> = MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
 
-impl<S: SignalMut, P: Law> Panner<S, P>
+impl<S: Signal, P: Law> Panner<S, P>
 where
     S::Sample: Audio,
 {
@@ -191,7 +191,7 @@ where
 /// A [`Linear`] panner.
 pub type LinearPanner<S> = Panner<S, Linear>;
 
-impl<S: SignalMut> LinearPanner<S>
+impl<S: Signal> LinearPanner<S>
 where
     S::Sample: Audio,
 {
@@ -204,7 +204,7 @@ where
 /// A [`Power`] panner.
 pub type PowerPanner<S> = Panner<S, Power>;
 
-impl<S: SignalMut> Panner<S, Power>
+impl<S: Signal> Panner<S, Power>
 where
     S::Sample: Audio,
 {
@@ -217,7 +217,7 @@ where
 /// A [`Mixed`] panner.
 pub type MixedPanner<S> = Panner<S, Mixed>;
 
-impl<S: SignalMut> Panner<S, Mixed>
+impl<S: Signal> Panner<S, Mixed>
 where
     S::Sample: Audio,
 {
