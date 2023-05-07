@@ -35,7 +35,7 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
     }
 }
 
-fn binaural() -> impl Signal<Sample = Stereo> {
+fn binaural() -> impl SignalMut<Sample = Stereo> {
     // A sine wave.
     let wave = |freq| LoopGen::new(Sin, freq);
 
@@ -52,7 +52,7 @@ fn binaural() -> impl Signal<Sample = Stereo> {
     StereoMix::new(wave(BASE * 0.985), vib(BASE))
 }
 
-fn melody() -> impl Signal<Sample = Mono> {
+fn melody() -> impl SignalMut<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
     let mut freq = 2.0 * Freq::A4;
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];

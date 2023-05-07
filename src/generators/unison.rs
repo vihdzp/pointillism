@@ -200,7 +200,12 @@ where
             .map(|vf| self.map().eval(vf.val))
             .sum()
     }
+}
 
+impl<C: Map<Input = Val>> SignalMut for UnisonCurve<C>
+where
+    C::Output: Sample,
+{
     fn advance(&mut self) {
         for vf in &mut self.val_inters {
             vf.val.advance_freq(self.base * vf.interval);
@@ -300,7 +305,7 @@ pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 /// See also [`Detune`].
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 
-impl<C: Map<Input = Val>, E: Signal<Sample = Env>> DetuneCurveSgn<C, E>
+impl<C: Map<Input = Val>, E: SignalMut<Sample = Env>> DetuneCurveSgn<C, E>
 where
     C::Output: Sample,
 {
@@ -318,7 +323,7 @@ where
     }
 }
 
-impl<S: Sample, C: Map<Input = Val, Output = f64>, E: Signal<Sample = Env>> DetuneSgn<S, C, E> {
+impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> DetuneSgn<S, C, E> {
     /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new_detune_curve(CurvePlayer::new(map), base, num, env)

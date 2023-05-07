@@ -53,7 +53,9 @@ impl Signal for EPiano {
             .sum::<Mono>()
             / 10.0
     }
+}
 
+impl SignalMut for EPiano {
     /// Advance the inner oscillators.
     fn advance(&mut self) {
         for osc in &mut self.oscs {

@@ -248,7 +248,7 @@ impl Buffer<Mono> {
     /// ## Errors
     ///
     /// This should not error as long as the WAV file is in a supported format.
-    /// See the [module docs](buffer) for a list.
+    /// See the [module docs](self) for a list.
     unsafe fn write_ptr(reader: WavFileReader, ptr: *mut Mono) -> hound::Result<()> {
         match reader.spec().sample_format {
             SampleFormat::Float => Self::write_ptr_gen::<f32>(reader, ptr),
@@ -286,7 +286,7 @@ impl Buffer<Mono> {
     /// This can error for various possible reasons:
     ///
     /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
+    /// - The WAV format is unsupported (see the [module docs](self)).
     /// - Some IO error related to opening the file.
     /// - The WAV file has more than one channel.
     pub fn from_wav_gen<P: AsRef<Path>, S: WavSample>(path: P) -> Result<Self, Error> {
@@ -309,7 +309,7 @@ impl Buffer<Mono> {
     ///
     /// This can error for various possible reasons:
     ///
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
+    /// - The WAV format is unsupported (see the [module docs](self)).
     /// - Some IO error related to opening the file.
     /// - The WAV file has more than one channel.
     pub fn from_wav<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
@@ -358,7 +358,7 @@ impl Buffer<Stereo> {
     /// This can error for various possible reasons:
     ///
     /// - The read samples can't be converted into the specified type `S`.
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
+    /// - The WAV format is unsupported (see the [module docs](self)).
     /// - Some IO error related to opening the file.
     /// - The WAV file doesn't have 2 channels.
     pub fn from_wav_gen<P: AsRef<Path>, S: WavSample>(path: P) -> Result<Self, Error> {
@@ -384,7 +384,7 @@ impl Buffer<Stereo> {
     ///
     /// This can error for various possible reasons:
     ///
-    /// - The WAV format is unsupported (see the [module docs](buffer)).
+    /// - The WAV format is unsupported (see the [module docs](self)).
     /// - Some IO error related to opening the file.
     /// - The WAV file doesn't have 2 channels.
     pub fn from_wav<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
@@ -438,7 +438,9 @@ impl<S: Sample> Signal for OnceBufGen<S> {
     fn get(&self) -> S {
         self.buffer().get(self.index).unwrap_or_default()
     }
+}
 
+impl<S: Sample> SignalMut for OnceBufGen<S> {
     fn advance(&mut self) {
         self.index += 1;
     }
@@ -505,7 +507,9 @@ impl<S: Sample> Signal for LoopBufGen<S> {
     fn get(&self) -> S {
         self.buffer().get_loop(self.idx)
     }
+}
 
+impl<S: Sample> SignalMut for LoopBufGen<S> {
     fn advance(&mut self) {
         self.idx += 1;
     }

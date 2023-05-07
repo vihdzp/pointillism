@@ -207,7 +207,12 @@ where
     fn get(&self) -> C::Output {
         self.map.eval(self.val)
     }
+}
 
+impl<C: Map<Input = Val>> SignalMut for OnceCurveGen<C>
+where
+    C::Output: Sample,
+{
     fn advance(&mut self) {
         self.val.advance_time(self.time());
     }
@@ -358,7 +363,12 @@ where
     fn get(&self) -> C::Output {
         self.map.eval(self.val())
     }
+}
 
+impl<C: Map<Input = Val>> SignalMut for LoopCurveGen<C>
+where
+    C::Output: Sample,
+{
     fn advance(&mut self) {
         self.val.advance_freq(self.freq());
     }
@@ -446,7 +456,9 @@ impl<S: Sample> Signal for NoiseGen<S> {
     fn get(&self) -> Self::Sample {
         self.current
     }
+}
 
+impl<S: Sample> SignalMut for NoiseGen<S> {
     fn advance(&mut self) {
         self.current = S::rand();
     }

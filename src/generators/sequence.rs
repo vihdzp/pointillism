@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 /// Changes a signal according to a specified function, at specified times.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: Signal, F: Mut<S, Time>> {
+pub struct Sequence<S: SignalMut, F: Mut<S, Time>> {
     /// A list of time intervals between an event and the next.
     times: Vec<Time>,
 
@@ -24,7 +24,7 @@ pub struct Sequence<S: Signal, F: Mut<S, Time>> {
     total: Time,
 }
 
-impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
+impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
     /// Initializes a new sequence.
     pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -112,13 +112,15 @@ impl<S: Signal, F: Mut<S, Time>> Sequence<S, F> {
     }
 }
 
-impl<S: Signal, F: Mut<S, Time>> Signal for Sequence<S, F> {
+impl<S: SignalMut, F: Mut<S, Time>> Signal for Sequence<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
         self.sgn.get()
     }
+}
 
+impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.since.advance();
@@ -136,12 +138,12 @@ impl<S: Signal, F: Mut<S, Time>> Signal for Sequence<S, F> {
 
 /// Loops a list of events.
 #[derive(Clone, Debug)]
-pub struct Loop<S: Signal, F: Mut<S, Time>> {
+pub struct Loop<S: SignalMut, F: Mut<S, Time>> {
     /// The internal sequence.
     seq: Sequence<S, F>,
 }
 
-impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
+impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
     /// Initializes a new loop from a sequence.
     const fn new_seq(seq: Sequence<S, F>) -> Self {
         Self { seq }
@@ -203,13 +205,15 @@ impl<S: Signal, F: Mut<S, Time>> Loop<S, F> {
     }
 }
 
-impl<S: Signal, F: Mut<S, Time>> Signal for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S, Time>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {
         self.seq.sgn.get()
     }
+}
 
+impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 

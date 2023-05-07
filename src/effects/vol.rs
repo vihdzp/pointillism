@@ -97,7 +97,9 @@ impl<S: Signal> Signal for Volume<S> {
     fn get(&self) -> S::Sample {
         self.inner.get()
     }
+}
 
+impl<S: SignalMut> SignalMut for Volume<S> {
     fn advance(&mut self) {
         self.inner.advance();
     }
@@ -149,12 +151,12 @@ impl<S: Panic> Panic for Volume<S> {
 
 /// The function that applies tremolo to a volume signal.
 #[derive(Clone, Copy, Debug)]
-pub struct Trem<S: Signal> {
+pub struct Trem<S: SignalMut> {
     /// Dummy value.
     phantom: PhantomData<S>,
 }
 
-impl<S: Signal> Trem<S> {
+impl<S: SignalMut> Trem<S> {
     /// Initializes a new [`Trem`].
     #[must_use]
     pub const fn new() -> Self {
@@ -164,13 +166,13 @@ impl<S: Signal> Trem<S> {
     }
 }
 
-impl<S: Signal> Default for Trem<S> {
+impl<S: SignalMut> Default for Trem<S> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<S: Signal> Mut<Volume<S>, Env> for Trem<S> {
+impl<S: SignalMut> Mut<Volume<S>, Env> for Trem<S> {
     fn modify(&mut self, sgn: &mut Volume<S>, gain: Env) {
         sgn.vol_mut().gain = gain.0;
     }
@@ -185,12 +187,12 @@ impl<S: Signal> Mut<Volume<S>, Env> for Trem<S> {
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`StopTremolo`].
 #[derive(Clone, Debug)]
-pub struct Tremolo<S: Signal, E: Signal<Sample = Env>> {
+pub struct Tremolo<S: SignalMut, E: SignalMut<Sample = Env>> {
     /// Inner data.
     inner: MutSgn<Volume<S>, E, Trem<S>>,
 }
 
-impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
+impl<S: SignalMut, E: SignalMut<Sample = Env>> Tremolo<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, env: E) -> Self {
         Self {
@@ -220,13 +222,15 @@ impl<S: Signal, E: Signal<Sample = Env>> Tremolo<S, E> {
     }
 }
 
-impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
+impl<S: SignalMut, E: SignalMut<Sample = Env>> Signal for Tremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
         self.inner.get()
     }
+}
 
+impl<S: SignalMut, E: SignalMut<Sample = Env>> SignalMut for Tremolo<S, E> {
     fn advance(&mut self) {
         self.inner.advance();
     }
@@ -236,7 +240,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
     }
 }
 
-impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Tremolo<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Tremolo<S, E> {
     fn freq(&self) -> Freq {
         self.inner.freq()
     }
@@ -246,7 +250,7 @@ impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Tremolo<S, E> {
     }
 }
 
-impl<S: Base, E: Signal<Sample = Env>> Base for Tremolo<S, E> {
+impl<S: Base, E: SignalMut<Sample = Env>> Base for Tremolo<S, E> {
     type Base = S::Base;
 
     fn base(&self) -> &S::Base {
@@ -258,19 +262,19 @@ impl<S: Base, E: Signal<Sample = Env>> Base for Tremolo<S, E> {
     }
 }
 
-impl<S: Done, E: Signal<Sample = Env>> Done for Tremolo<S, E> {
+impl<S: SignalMut + Done, E: SignalMut<Sample = Env>> Done for Tremolo<S, E> {
     fn is_done(&self) -> bool {
         self.inner.is_done()
     }
 }
 
-impl<S: Stop, E: Signal<Sample = Env>> Stop for Tremolo<S, E> {
+impl<S: Stop, E: SignalMut<Sample = Env>> Stop for Tremolo<S, E> {
     fn stop(&mut self) {
         self.inner.stop();
     }
 }
 
-impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
+impl<S: Panic, E: SignalMut<Sample = Env>> Panic for Tremolo<S, E> {
     fn panic(&mut self) {
         self.inner.panic();
     }
@@ -283,14 +287,14 @@ impl<S: Panic, E: Signal<Sample = Env>> Panic for Tremolo<S, E> {
 /// The signal is otherwise unchanged, so if you don't need this functionality, use [`Tremolo`]
 /// instead.
 #[derive(Clone, Debug)]
-pub struct StopTremolo<S: Signal, E: Stop<Sample = Env>> {
+pub struct StopTremolo<S: SignalMut, E: Stop<Sample = Env>> {
     /// Inner data.
     inner: ModSgn<Volume<S>, E, Trem<S>>,
 }
 
 /// Turns a [`Tremolo`] into a [`StopTremolo`]. This changes the functionality
 /// of the signal when stopped, as described in the [`StopTremolo`] docs.
-impl<S: Signal, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E> {
     fn from(value: Tremolo<S, E>) -> Self {
         Self {
             inner: value.inner.into(),
@@ -303,7 +307,7 @@ impl<S: Signal, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E>
 /// Initialize with [`Self::new_ar`].
 pub type ArEnvelope<S> = StopTremolo<S, OnceGen<Env, SawTri>>;
 
-impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env>> StopTremolo<S, E> {
     /// Initializes a new [`StopTremolo`].
     pub fn new(sgn: S, env: E) -> Self {
         Tremolo::new(sgn, env).into()
@@ -330,7 +334,7 @@ impl<S: Signal, E: Stop<Sample = Env>> StopTremolo<S, E> {
     }
 }
 
-impl<S: Signal> ArEnvelope<S> {
+impl<S: SignalMut> ArEnvelope<S> {
     /// Initializes a new [`ArEnvelope`].
     pub fn new_ar(sgn: S, attack: Time, release: Time) -> Self {
         let time = attack + release;
@@ -339,13 +343,15 @@ impl<S: Signal> ArEnvelope<S> {
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env>> Signal for StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env>> Signal for StopTremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
         self.inner.get()
     }
+}
 
+impl<S: SignalMut, E: Stop<Sample = Env>> SignalMut for StopTremolo<S, E> {
     fn advance(&mut self) {
         self.inner.advance();
     }
@@ -377,19 +383,19 @@ impl<S: Base, E: Stop<Sample = Env>> Base for StopTremolo<S, E> {
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env> + Done> Done for StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env> + Done> Done for StopTremolo<S, E> {
     fn is_done(&self) -> bool {
         self.inner.is_done()
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env>> Stop for StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env>> Stop for StopTremolo<S, E> {
     fn stop(&mut self) {
         self.inner.stop();
     }
 }
 
-impl<S: Signal, E: Stop<Sample = Env> + Panic> Panic for StopTremolo<S, E> {
+impl<S: SignalMut, E: Stop<Sample = Env> + Panic> Panic for StopTremolo<S, E> {
     fn panic(&mut self) {
         self.inner.panic();
     }
@@ -461,7 +467,9 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Gate<S, E> {
             S::Sample::ZERO
         }
     }
+}
 
+impl<S: SignalMut, E: SignalMut<Sample = Env>> SignalMut for Gate<S, E> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.env.advance();
@@ -473,7 +481,7 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Gate<S, E> {
     }
 }
 
-impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Gate<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Gate<S, E> {
     fn freq(&self) -> Freq {
         self.sgn.freq()
     }
@@ -483,7 +491,7 @@ impl<S: Frequency, E: Signal<Sample = Env>> Frequency for Gate<S, E> {
     }
 }
 
-impl<S: Base, E: Signal<Sample = Env>> Base for Gate<S, E> {
+impl<S: Base, E: SignalMut<Sample = Env>> Base for Gate<S, E> {
     type Base = S::Base;
 
     fn base(&self) -> &S::Base {
@@ -495,19 +503,19 @@ impl<S: Base, E: Signal<Sample = Env>> Base for Gate<S, E> {
     }
 }
 
-impl<S: Done, E: Signal<Sample = Env>> Done for Gate<S, E> {
+impl<S: Done, E: SignalMut<Sample = Env>> Done for Gate<S, E> {
     fn is_done(&self) -> bool {
         self.sgn().is_done()
     }
 }
 
-impl<S: Stop, E: Signal<Sample = Env>> Stop for Gate<S, E> {
+impl<S: Stop, E: SignalMut<Sample = Env>> Stop for Gate<S, E> {
     fn stop(&mut self) {
         self.sgn_mut().stop();
     }
 }
 
-impl<S: Panic, E: Signal<Sample = Env>> Panic for Gate<S, E> {
+impl<S: Panic, E: SignalMut<Sample = Env>> Panic for Gate<S, E> {
     fn panic(&mut self) {
         self.sgn_mut().panic();
     }

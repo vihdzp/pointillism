@@ -85,13 +85,13 @@ pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
     fn load(&mut self, sample: Self::Sample);
 
     /// Loads `count` samples from a signal, phasing out the old ones.
-    fn load_many<S: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut S, count: usize);
+    fn load_many<S: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut S, count: usize);
 
     /// Initializes a buffer from a signal.
     ///
     /// This will advance the signal once for the current frame, and once for every
     /// [`Self::LOOK_AHEAD`] frame.
-    fn init<S: Signal<Sample = Self::Sample>>(sgn: &mut S) -> Self {
+    fn init<S: SignalMut<Sample = Self::Sample>>(sgn: &mut S) -> Self {
         let mut inter = Self::EMPTY;
         inter.load_many(sgn, Self::LOOK_AHEAD as usize + 1);
         inter
@@ -132,7 +132,7 @@ impl<S: Sample> Interpolate for Drop<S> {
         self.0 = sample;
     }
 
-    fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
+    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
         if count > 0 {
             for _ in 0..(count - 1) {
                 sgn.advance();
@@ -183,7 +183,7 @@ impl<S: Sample> Interpolate for Linear<S> {
         self.next = sample;
     }
 
-    fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
+    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
         match count {
             0 => {}
             1 => self.load(sgn.next()),
@@ -209,7 +209,7 @@ fn load_gen<S: Copy, const N: usize>(buf: &mut [S; N], sample: S) {
 }
 
 /// An implementation of the `load_many` method for buffers of size 4.
-fn load_many_gen<S: Signal>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usize) {
+fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usize) {
     match count {
         0 => {}
         1 => load_gen(buf, sgn.next()),
@@ -272,7 +272,7 @@ impl<S: Sample> Interpolate for Cubic<S> {
         load_gen(&mut self.0, sample);
     }
 
-    fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
+    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
         load_many_gen(&mut self.0, sgn, count);
     }
 }
@@ -312,13 +312,13 @@ impl<S: Sample> Interpolate for Hermite<S> {
         load_gen(&mut self.0, sample);
     }
 
-    fn load_many<T: Signal<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
+    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
         load_many_gen(&mut self.0, sgn, count);
     }
 }
 
-/// Samples a signal and time-stretches it. Both pitch and speed will be modified.
-pub struct Stretch<S: Signal, I: Interpolate<Sample = S::Sample>> {
+/// Samples a [`SignalMut`] and time-stretches it. Both pitch and speed will be modified.
+pub struct Stretch<S: SignalMut, I: Interpolate<Sample = S::Sample>> {
     /// The signal being sampled.
     sgn: S,
 
@@ -334,7 +334,7 @@ pub struct Stretch<S: Signal, I: Interpolate<Sample = S::Sample>> {
     val: f64,
 }
 
-impl<S: Signal, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
+impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
     /// Initializes a new [`Stretch`].
     ///
     /// If you call this function, you'll have to write down the interpolation mode explicitly.
@@ -379,7 +379,7 @@ impl<S: Signal, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
 /// A [`Stretch`] using [`Drop`] interpolation.
 pub type DropStretch<S> = Stretch<S, Drop<<S as Signal>::Sample>>;
 
-impl<S: Signal> DropStretch<S> {
+impl<S: SignalMut> DropStretch<S> {
     /// Initializes a new [`DropStretch`].
     pub fn new_drop(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -389,7 +389,7 @@ impl<S: Signal> DropStretch<S> {
 /// A [`Stretch`] using [`Linear`] interpolation.
 pub type LinearStretch<S> = Stretch<S, Linear<<S as Signal>::Sample>>;
 
-impl<S: Signal> LinearStretch<S> {
+impl<S: SignalMut> LinearStretch<S> {
     /// Initializes a new [`LinearStretch`].
     pub fn new_linear(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -399,7 +399,7 @@ impl<S: Signal> LinearStretch<S> {
 /// A [`Stretch`] using [`Cubic`] interpolation.
 pub type CubicStretch<S> = Stretch<S, Cubic<<S as Signal>::Sample>>;
 
-impl<S: Signal> CubicStretch<S> {
+impl<S: SignalMut> CubicStretch<S> {
     /// Initializes a new [`CubicStretch`].
     pub fn new_cubic(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -409,20 +409,22 @@ impl<S: Signal> CubicStretch<S> {
 /// A [`Stretch`] using [`Hermite`] interpolation.
 pub type HermiteStretch<S> = Stretch<S, Hermite<<S as Signal>::Sample>>;
 
-impl<S: Signal> HermiteStretch<S> {
+impl<S: SignalMut> HermiteStretch<S> {
     /// Initializes a new [`HermiteStretch`].
     pub fn new_hermite(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
     }
 }
 
-impl<S: Signal, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> {
+impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
         self.inter.eval(self.val)
     }
+}
 
+impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, I> {
     fn advance(&mut self) {
         let (count, new_val) = int_frac(self.val + self.factor);
         self.inter.load_many(&mut self.sgn, count);

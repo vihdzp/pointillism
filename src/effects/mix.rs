@@ -25,7 +25,9 @@ impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoMix<X,
     fn get(&self) -> Self::Sample {
         Stereo(self.0.get().0, self.1.get().0)
     }
+}
 
+impl<X: SignalMut<Sample = Mono>, Y: SignalMut<Sample = Mono>> SignalMut for StereoMix<X, Y> {
     fn advance(&mut self) {
         self.0.advance();
         self.1.advance();
@@ -76,7 +78,9 @@ impl<X: Signal, Y: Signal<Sample = X::Sample>> Signal for Mix<X, Y> {
     fn get(&self) -> Self::Sample {
         self.0.get() + self.1.get()
     }
+}
 
+impl<X: SignalMut, Y: SignalMut<Sample = X::Sample>> SignalMut for Mix<X, Y> {
     fn advance(&mut self) {
         self.0.advance();
         self.1.advance();
@@ -121,7 +125,7 @@ impl Map for Dup {
     }
 }
 
-impl<S: Signal<Sample = Mono>> MapSgn<S, Dup> {
+impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
     /// Duplicates a [`Mono`] signal in both channels.
     pub const fn dup(sgn: S) -> Self {
         Self::new(sgn, Dup)

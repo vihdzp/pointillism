@@ -10,25 +10,27 @@ use crate::prelude::*;
 ///
 /// **Important note**: Using this is somewhat of a hack. If used repeatedly in a
 /// [`Polyphony`](crate::prelude::Polyphony) struct, it will greatly slow down the code.
-pub struct Trailing<S: Signal> {
+pub struct Trailing<S: SignalMut> {
     /// The inner signal.
     pub sgn: S,
 }
 
-impl<S: Signal> Trailing<S> {
+impl<S: SignalMut> Trailing<S> {
     /// Initializes a new [`Trailing`] signal.
     pub const fn new(sgn: S) -> Self {
         Self { sgn }
     }
 }
 
-impl<S: Signal> Signal for Trailing<S> {
+impl<S: SignalMut> Signal for Trailing<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
         self.sgn.get()
     }
+}
 
+impl<S: SignalMut> SignalMut for Trailing<S> {
     fn advance(&mut self) {
         self.sgn.advance();
     }
@@ -60,13 +62,13 @@ impl<S: Base> Base for Trailing<S> {
     }
 }
 
-impl<S: Signal> Done for Trailing<S> {
+impl<S: SignalMut> Done for Trailing<S> {
     fn is_done(&self) -> bool {
         false
     }
 }
 
-impl<S: Signal> Stop for Trailing<S> {
+impl<S: SignalMut> Stop for Trailing<S> {
     fn stop(&mut self) {}
 }
 
@@ -74,7 +76,7 @@ impl<S: Signal> Stop for Trailing<S> {
 ///
 /// After a signal is stopped, all subsequent outputs will be the zero sample. The signal will need
 /// to be retriggered in order to produce other outputs.
-pub struct Stopping<S: Signal> {
+pub struct Stopping<S: SignalMut> {
     /// The inner signal.
     pub sgn: S,
 
@@ -82,14 +84,14 @@ pub struct Stopping<S: Signal> {
     done: bool,
 }
 
-impl<S: Signal> Stopping<S> {
+impl<S: SignalMut> Stopping<S> {
     /// Initializes a new [`Stopping`] signal.
     pub const fn new(sgn: S) -> Self {
         Self { sgn, done: false }
     }
 }
 
-impl<S: Signal> Signal for Stopping<S> {
+impl<S: SignalMut> Signal for Stopping<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -99,7 +101,9 @@ impl<S: Signal> Signal for Stopping<S> {
             self.sgn.get()
         }
     }
+}
 
+impl<S: SignalMut> SignalMut for Stopping<S> {
     fn advance(&mut self) {
         self.sgn.advance();
     }
@@ -132,13 +136,13 @@ impl<S: Base> Base for Stopping<S> {
     }
 }
 
-impl<S: Signal> Done for Stopping<S> {
+impl<S: SignalMut> Done for Stopping<S> {
     fn is_done(&self) -> bool {
         self.done
     }
 }
 
-impl<S: Signal> Stop for Stopping<S> {
+impl<S: SignalMut> Stop for Stopping<S> {
     fn stop(&mut self) {
         self.done = true;
     }
@@ -176,7 +180,7 @@ impl<Y> Default for Retrigger<Y> {
     }
 }
 
-impl<S: Signal, Y> Mut<S, Y> for Retrigger<Y> {
+impl<S: SignalMut, Y> Mut<S, Y> for Retrigger<Y> {
     fn modify(&mut self, sgn: &mut S, _: Y) {
         sgn.retrigger();
     }

@@ -107,7 +107,9 @@ impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
     fn get(&self) -> S::Sample {
         self.signals.values().map(Signal::get).sum()
     }
+}
 
+impl<K: Eq + Hash + Clone, S: SignalMut + Done> SignalMut for Polyphony<K, S> {
     fn advance(&mut self) {
         // Generators to clear.
         let mut clear = Vec::new();
@@ -130,11 +132,11 @@ impl<K: Eq + Hash + Clone, S: Done> Signal for Polyphony<K, S> {
     }
 }
 
-impl<K: Eq + Hash + Clone, S: Done> Base for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: SignalMut + Done> Base for Polyphony<K, S> {
     impl_base!();
 }
 
-impl<K: Eq + Hash + Clone, S: Done> Panic for Polyphony<K, S> {
+impl<K: Eq + Hash + Clone, S: SignalMut + Done> Panic for Polyphony<K, S> {
     fn panic(&mut self) {
         self.retrigger();
     }

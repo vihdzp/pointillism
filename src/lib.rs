@@ -131,7 +131,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
-pub fn create_from_sgn<P: AsRef<std::path::Path>, S: Signal>(
+pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
     filename: P,
     length: Time,
     mut sgn: S,

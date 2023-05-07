@@ -98,7 +98,9 @@ impl Signal for Adsr {
             Stage::Done => 0.0,
         })
     }
+}
 
+impl SignalMut for Adsr {
     fn advance(&mut self) {
         match self.stage() {
             Stage::Attack => {
@@ -162,7 +164,7 @@ impl Panic for Adsr {
 /// Initialize with [`Self::new_adsr`].
 pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
-impl<S: Signal> AdsrEnvelope<S> {
+impl<S: SignalMut> AdsrEnvelope<S> {
     /// Initializes an [`AdsrEnvelope`] with the given parameters.
     pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self::new(sgn, Adsr::new(attack, decay, sustain, release))
