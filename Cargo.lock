@@ -39,13 +39,13 @@ checksum = "37a429277d8afba0e1a2cf784b43f938dff72ce33e6aba477c3021997171c87b"
 
 [[package]]
 name = "libc"
-version = "0.2.142"
+version = "0.2.143"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a987beff54b60ffa6d51982e1aa1146bc42f19bd26be28b0586f252fccf5317"
+checksum = "edc207893e85c5d6be840e969b496b53d94cec8be2d501b214f50daa97fa8024"
 
 [[package]]
 name = "pointillism"
-version = "0.2.10"
+version = "0.3.0"
 dependencies = [
  "assert_approx_eq",
  "hound",
