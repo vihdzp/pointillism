@@ -72,13 +72,13 @@ pub trait Sample: SampleLike {
     /// The number of values stored in the sample.
     const CHANNELS: u8;
 
-    /// Gets the value from channel `idx`. Reads the last channel if out of
+    /// Gets the value from channel `index`. Reads the last channel if out of
     /// bounds.
-    fn get_unchecked(&self, idx: u8) -> f64;
+    fn get_unchecked(&self, index: u8) -> f64;
 
-    /// Gets a mutable reference to the value from channel `idx`. Reads the last
+    /// Gets a mutable reference to the value from channel `index`. Reads the last
     /// channel if out of bounds.
-    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f64;
+    fn get_mut_unchecked(&mut self, index: u8) -> &mut f64;
 
     /// Gets the value from the first channel.
     fn fst(&self) -> f64 {
@@ -101,60 +101,60 @@ pub trait Sample: SampleLike {
         self.get_mut_unchecked(1)
     }
 
-    /// Gets the value from channel `idx`.
+    /// Gets the value from channel `index`.
     ///
     /// # Panics
     ///
     /// Panics if the index is greater than the number of channels.
-    fn get(&self, idx: u8) -> f64 {
-        assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
-        self.get_unchecked(idx)
+    fn get(&self, index: u8) -> f64 {
+        assert!(index < Self::CHANNELS, "index {index} out of bounds");
+        self.get_unchecked(index)
     }
 
-    /// Gets a reference to the value from channel `idx`.
+    /// Gets a reference to the value from channel `index`.
     ///
     /// # Panics
     ///
     /// Panics if the index is greater than the number of channels.
-    fn get_mut(&mut self, idx: u8) -> &mut f64 {
-        assert!(idx < Self::CHANNELS, "index {idx} out of bounds");
-        self.get_mut_unchecked(idx)
+    fn get_mut(&mut self, index: u8) -> &mut f64 {
+        assert!(index < Self::CHANNELS, "index {index} out of bounds");
+        self.get_mut_unchecked(index)
     }
 
     /// Executes a function for each channel index.
     fn for_each<F: FnMut(u8)>(mut f: F) {
-        for idx in 0..Self::CHANNELS {
-            f(idx);
+        for index in 0..Self::CHANNELS {
+            f(index);
         }
     }
 
-    /// Initializes a new sample by calling `f(idx)` on each index.
+    /// Initializes a new sample by calling `f(index)` on each index.
     fn from_fn<F: FnMut(u8) -> f64>(mut f: F) -> Self {
         let mut res = Self::default();
-        Self::for_each(|idx| *res.get_mut_unchecked(idx) = f(idx));
+        Self::for_each(|index| *res.get_mut_unchecked(index) = f(index));
         res
     }
 
     /// Applies a function `f` to all entries of the sample.
     #[must_use]
     fn map<F: FnMut(f64) -> f64>(&self, mut f: F) -> Self {
-        Self::from_fn(|idx| f(self.get(idx)))
+        Self::from_fn(|index| f(self.get(index)))
     }
 
     /// Mutably applies a function `f` to all entries of the sample.
     fn map_mut<F: FnMut(&mut f64)>(&mut self, mut f: F) {
-        Self::for_each(|idx| f(self.get_mut_unchecked(idx)));
+        Self::for_each(|index| f(self.get_mut_unchecked(index)));
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
     #[must_use]
     fn pairwise<F: FnMut(f64, f64) -> f64>(&self, rhs: Self, mut f: F) -> Self {
-        Self::from_fn(|idx| f(self.get(idx), rhs.get(idx)))
+        Self::from_fn(|index| f(self.get(index), rhs.get(index)))
     }
 
     /// Mutably applies a function `f` to pairs of entries of the samples.
     fn pairwise_mut<F: FnMut(&mut f64, f64)>(&mut self, rhs: Self, mut f: F) {
-        Self::for_each(|idx| f(self.get_mut(idx), rhs.get(idx)));
+        Self::for_each(|index| f(self.get_mut(index), rhs.get(index)));
     }
 
     /// Initializes a sample where all channels use the specified value.
@@ -209,10 +209,10 @@ pub trait Audio: Sample {
         &self,
         writer: &mut WavWriter<W>,
     ) -> hound::Result<()> {
-        for idx in 0..Self::CHANNELS {
+        for index in 0..Self::CHANNELS {
             // In practice, truncation should never occur.
             #[allow(clippy::cast_possible_truncation)]
-            writer.write_sample(self.get_unchecked(idx) as f32)?;
+            writer.write_sample(self.get_unchecked(index) as f32)?;
         }
 
         Ok(())
@@ -244,16 +244,16 @@ impl SampleLike for Stereo {
 impl Sample for Stereo {
     const CHANNELS: u8 = 2;
 
-    fn get_unchecked(&self, idx: u8) -> f64 {
-        if idx == 0 {
+    fn get_unchecked(&self, index: u8) -> f64 {
+        if index == 0 {
             self.0
         } else {
             self.1
         }
     }
 
-    fn get_mut_unchecked(&mut self, idx: u8) -> &mut f64 {
-        if idx == 0 {
+    fn get_mut_unchecked(&mut self, index: u8) -> &mut f64 {
+        if index == 0 {
             &mut self.0
         } else {
             &mut self.1

@@ -120,7 +120,7 @@ impl FromStr for MidiNote {
         if let (Some(letter), Some(next)) = (chars.next(), chars.next()) {
             if let Some(note) = letter_to_note(letter) {
                 let mut note = i16::from(note);
-                let idx = match next {
+                let index = match next {
                     '#' => {
                         note += 1;
                         2
@@ -132,7 +132,7 @@ impl FromStr for MidiNote {
                     _ => 1,
                 };
 
-                note += 12 * (name[idx..].parse::<i16>()? + 1);
+                note += 12 * (name[index..].parse::<i16>()? + 1);
                 Ok(MidiNote::new(note))
             } else {
                 Err(NameError::Letter(letter))

@@ -423,8 +423,11 @@ where
     C::Output: Sample,
 {
     /// Initializes a new [`UnisonRef`].
-    pub const fn new(unison: &'a UnisonCurve<C>, idx: u8) -> Self {
-        Self { unison, index: idx }
+    pub const fn new(unison: &'a UnisonCurve<C>, index: u8) -> Self {
+        Self {
+            unison,
+            index: index,
+        }
     }
 }
 

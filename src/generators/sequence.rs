@@ -15,7 +15,7 @@ pub struct Sequence<S: SignalMut, F: Mut<S, Time>> {
     func: F,
 
     /// The current event being read.
-    idx: usize,
+    index: usize,
 
     /// Time since last event.
     since: Time,
@@ -31,7 +31,7 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
             times,
             sgn,
             func,
-            idx: 0,
+            index: 0,
             since: Time::ZERO,
             total: Time::ZERO,
         }
@@ -63,8 +63,8 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
     }
 
     /// The current event index.
-    pub const fn idx(&self) -> usize {
-        self.idx
+    pub const fn index(&self) -> usize {
+        self.index
     }
 
     /// Time since last event.
@@ -89,14 +89,14 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
 
     /// Attempts to read a single event, returns whether it was successful.
     fn read_event(&mut self) -> bool {
-        match self.times.get(self.idx()) {
+        match self.times.get(self.index()) {
             Some(&event_time) => {
                 let read = self.since() >= event_time;
 
                 if read {
                     self.since -= event_time;
                     self.func.modify(&mut self.sgn, self.total);
-                    self.idx += 1;
+                    self.index += 1;
                 }
 
                 read
@@ -130,7 +130,7 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
 
     fn retrigger(&mut self) {
         self.sgn.retrigger();
-        self.idx = 0;
+        self.index = 0;
         self.since = Time::ZERO;
         self.total = Time::ZERO;
     }
@@ -180,8 +180,8 @@ impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
     }
 
     /// The current event index.
-    pub const fn idx(&self) -> usize {
-        self.seq.idx
+    pub const fn index(&self) -> usize {
+        self.seq.index
     }
 
     /// Time since last event.
@@ -217,12 +217,25 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
-        if self.seq.idx >= self.len() {
-            self.seq.idx = 0;
+        if self.seq.index >= self.len() {
+            self.seq.index = 0;
         }
     }
 
     fn retrigger(&mut self) {
         self.seq.retrigger();
     }
+}
+
+/// The function that arpeggiates a signal.
+pub struct Arp {
+    /// The notes to play, in order.
+    notes: Vec<Freq>,
+
+    /// The index of the note currently playing.
+    index: usize,
+}
+
+impl<S: Frequency> Mut<S, Time> for Arp {
+    fn modify(&mut self, x: &mut S, _: Time) {}
 }

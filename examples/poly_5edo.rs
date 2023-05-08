@@ -30,8 +30,8 @@ fn main() {
 
     // Initializes a new `Polyphony` object, plays a single note.
     let mut poly = Polyphony::new();
-    let mut idx = 0;
-    poly.add(idx, osc(BASE));
+    let mut index = 0;
+    poly.add(index, osc(BASE));
 
     // The song loop.
     let poly_loop = Loop::new(
@@ -41,12 +41,12 @@ fn main() {
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>, _| {
             // by stopping the note we just played,
-            poly.stop(&idx);
-            idx += 1;
+            poly.stop(&index);
+            index += 1;
 
             // and adding a new one.
             poly.add(
-                idx,
+                index,
                 osc(Freq::new_edo_note(
                     BASE,
                     5,

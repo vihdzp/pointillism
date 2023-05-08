@@ -114,16 +114,16 @@ impl<K: Eq + Hash + Clone, S: SignalMut + Done> SignalMut for Polyphony<K, S> {
         // Generators to clear.
         let mut clear = Vec::new();
 
-        for (idx, sgn) in &mut self.signals {
+        for (index, sgn) in &mut self.signals {
             sgn.advance();
 
             if sgn.is_done() {
-                clear.push(idx.clone());
+                clear.push(index.clone());
             }
         }
 
-        for idx in clear {
-            self.signals.remove(&idx);
+        for index in clear {
+            self.signals.remove(&index);
         }
     }
 

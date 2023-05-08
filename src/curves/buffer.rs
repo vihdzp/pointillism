@@ -226,10 +226,10 @@ impl Buffer<Mono> {
     ) -> hound::Result<()> {
         let length = reader.len() as usize;
 
-        for (idx, sample) in reader.into_samples::<S>().enumerate() {
+        for (index, sample) in reader.into_samples::<S>().enumerate() {
             // This is safe in debug.
-            debug_assert!(idx < length);
-            *ptr.add(idx) = sample?.into_mono();
+            debug_assert!(index < length);
+            *ptr.add(index) = sample?.into_mono();
         }
 
         Ok(())
@@ -479,14 +479,14 @@ pub struct LoopBufGen<S: Sample> {
     buffer: Buffer<S>,
 
     /// The sample being read.
-    idx: usize,
+    index: usize,
 }
 
 impl<S: Sample> LoopBufGen<S> {
     /// Initializes a new [`LoopBufGen`].
     #[must_use]
     pub const fn new(buffer: Buffer<S>) -> Self {
-        Self { buffer, idx: 0 }
+        Self { buffer, index: 0 }
     }
 
     /// Returns a reference to the underlying buffer.
@@ -505,17 +505,17 @@ impl<S: Sample> Signal for LoopBufGen<S> {
     type Sample = S;
 
     fn get(&self) -> S {
-        self.buffer().get_loop(self.idx)
+        self.buffer().get_loop(self.index)
     }
 }
 
 impl<S: Sample> SignalMut for LoopBufGen<S> {
     fn advance(&mut self) {
-        self.idx += 1;
+        self.index += 1;
     }
 
     fn retrigger(&mut self) {
-        self.idx = 0;
+        self.index = 0;
     }
 }
 
