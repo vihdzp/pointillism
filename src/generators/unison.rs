@@ -400,6 +400,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 ///             })
 ///             .sum();
 ///
+///         // We must advance the signal manually.
 ///         unison.advance();
 ///         sgn * SCALE
 ///     })

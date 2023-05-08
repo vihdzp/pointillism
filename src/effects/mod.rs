@@ -18,9 +18,8 @@ use std::marker::PhantomData;
 
 use crate::prelude::*;
 
-/// Converts a function into one applied pointwise to the entries of a
-/// [`Sample`].
-#[derive(Clone, Debug, Default)]
+/// Converts a function into one applied pointwise to the entries of a [`Sample`].
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Pw<S: Sample, F: Map<Input = f64, Output = f64>> {
     /// The function to apply.
     pub func: F,
@@ -50,8 +49,8 @@ impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
 
 /// Maps a signal to another via a specified map.
 ///
-/// This map should send in most cases send the zero sample to itself. That ensures that there is no
-/// DC offset if the signal stops.
+/// This map should send in most cases send the zero [`Sample`] to itself. That ensures that there
+/// is no DC offset if the signal stops.
 ///
 /// Note that the map here takes in a sample and outputs a sample. If you instead want to map the
 /// floating point values of the sample pointwise, wrap the function in [`Pw`].
