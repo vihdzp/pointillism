@@ -291,7 +291,14 @@ impl Arp {
         self.index = (self.index + 1) % self.len();
     }
 
-    // pub fn set_arp(&mut self, notes:Vec<Freq>)
+    /// Replaces the current arpeggio by a new one.
+    ///
+    /// We use an iterator in order to avoid duplicate allocations.
+    pub fn set_arp<I: IntoIterator<Item = Freq>>(&mut self, notes: I) {
+        self.notes.clear();
+        self.notes.extend(notes);
+        self.index = 0;
+    }
 }
 
 impl<S: Frequency> Mut<S> for Arp {
@@ -311,5 +318,15 @@ impl<S: Frequency> Arpeggio<S> {
     /// transpires, unless you call [`Self::skip_to_next`].
     pub const fn new_arp(sgn: S, times: Vec<Time>, notes: Vec<Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
+    }
+
+    /// Returns a reference to the arpeggiated notes.
+    pub const fn arp(&self) -> &Arp {
+        self.func()
+    }
+
+    /// Returns a mutable reference to the arpeggiated notes.
+    pub fn arp_mut(&mut self) -> &mut Arp {
+        self.func_mut()
     }
 }

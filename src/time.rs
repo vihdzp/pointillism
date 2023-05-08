@@ -4,6 +4,7 @@ use crate::{freq::Freq, SAMPLE_RATE_F64};
 
 use std::{
     fmt::{Debug, Display, Formatter, Result},
+    iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
     time::Duration,
 };
@@ -229,6 +230,12 @@ impl Rem for Time {
 impl RemAssign for Time {
     fn rem_assign(&mut self, rhs: Self) {
         self.seconds %= rhs.seconds;
+    }
+}
+
+impl Sum for Time {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        Self::new(iter.map(|x| x.seconds()).sum())
     }
 }
 

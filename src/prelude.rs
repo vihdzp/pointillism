@@ -20,7 +20,7 @@ pub use crate::{
     freq::{midi::MidiNote, *},
     generators::{
         poly::Polyphony,
-        sequence::{Loop, Sequence},
+        sequence::*,
         unison::{DetuneCurveSgn, DetuneSgn, Unison, UnisonCurve, UnisonRef},
         Val, *,
     },
