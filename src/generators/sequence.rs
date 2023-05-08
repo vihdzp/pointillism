@@ -1,8 +1,8 @@
 //! Declares [`Sequences`](Sequence) and [`Loops`](Loop). These can be used to modify a [`Signal`]
 //! at regular time intervals.
 //!
-//! Note that the [`Signal`] won't be immediately modified when the [`Sequence`] or [`Loop`] is
-//! initialized. It will only be modified after the first time interval transpires.
+//! Note that the [`Signal`] won't, by default, be immediately modified when the [`Sequence`] or
+//! [`Loop`] is initialized. It will only be modified after the first time interval transpires.
 //!
 //! Also note that the time intervals between events can be zero. The effect of this is to execute
 //! these events simultaneously.
@@ -13,7 +13,7 @@ use crate::prelude::*;
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: SignalMut, F: Mut<S, Time>> {
+pub struct Sequence<S: SignalMut, F: Mut<S>> {
     /// A list of time intervals between an event and the next.
     times: Vec<Time>,
 
@@ -28,12 +28,9 @@ pub struct Sequence<S: SignalMut, F: Mut<S, Time>> {
 
     /// Time since last event.
     since: Time,
-
-    /// Time that has passed since instantiation.
-    total: Time,
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
+impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Initializes a new sequence.
     pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
@@ -42,7 +39,6 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
             func,
             index: 0,
             since: Time::ZERO,
-            total: Time::ZERO,
         }
     }
 
@@ -81,11 +77,6 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
         self.since
     }
 
-    /// Time since instantiation.
-    pub const fn total(&self) -> Time {
-        self.total
-    }
-
     /// The number of events.
     pub fn len(&self) -> usize {
         self.times().len()
@@ -104,7 +95,7 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
 
                 if read {
                     self.since -= event_time;
-                    self.func.modify(&mut self.sgn, self.total);
+                    self.func.modify(&mut self.sgn);
                     self.index += 1;
                 }
 
@@ -121,7 +112,7 @@ impl<S: SignalMut, F: Mut<S, Time>> Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> Signal for Sequence<S, F> {
+impl<S: SignalMut, F: Mut<S>> Signal for Sequence<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -129,11 +120,10 @@ impl<S: SignalMut, F: Mut<S, Time>> Signal for Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
+impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.since.advance();
-        self.total.advance();
         self.read_events();
     }
 
@@ -141,7 +131,6 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
         self.sgn.retrigger();
         self.index = 0;
         self.since = Time::ZERO;
-        self.total = Time::ZERO;
     }
 }
 
@@ -149,19 +138,19 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Loop<S: SignalMut, F: Mut<S, Time>> {
+pub struct Loop<S: SignalMut, F: Mut<S>> {
     /// The internal sequence.
     seq: Sequence<S, F>,
 }
 
 /// Initializes a new [`Loop`] from a [`Sequence`].
-impl<S: SignalMut, F: Mut<S, Time>> From<Sequence<S, F>> for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> From<Sequence<S, F>> for Loop<S, F> {
     fn from(seq: Sequence<S, F>) -> Self {
         Self::new_seq(seq)
     }
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// Initializes a new loop from a sequence.
     pub const fn new_seq(seq: Sequence<S, F>) -> Self {
         Self { seq }
@@ -207,11 +196,6 @@ impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
         self.seq.since
     }
 
-    /// Time since instantiation.
-    pub const fn total(&self) -> Time {
-        self.seq.total
-    }
-
     /// The number of events in the loop.
     pub fn len(&self) -> usize {
         self.seq.times.len()
@@ -223,7 +207,7 @@ impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> Signal for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {
@@ -231,7 +215,7 @@ impl<S: SignalMut, F: Mut<S, Time>> Signal for Loop<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
@@ -255,9 +239,7 @@ pub struct Arp {
     index: usize,
 }
 
-impl<S: Frequency> Mut<S, Time> for Arp {
-    fn modify(&mut self, x: &mut S, _: Time) {
-
-    }
+impl<S: Frequency> Mut<S> for Arp {
+    fn modify(&mut self, x: &mut S) {}
 }
 */

@@ -295,11 +295,11 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detune;
 
-impl<C: Map<Input = Val>> Mut<UnisonCurve<C>, Env> for Detune
+impl<C: Map<Input = Val>> MutEnv<UnisonCurve<C>> for Detune
 where
     C::Output: Sample,
 {
-    fn modify(&mut self, sgn: &mut UnisonCurve<C>, val: Env) {
+    fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: Env) {
         // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
         // truncation.
         #[allow(clippy::cast_possible_truncation)]

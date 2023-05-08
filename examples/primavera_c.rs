@@ -75,7 +75,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     Loop::new(
         vec![Time::new(4.0)],
         poly,
-        FnWrapper::new(move |poly: &mut Polyphony<_, _>, _| {
+        FnWrapper::new(move |poly: &mut Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];
             poly.add(index, trem(freq));
             index += 1;

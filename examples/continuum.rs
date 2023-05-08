@@ -1,9 +1,8 @@
 //! Generative ambient music.
 //!
-//! Layering multiple notes like this leads to interesting emergent effects,
-//! such as constructive and destructive interference, and beating from the
-//! [septimal comma](https://en.wikipedia.org/wiki/Septimal_comma) 64/63 = 4/3 ×
-//! 4/3 × 4/7.
+//! Layering multiple notes like this leads to interesting emergent effects, such as constructive
+//! and destructive interference, and beating from the [septimal
+//! comma](https://en.wikipedia.org/wiki/Septimal_comma) 64/63 = 4/3 × 4/3 × 4/7.
 //!
 //! Sounds even smoother after some post-processing reverb.
 
@@ -20,8 +19,11 @@ fn main() {
     // Length of released note.
     const RELEASE_LEN: Time = Time::new(45.0);
 
-    // Number of notes in song.
-    const NOTE_COUNT: u16 = 200;
+    // Length of song in notes.
+    const NOTE_COUNT_LEN: u16 = 200;
+
+    // Number of notes actually played (accounting for fade-out).
+    const NOTE_COUNT: u16 = 185;
 
     // Envelope for the wave shape.
     let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
@@ -73,7 +75,7 @@ fn main() {
     let poly_loop = Loop::new(
         vec![NOTE_LEN],
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_, _>, time: Time| {
+        FnWrapper::new(|poly: &mut Polyphony<_, _>| {
             // Stops the previous note.
             poly.stop(&index);
             index += 1;
@@ -89,7 +91,7 @@ fn main() {
             }
 
             // Plays a new note, as long as the song isn't about to end.
-            if time < (NOTE_COUNT as f64 - 1.0) * NOTE_LEN - RELEASE_LEN {
+            if index < NOTE_COUNT {
                 poly.add(index, osc(freq, rand::thread_rng().gen()));
             }
         }),
@@ -97,7 +99,7 @@ fn main() {
 
     pointillism::create_from_sgn(
         "examples/continuum.wav",
-        NOTE_COUNT as f64 * NOTE_LEN,
+        NOTE_COUNT_LEN as f64 * NOTE_LEN,
         // 10.0 might be too much, but just to be safe from clipping.
         Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
     )

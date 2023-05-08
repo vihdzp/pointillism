@@ -16,7 +16,10 @@
 
 use std::marker::PhantomData;
 
-use crate::generators::Sample;
+use crate::{
+    generators::Sample,
+    prelude::{Env, Signal},
+};
 
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
@@ -33,13 +36,23 @@ pub trait Map {
     fn eval(&self, x: Self::Input) -> Self::Output;
 }
 
-/// An abstract trait for a structure representing a function taking `&mut X` and `Y`.
+/// An abstract trait for a structure representing a function which modifies a [`Signal`].
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
 /// must wrap your function in an [`FnWrapper`].
-pub trait Mut<X, Y> {
-    /// Modifies `x` according to `y`.
-    fn modify(&mut self, x: &mut X, y: Y);
+pub trait Mut<S: Signal> {
+    /// Modifies `sgn`.
+    fn modify(&mut self, sgn: &mut S);
+}
+
+/// An abstract trait for a structure representing a function which modifies a [`Signal`] according
+/// to an envelope.
+///
+/// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
+/// must wrap your function in an [`FnWrapper`].
+pub trait MutEnv<S: Signal> {
+    /// Modifies `sgn` according to `val`.
+    fn modify_env(&mut self, sgn: &mut S, val: Env);
 }
 
 /// A wrapper for a Rust function which converts it into a [`Map`] or [`Mut`].
@@ -74,9 +87,15 @@ impl<X, Y, F: Fn(X) -> Y> Map for FnWrapper<X, Y, F> {
     }
 }
 
-impl<X, Y, F: FnMut(&mut X, Y)> Mut<X, Y> for FnWrapper<X, Y, F> {
-    fn modify(&mut self, x: &mut X, y: Y) {
+impl<S: Signal, F: FnMut(&mut S, Env)> MutEnv<S> for FnWrapper<S, Env, F> {
+    fn modify_env(&mut self, x: &mut S, y: Env) {
         (self.func)(x, y);
+    }
+}
+
+impl<S: Signal, F: FnMut(&mut S)> Mut<S> for FnWrapper<S, (), F> {
+    fn modify(&mut self, x: &mut S) {
+        (self.func)(x);
     }
 }
 

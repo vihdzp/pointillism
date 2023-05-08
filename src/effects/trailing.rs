@@ -1,7 +1,5 @@
 //! Defines structs that add extra trait functionality to other signals.
 
-use std::marker::PhantomData;
-
 use crate::prelude::*;
 
 /// A trailing signal.
@@ -156,32 +154,13 @@ impl<S: SignalMut> Stop for Stopping<S> {
 /// # use pointillism::{prelude::*, effects::trailing::Retrigger};
 /// # let osc = LoopGen::<Mono, Sin>::default();
 /// // Retriggers the oscillator `osc` once per second.
-/// let mut song_loop = Loop::new(vec![Time::SEC], osc, Retrigger::new());
+/// let mut song_loop = Loop::new(vec![Time::SEC], osc, Retrigger);
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct Retrigger<Y> {
-    /// Dummy value.
-    phantom: PhantomData<Y>,
-}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Retrigger;
 
-impl<Y> Retrigger<Y> {
-    /// Initializes the [`Retrigger`] function.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<Y> Default for Retrigger<Y> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<S: SignalMut, Y> Mut<S, Y> for Retrigger<Y> {
-    fn modify(&mut self, sgn: &mut S, _: Y) {
+impl<S: SignalMut> Mut<S> for Retrigger {
+    fn modify(&mut self, sgn: &mut S) {
         sgn.retrigger();
     }
 }
