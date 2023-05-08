@@ -2,7 +2,9 @@
 //! at regular time intervals.
 //!
 //! Note that the [`Signal`] won't, by default, be immediately modified when the [`Sequence`] or
-//! [`Loop`] is initialized. It will only be modified after the first time interval transpires.
+//! [`Loop`] is initialized. It will only be modified after the first time interval transpires. You
+//! can call [`Sequence::skip_to_next`] or [`Loop::skip_to_next`] in order to immediately skip to
+//! and apply the first event.
 //!
 //! Also note that the time intervals between events can be zero. The effect of this is to execute
 //! these events simultaneously.
@@ -87,18 +89,30 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.times().is_empty()
     }
 
+    /// Skips to the next event and applies it, returns whether it was successful.
+    pub fn skip_to_next(&mut self) -> bool {
+        match self.times.get(self.index()) {
+            Some(_) => {
+                self.since = Time::ZERO;
+                self.func.modify(&mut self.sgn);
+                self.index += 1;
+                true
+            }
+
+            None => false,
+        }
+    }
+
     /// Attempts to read a single event, returns whether it was successful.
     fn read_event(&mut self) -> bool {
         match self.times.get(self.index()) {
             Some(&event_time) => {
                 let read = self.since() >= event_time;
-
                 if read {
                     self.since -= event_time;
                     self.func.modify(&mut self.sgn);
                     self.index += 1;
                 }
-
                 read
             }
 
@@ -205,6 +219,13 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     pub fn is_empty(&self) -> bool {
         self.seq.times.is_empty()
     }
+
+    /// Skips to the next event and applies it, returns whether it was successful.
+    pub fn skip_to_next(&mut self) -> bool {
+        let res = self.seq.skip_to_next();
+        self.seq.index %= self.seq.len();
+        res
+    }
 }
 
 impl<S: SignalMut, F: Mut<S>> Signal for Loop<S, F> {
@@ -229,17 +250,62 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
     }
 }
 
-/*
 /// The function that arpeggiates a signal.
 pub struct Arp {
     /// The notes to play, in order.
-    notes: Vec<Freq>,
+    pub notes: Vec<Freq>,
 
     /// The index of the note currently playing.
-    index: usize,
+    pub index: usize,
+}
+
+impl Arp {
+    /// Initializes a new arpeggio with the given notes.
+    pub const fn new(notes: Vec<Freq>) -> Self {
+        Self { notes, index: 0 }
+    }
+
+    /// The currently played note.
+    pub fn current(&self) -> Freq {
+        self.notes[self.index]
+    }
+
+    /// The length of the arpeggio.
+    pub fn len(&self) -> usize {
+        self.notes.len()
+    }
+
+    /// Whether the arpeggio has no notes.
+    ///
+    /// Note that this will generally result in other methods panicking, and thus should be avoided.
+    pub fn is_empty(&self) -> bool {
+        self.notes.is_empty()
+    }
+
+    /// Advances to the next note in the arpeggio.
+    pub fn advance(&mut self) {
+        self.index = (self.index + 1) % self.len();
+    }
+
+    // pub fn set_arp(&mut self, notes:Vec<Freq>)
 }
 
 impl<S: Frequency> Mut<S> for Arp {
-    fn modify(&mut self, x: &mut S) {}
+    fn modify(&mut self, sgn: &mut S) {
+        *sgn.freq_mut() = self.current();
+        self.advance();
+    }
 }
-*/
+
+/// An arpeggiated signal.
+pub type Arpeggio<S> = Loop<S, Arp>;
+
+impl<S: Frequency> Arpeggio<S> {
+    /// Initializes a new [`Arpeggio`].
+    ///
+    /// Note that the note being played by the signal won't be updated until the first time interval
+    /// transpires, unless you call [`Self::skip_to_next`].
+    pub const fn new_arp(sgn: S, times: Vec<Time>, notes: Vec<Freq>) -> Self {
+        Self::new(times, sgn, Arp::new(notes))
+    }
+}

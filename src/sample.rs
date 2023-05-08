@@ -184,7 +184,7 @@ pub trait Sample: SampleLike {
     }
 
     /// A default implementation of the [`Sum`] trait.
-    fn _sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+    fn _sum<I: IntoIterator<Item = Self>>(iter: I) -> Self {
         let mut res = Self::ZERO;
         for sample in iter {
             res += sample;
@@ -341,7 +341,7 @@ macro_rules! impl_neg {
 macro_rules! impl_sum {
     ($ty: ty) => {
         impl Sum for $ty {
-            fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            fn sum<I: IntoIterator<Item = Self>>(iter: I) -> Self {
                 Self::_sum(iter)
             }
         }

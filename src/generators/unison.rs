@@ -129,11 +129,14 @@ where
     ///
     /// This will play multiple copies of a curve at the specified intervals from the base
     /// frequency.
-    pub fn new_curve<I: Iterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
+    pub fn new_curve<I: IntoIterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
         Self {
             map,
             base,
-            val_inters: intervals.map(|x| ValInter::new(Val::ZERO, x)).collect(),
+            val_inters: intervals
+                .into_iter()
+                .map(|x| ValInter::new(Val::ZERO, x))
+                .collect(),
         }
     }
 
@@ -263,7 +266,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     ///
     /// This will play multiple copies of a curve at the specified frequency multipliers, with the
     /// given initial phases.
-    pub fn new_phases<I: Iterator<Item = f64>>(
+    pub fn new_phases<I: IntoIterator<Item = f64>>(
         map: C,
         base: Freq,
         val_freqs: Vec<ValInter>,
@@ -275,7 +278,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     ///
     /// This will play multiple copies of a curve at the specified intervals from the base
     /// frequency.
-    pub fn new<I: Iterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
+    pub fn new<I: IntoIterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
         Self::new_curve(CurvePlayer::new(map), base, intervals)
     }
 
