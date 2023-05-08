@@ -261,16 +261,19 @@ pub struct Arp {
 
 impl Arp {
     /// Initializes a new arpeggio with the given notes.
+    #[must_use]
     pub const fn new(notes: Vec<Freq>) -> Self {
         Self { notes, index: 0 }
     }
 
     /// The currently played note.
+    #[must_use]
     pub fn current(&self) -> Freq {
         self.notes[self.index]
     }
 
     /// The length of the arpeggio.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.notes.len()
     }
@@ -278,6 +281,7 @@ impl Arp {
     /// Whether the arpeggio has no notes.
     ///
     /// Note that this will generally result in other methods panicking, and thus should be avoided.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.notes.is_empty()
     }
