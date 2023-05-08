@@ -1,8 +1,17 @@
-//! Declares sequences and loops.
+//! Declares [`Sequences`](Sequence) and [`Loops`](Loop). These can be used to modify a [`Signal`]
+//! at regular time intervals.
+//!
+//! Note that the [`Signal`] won't be immediately modified when the [`Sequence`] or [`Loop`] is
+//! initialized. It will only be modified after the first time interval transpires.
+//!
+//! Also note that the time intervals between events can be zero. The effect of this is to execute
+//! these events simultaneously.
 
 use crate::prelude::*;
 
 /// Changes a signal according to a specified function, at specified times.
+///
+/// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
 pub struct Sequence<S: SignalMut, F: Mut<S, Time>> {
     /// A list of time intervals between an event and the next.
@@ -136,16 +145,25 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Sequence<S, F> {
     }
 }
 
-/// Loops a list of events.
+/// Changes a signal according to a specified function, at specified times. These times are looped.
+///
+/// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
 pub struct Loop<S: SignalMut, F: Mut<S, Time>> {
     /// The internal sequence.
     seq: Sequence<S, F>,
 }
 
+/// Initializes a new [`Loop`] from a [`Sequence`].
+impl<S: SignalMut, F: Mut<S, Time>> From<Sequence<S, F>> for Loop<S, F> {
+    fn from(seq: Sequence<S, F>) -> Self {
+        Self::new_seq(seq)
+    }
+}
+
 impl<S: SignalMut, F: Mut<S, Time>> Loop<S, F> {
     /// Initializes a new loop from a sequence.
-    const fn new_seq(seq: Sequence<S, F>) -> Self {
+    pub const fn new_seq(seq: Sequence<S, F>) -> Self {
         Self { seq }
     }
 
@@ -227,6 +245,7 @@ impl<S: SignalMut, F: Mut<S, Time>> SignalMut for Loop<S, F> {
     }
 }
 
+/*
 /// The function that arpeggiates a signal.
 pub struct Arp {
     /// The notes to play, in order.
@@ -237,5 +256,8 @@ pub struct Arp {
 }
 
 impl<S: Frequency> Mut<S, Time> for Arp {
-    fn modify(&mut self, x: &mut S, _: Time) {}
+    fn modify(&mut self, x: &mut S, _: Time) {
+
+    }
 }
+*/

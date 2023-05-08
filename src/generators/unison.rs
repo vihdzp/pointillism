@@ -424,10 +424,7 @@ where
 {
     /// Initializes a new [`UnisonRef`].
     pub const fn new(unison: &'a UnisonCurve<C>, index: u8) -> Self {
-        Self {
-            unison,
-            index: index,
-        }
+        Self { unison, index }
     }
 }
 
