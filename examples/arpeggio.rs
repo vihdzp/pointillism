@@ -16,7 +16,7 @@ fn main() {
     let notes = vec![Freq::C4, Freq::E4, Freq::G4, Freq::A4];
 
     // Initializes the arpeggio.
-    let mut arp = Arpeggio::new_arp(LoopGen::<Mono, _>::new(Saw, Freq::C0), times, notes);
+    let mut arp = Arpeggio::new_arp(times, LoopGen::<Mono, _>::new(Saw, Freq::C0), notes);
 
     // `C0` is a dummy value that gets replaced here.
     arp.skip_to_next();
@@ -25,8 +25,8 @@ fn main() {
     let seq = Sequence::new(
         vec![LENGTH],
         arp,
-        FnWrapper::new(|arp: &mut Arpeggio<_>| {
-            arp.arp_mut().notes[2] = Freq::F4;
+        FnWrapper::new(|sgn: &mut Arpeggio<_>| {
+            sgn.arp_mut().notes[2] = Freq::F4;
         }),
     );
 

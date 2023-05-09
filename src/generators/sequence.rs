@@ -49,6 +49,11 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         &self.times
     }
 
+    /// Returns the time for the current event.
+    pub fn current_time(&self) -> Option<Time> {
+        self.times.get(self.index()).copied()
+    }
+
     /// Returns a reference to the modified signal.
     pub const fn sgn(&self) -> &S {
         &self.sgn
@@ -67,6 +72,11 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Returns a mutable reference to the function modifying the signal.
     pub fn func_mut(&mut self) -> &mut F {
         &mut self.func
+    }
+
+    /// Modifies the signal according to the function.
+    fn modify(&mut self) {
+        self.func.modify(&mut self.sgn);
     }
 
     /// The current event index.
@@ -89,28 +99,36 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.times().is_empty()
     }
 
-    /// Skips to the next event and applies it, returns whether it was successful.
-    pub fn skip_to_next(&mut self) -> bool {
-        match self.times.get(self.index()) {
-            Some(_) => {
-                self.since = Time::ZERO;
-                self.func.modify(&mut self.sgn);
-                self.index += 1;
-                true
-            }
-
-            None => false,
+    /// Skips to an event with a given index and applies it, returns whether it was successful.
+    ///
+    /// Note that the function modifying the signal will only be called once.
+    pub fn skip_to(&mut self, index: usize) -> bool {
+        self.index = index;
+        let res = self.current_time().is_some();
+        if res {
+            self.since = Time::ZERO;
+            self.modify();
+            self.index += 1;
         }
+        res
+    }
+
+    /// Skips to the next event and applies it, returns whether it was successful.
+    ///
+    /// This can be used right after initializing a [`Sequence`] so that the first event is applied
+    /// immediately.
+    pub fn skip_to_next(&mut self) -> bool {
+        self.skip_to(self.index)
     }
 
     /// Attempts to read a single event, returns whether it was successful.
     fn read_event(&mut self) -> bool {
-        match self.times.get(self.index()) {
-            Some(&event_time) => {
+        match self.current_time() {
+            Some(event_time) => {
                 let read = self.since() >= event_time;
                 if read {
                     self.since -= event_time;
-                    self.func.modify(&mut self.sgn);
+                    self.modify();
                     self.index += 1;
                 }
                 read
@@ -150,6 +168,9 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
 
 /// Changes a signal according to a specified function, at specified times. These times are looped.
 ///
+/// Although it is not undefined behavior to initialize an empty loop, doing so will lead to panics
+/// in other methods.
+///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
 pub struct Loop<S: SignalMut, F: Mut<S>> {
@@ -157,27 +178,58 @@ pub struct Loop<S: SignalMut, F: Mut<S>> {
     seq: Sequence<S, F>,
 }
 
-/// Initializes a new [`Loop`] from a [`Sequence`].
-impl<S: SignalMut, F: Mut<S>> From<Sequence<S, F>> for Loop<S, F> {
-    fn from(seq: Sequence<S, F>) -> Self {
-        Self::new_seq(seq)
-    }
-}
-
 impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
-    /// Initializes a new loop from a sequence.
-    pub const fn new_seq(seq: Sequence<S, F>) -> Self {
+    /// Turns a sequence into a loop.
+    ///
+    /// ## Safety
+    ///
+    /// This method is entirely safe. However, panics can occur in other methods if an empty
+    /// sequence is passed.
+    pub const fn new_seq_unchecked(seq: Sequence<S, F>) -> Self {
+        Self { seq }
+    }
+
+    /// Turns a sequence into a loop.
+    ///
+    /// ## Panics
+    ///
+    /// This method panics if the sequence is empty.
+    pub fn new_seq(seq: Sequence<S, F>) -> Self {
+        assert!(!seq.is_empty());
         Self { seq }
     }
 
     /// Initializes a new loop.
-    pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
+    ///
+    /// ## Safety
+    ///
+    /// This method is entirely safe. However, panics can occur in other methods if an empty `times`
+    /// array is passed.
+    pub const fn new_unchecked(times: Vec<Time>, sgn: S, func: F) -> Self {
+        Self::new_seq_unchecked(Sequence::new(times, sgn, func))
+    }
+
+    /// Initializes a new loop.
+    ///
+    /// ## Panics
+    ///
+    /// This method panics if the `times` vector is empty.
+    pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self::new_seq(Sequence::new(times, sgn, func))
     }
 
     /// Returns a reference to the list of time intervals between events.
     pub fn times(&self) -> &[Time] {
         self.seq.times()
+    }
+
+    /// Returns the time for the current event.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the loop is empty.
+    pub fn current_time(&self) -> Time {
+        self.seq.current_time().unwrap()
     }
 
     /// Returns a reference to the modified signal.
@@ -200,6 +252,11 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
         &mut self.seq.func
     }
 
+    /// Modifies the signal according to the function.
+    fn modify(&mut self) {
+        self.seq.modify();
+    }
+
     /// The current event index.
     pub const fn index(&self) -> usize {
         self.seq.index
@@ -216,15 +273,35 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     }
 
     /// Whether there are no events in the loop.
+    ///
+    /// Note that such a loop might cause other methods to panic.
     pub fn is_empty(&self) -> bool {
         self.seq.times.is_empty()
     }
 
+    /// Skips to an event with a given index and applies it.
+    ///
+    /// Note that the function modifying the signal will only be called once.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the loop is empty.
+    pub fn skip_to(&mut self, index: usize) {
+        self.seq.since = Time::ZERO;
+        self.modify();
+        self.seq.index = (index + 1) % self.len();
+    }
+
     /// Skips to the next event and applies it, returns whether it was successful.
-    pub fn skip_to_next(&mut self) -> bool {
-        let res = self.seq.skip_to_next();
-        self.seq.index %= self.seq.len();
-        res
+    ///
+    /// This can be used right after initializing a [`Loop`] so that the first event is applied
+    /// immediately.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the loop is empty.
+    pub fn skip_to_next(&mut self) {
+        self.seq.skip_to(self.index());
     }
 }
 
@@ -316,7 +393,24 @@ impl<S: Frequency> Arpeggio<S> {
     ///
     /// Note that the note being played by the signal won't be updated until the first time interval
     /// transpires, unless you call [`Self::skip_to_next`].
-    pub const fn new_arp(sgn: S, times: Vec<Time>, notes: Vec<Freq>) -> Self {
+    ///
+    /// ## Safety
+    ///
+    /// This method is entirely safe. However, panics can occur in other methods if an empty `times`
+    /// array is passed.
+    pub const fn new_arp_unchecked(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
+        Self::new_unchecked(times, sgn, Arp::new(notes))
+    }
+
+    /// Initializes a new [`Arpeggio`].
+    ///
+    /// Note that the note being played by the signal won't be updated until the first time interval
+    /// transpires, unless you call [`Self::skip_to_next`].
+    ///
+    /// ## Panics
+    ///
+    /// his method panics if the times vector is empty.
+    pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
     }
 
