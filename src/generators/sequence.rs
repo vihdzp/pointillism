@@ -11,6 +11,17 @@
 
 use crate::prelude::*;
 
+/// Increments a value in `0..len` by one, and wraps it around.
+///
+/// This should be marginally more efficient than `index = (index + 1) % len`, as it avoids the more
+/// costly modulo operation.
+fn mod_advance(len: usize, index: &mut usize) {
+    *index += 1;
+    if *index == len {
+        *index = 0;
+    }
+}
+
 /// Changes a signal according to a specified function, at specified times.
 ///
 /// See the [module docs](self) for more information.
@@ -104,7 +115,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Note that the function modifying the signal will only be called once.
     pub fn skip_to(&mut self, index: usize) -> bool {
         self.index = index;
-        let res = self.current_time().is_some();
+        let res = index < self.len();
         if res {
             self.since = Time::ZERO;
             self.modify();
@@ -258,6 +269,9 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     }
 
     /// The current event index.
+    ///
+    /// This index should, as a runtime invariant, always be less than the length of the loop,
+    /// unless the loop is empty.
     pub const fn index(&self) -> usize {
         self.seq.index
     }
@@ -281,7 +295,8 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
 
     /// Skips to an event with a given index and applies it.
     ///
-    /// Note that the function modifying the signal will only be called once.
+    /// Note that the function modifying the signal will only be called once. If this function keeps
+    /// track of some index, for instance, it won't be updated correctly.
     ///
     /// ## Panics
     ///
@@ -301,7 +316,9 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     ///
     /// Panics if the loop is empty.
     pub fn skip_to_next(&mut self) {
-        self.seq.skip_to(self.index());
+        self.seq.since = Time::ZERO;
+        self.modify();
+        mod_advance(self.len(), &mut self.seq.index);
     }
 }
 
@@ -317,7 +334,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
-        if self.seq.index >= self.len() {
+        if self.seq.index == self.len() {
             self.seq.index = 0;
         }
     }
@@ -328,6 +345,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
 }
 
 /// The function that arpeggiates a signal.
+#[derive(Clone, Debug)]
 pub struct Arp {
     /// The notes to play, in order.
     pub notes: Vec<Freq>,
@@ -365,7 +383,7 @@ impl Arp {
 
     /// Advances to the next note in the arpeggio.
     pub fn advance(&mut self) {
-        self.index = (self.index + 1) % self.len();
+        mod_advance(self.len(), &mut self.index);
     }
 
     /// Replaces the current arpeggio by a new one.

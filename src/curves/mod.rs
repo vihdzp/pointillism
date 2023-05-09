@@ -314,6 +314,8 @@ impl Pulse {
     }
 
     /// A square wave.
+    ///
+    /// Unless you want to merge between other pulse waves, consider using [`Sq`] instead.
     #[must_use]
     pub const fn sq() -> Self {
         Self::new(0.5)
@@ -335,6 +337,49 @@ impl Map for Pulse {
     }
 }
 
+/// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between `1.0` and `-1.0` for
+/// `x ≥ shape`.
+#[must_use]
+pub fn saw_tri(x: f64, shape: f64) -> f64 {
+    /// We must do some size checks to avoid division by 0.
+    const EPS: f64 = 1e-7;
+
+    if x < shape {
+        if shape.abs() < EPS {
+            1.0
+        } else {
+            interpolate::linear(-1.0, 1.0, x / shape)
+        }
+    } else if (1.0 - shape).abs() < EPS {
+        1.0
+    } else {
+        interpolate::linear(-1.0, 1.0, (1.0 - x) / (1.0 - shape))
+    }
+}
+
+/// A triangle wave.
+///
+/// Takes on values between `-1.0` and `1.0`.
+///
+/// ```txt
+///        ⟋⟍
+///      ⟋    ⟍
+/// ――――•―――――――•―― [DC = 0]
+///   ⟋          ⟍
+/// ⟋              ⟍
+/// ```
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Tri;
+
+impl Map for Tri {
+    type Input = Val;
+    type Output = f64;
+
+    fn eval(&self, x: Val) -> f64 {
+        saw_tri(x.val(), 0.5)
+    }
+}
+
 /// A curve interpolating between a saw and a triangle.
 ///
 /// Takes on values between `-1.0` and `1.0`. The `shape` corresponds to the x-coordinate of its
@@ -347,7 +392,7 @@ impl Map for Pulse {
 ///   ⟋        \
 /// ⟋           \
 /// ```
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct SawTri {
     /// Position of the peak of the wave.
     pub shape: f64,
@@ -369,6 +414,8 @@ impl SawTri {
     }
 
     /// A triangle wave.
+    ///
+    /// Unless you want to merge between other triangle waves, consider using [`Tri`] instead.
     #[must_use]
     pub const fn tri() -> Self {
         Self::new(0.5)
@@ -383,23 +430,9 @@ impl SawTri {
     }
 }
 
-/// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between `1.0` and `-1.0` for
-/// `x ≥ shape`.
-#[must_use]
-pub fn saw_tri(x: f64, shape: f64) -> f64 {
-    /// We must do some size checks to avoid division by 0.
-    const EPS: f64 = 1e-7;
-
-    if x < shape {
-        if shape.abs() < EPS {
-            1.0
-        } else {
-            interpolate::linear(-1.0, 1.0, x / shape)
-        }
-    } else if (1.0 - shape).abs() < EPS {
-        1.0
-    } else {
-        interpolate::linear(-1.0, 1.0, (1.0 - x) / (1.0 - shape))
+impl Default for SawTri {
+    fn default() -> Self {
+        Self::tri()
     }
 }
 

@@ -18,7 +18,7 @@ fn main() {
     let osc = |phase| {
         MutSgn::new(
             // A triangle wave with a placeholder frequency.
-            LoopGen::new(SawTri::tri(), BASE),
+            LoopGen::new(Tri, BASE),
             // A sine wave, which controls the pitch of the triangle wave.
             LoopGen::new_phase(Sin, (NUM_OSC as f64 * TIME).freq(), phase),
             // The frequency of the triangle wave is a function of the sine wave

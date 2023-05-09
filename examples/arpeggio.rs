@@ -9,26 +9,28 @@ const NOTE_TIME: Time = Time::new(3.0 / 32.0);
 const LENGTH: Time = Time::new(6.0);
 
 fn main() {
-    // The times for which the arpeggio notes play.
-    let times = vec![NOTE_TIME; 4];
-
     // The notes played in the arpeggio.
     let notes = vec![Freq::C4, Freq::E4, Freq::G4, Freq::A4];
 
     // Initializes the arpeggio.
-    let mut arp = Arpeggio::new_arp(times, LoopGen::<Mono, _>::new(Saw, Freq::C0), notes);
+    let mut arp = Arpeggio::new_arp(
+        vec![NOTE_TIME],
+        LoopGen::<Mono, _>::new(Tri, Freq::C0),
+        notes,
+    );
 
     // `C0` is a dummy value that gets replaced here.
     arp.skip_to_next();
 
-    // We switch up the arpeggio after the first phrase.
-    let seq = Sequence::new(
-        vec![LENGTH],
-        arp,
-        FnWrapper::new(|sgn: &mut Arpeggio<_>| {
-            sgn.arp_mut().notes[2] = Freq::F4;
-        }),
-    );
+    let mut timer = Timer::new(LENGTH);
 
-    pointillism::create_from_sgn("examples/arpeggio.wav", 2.0 * LENGTH, seq).unwrap();
+    pointillism::create("examples/arpeggio.wav", 2.0 * LENGTH, |time| {
+        // We switch up the arpeggio after the first phrase.
+        if timer.tick(time) {
+            arp.arp_mut().notes[2] = Freq::F4;
+        }
+
+        arp.next()
+    })
+    .unwrap();
 }
