@@ -82,6 +82,7 @@ pub trait Sample: SampleLike {
     fn new_array_with<T, F: FnMut(u8) -> T>(f: F) -> Self::Array<T>;
 
     /// Initializes the array `[0.0; CHANNELS]`.
+    #[must_use]
     fn new_array_f64() -> Self::Array<f64> {
         Self::new_array_with(|_| 0.0)
     }

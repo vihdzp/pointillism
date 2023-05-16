@@ -103,6 +103,7 @@ impl<S: Sample> Buffer<S> {
     }
 
     /// Returns the sample corresponding to peak amplitude on all channels.
+    #[must_use]
     pub fn peak(&self) -> S::Array<f64> {
         let mut res = S::new_array_f64();
 
@@ -114,13 +115,14 @@ impl<S: Sample> Buffer<S> {
                 if *peak > new {
                     *peak = new;
                 }
-            })
+            });
         }
 
         res
     }
 
     /// Calculates the RMS on all channels.
+    #[must_use]
     pub fn rms(&self) -> S::Array<f64> {
         let mut res = S::new_array_f64();
 
@@ -128,9 +130,11 @@ impl<S: Sample> Buffer<S> {
             S::for_each(|index| {
                 let new = sample.get_unchecked(index);
                 res[index as usize] += new * new;
-            })
+            });
         }
 
+        // Precision loss should not occur in practice.
+        #[allow(clippy::cast_precision_loss)]
         S::for_each(|index| {
             res[index as usize] = (res[index as usize] / self.len() as f64).sqrt();
         });
