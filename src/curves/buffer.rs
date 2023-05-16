@@ -2,8 +2,8 @@
 //!
 //! ## Supported WAV formats
 //!
-//! The [`hound`] library, and pointillism by extension, support only WAV files
-//! in the following formats:
+//! The [`hound`] library, and pointillism by extension, support only WAV files in the following
+//! formats:
 //!    
 //! - 8-bit integer
 //! - 16-bit integer
@@ -63,8 +63,7 @@ impl<S: Sample> Buffer<S> {
         self.data.is_empty()
     }
 
-    /// Returns the time that takes to play this buffer at a standard sample
-    /// rate of 44.1 kHz.
+    /// Returns the time that takes to play this buffer at a standard sample rate of 44.1 kHz.
     #[must_use]
     pub fn time(&self) -> Time {
         // Any precision loss should be insignificant.
@@ -102,6 +101,42 @@ impl<S: Sample> Buffer<S> {
         let len = self.len();
         &mut self[index.rem_euclid(len)]
     }
+
+    /// Returns the sample corresponding to peak amplitude on all channels.
+    pub fn peak(&self) -> S::Array<f64> {
+        let mut res = S::new_array_f64();
+
+        for sample in self {
+            S::for_each(|index| {
+                let peak = &mut res[index as usize];
+                let new = sample.get_unchecked(index).abs();
+
+                if *peak > new {
+                    *peak = new;
+                }
+            })
+        }
+
+        res
+    }
+
+    /// Calculates the RMS on all channels.
+    pub fn rms(&self) -> S::Array<f64> {
+        let mut res = S::new_array_f64();
+
+        for sample in self {
+            S::for_each(|index| {
+                let new = sample.get_unchecked(index);
+                res[index as usize] += new * new;
+            })
+        }
+
+        S::for_each(|index| {
+            res[index as usize] = (res[index as usize] / self.len() as f64).sqrt();
+        });
+
+        res
+    }
 }
 
 impl<S: Sample> std::ops::Index<usize> for Buffer<S> {
@@ -121,6 +156,33 @@ impl<S: Sample> std::ops::IndexMut<usize> for Buffer<S> {
 impl<S: Sample> FromIterator<S> for Buffer<S> {
     fn from_iter<T: IntoIterator<Item = S>>(iter: T) -> Self {
         Self::from_data(FromIterator::from_iter(iter))
+    }
+}
+
+impl<S: Sample> IntoIterator for Buffer<S> {
+    type IntoIter = std::vec::IntoIter<S>;
+    type Item = S;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
+
+impl<'a, S: Sample> IntoIterator for &'a Buffer<S> {
+    type IntoIter = std::slice::Iter<'a, S>;
+    type Item = &'a S;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+
+impl<'a, S: Sample> IntoIterator for &'a mut Buffer<S> {
+    type IntoIter = std::slice::IterMut<'a, S>;
+    type Item = &'a mut S;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter_mut()
     }
 }
 
@@ -161,13 +223,12 @@ impl Display for Error {
 
 impl std::error::Error for Error {}
 
-/// Initializes a [`WavFileReader`] with the given path, which can expect a
-/// [`Mono`] or [`Stereo`] file.
+/// Initializes a [`WavFileReader`] with the given path, which can expect a [`Mono`] or [`Stereo`]
+/// file.
 ///
 /// ## Errors
 ///
-/// Will error in case of an IO error, or if there is a mismatch in the number
-/// of channels.
+/// Will error in case of an IO error, or if there is a mismatch in the number of channels.
 fn init_reader(path: &Path, expected_mono: bool) -> Result<WavFileReader, Error> {
     let reader = WavReader::open(path)?;
     if (reader.spec().channels == 1) != expected_mono {
@@ -177,8 +238,8 @@ fn init_reader(path: &Path, expected_mono: bool) -> Result<WavFileReader, Error>
 }
 
 impl Buffer<Mono> {
-    /// Allocates memory in which to store a buffer of a given size. If
-    /// `length = 0` is passed, the null pointer will be returned.
+    /// Allocates memory in which to store a buffer of a given size. If `length = 0` is passed, the
+    /// null pointer will be returned.
     ///
     /// This is useful for two reasons:
     ///
@@ -187,8 +248,7 @@ impl Buffer<Mono> {
     /// - It allows us to transmute an interleaved array of `Mono` samples into an array of `Stereo`
     ///   samples.
     fn get_ptr(length: usize) -> *mut Mono {
-        // This must be handled separately, as `alloc::alloc` doesn't allow for
-        // an empty layout.
+        // This must be handled separately, as `alloc::alloc` doesn't allow for an empty layout.
         if length == 0 {
             return std::ptr::null_mut();
         }
@@ -205,21 +265,17 @@ impl Buffer<Mono> {
         ptr
     }
 
-    /// Reads from a `WavReader` into a pointer (returned from
-    /// [`Self::get_ptr`]).
+    /// Reads from a `WavReader` into a pointer (returned from [`Self::get_ptr`]).
     ///
-    /// This function is generic in `S`. For a non-generic version, see
-    /// [`Self::write_ptr`].
+    /// This function is generic in `S`. For a non-generic version, see [`Self::write_ptr`].
     ///
     /// ## Safety
     ///
-    /// All of the samples returned from the iterator must fit exactly in the
-    /// allocated memory area.
+    /// All of the samples returned from the iterator must fit exactly in the allocated memory area.
     ///
     /// ## Errors
     ///
-    /// Will return an error if a sample can't be turned into the specified
-    /// type `S`.
+    /// Will return an error if a sample can't be turned into the specified type `S`.
     unsafe fn write_ptr_gen<S: WavSample>(
         reader: WavFileReader,
         ptr: *mut Mono,
@@ -235,20 +291,18 @@ impl Buffer<Mono> {
         Ok(())
     }
 
-    /// Reads from a `WavReader` into a pointer (returned from
-    /// [`Self::get_ptr`]).
+    /// Reads from a `WavReader` into a pointer (returned from [`Self::get_ptr`]).
     ///
     /// See also [`Self::write_ptr_gen`].
     ///
     /// ## Safety
     ///
-    /// All of the samples returned from the iterator must fit exactly in the
-    /// allocated memory area.
+    /// All of the samples returned from the iterator must fit exactly in the allocated memory area.
     ///
     /// ## Errors
     ///
-    /// This should not error as long as the WAV file is in a supported format.
-    /// See the [module docs](self) for a list.
+    /// This should not error as long as the WAV file is in a supported format. See the [module
+    /// docs](self) for a list.
     unsafe fn write_ptr(reader: WavFileReader, ptr: *mut Mono) -> hound::Result<()> {
         match reader.spec().sample_format {
             SampleFormat::Float => Self::write_ptr_gen::<f32>(reader, ptr),
@@ -261,13 +315,13 @@ impl Buffer<Mono> {
         }
     }
 
-    /// Creates a buffer from an initialized pointer, returned from either
-    /// [`Self::write_ptr_gen`] or [`Self::write_ptr`].
+    /// Creates a buffer from an initialized pointer, returned from either [`Self::write_ptr_gen`]
+    /// or [`Self::write_ptr`].
     ///
     /// ## Safety
     ///
-    /// If `ptr` is not null, the memory area must be initialized, and have the
-    /// exact length (in [`Mono`] samples) passed as an argument.
+    /// If `ptr` is not null, the memory area must be initialized, and have the exact length (in
+    /// [`Mono`] samples) passed as an argument.
     unsafe fn from_ptr(length: usize, ptr: *mut Mono) -> Self {
         if ptr.is_null() {
             Buffer::new()
@@ -276,8 +330,7 @@ impl Buffer<Mono> {
         }
     }
 
-    /// Creates a [`Mono`] buffer from a wav file, with a given [`WavSample`]
-    /// format.
+    /// Creates a [`Mono`] buffer from a wav file, with a given [`WavSample`] format.
     ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///
@@ -326,16 +379,16 @@ impl Buffer<Mono> {
 }
 
 impl Buffer<Stereo> {
-    /// Creates a buffer from an initialized pointer, returned from either
-    /// [`Buffer::write_ptr_gen`] or [`Buffer::write_ptr`].
+    /// Creates a buffer from an initialized pointer, returned from either [`Buffer::write_ptr_gen`]
+    /// or [`Buffer::write_ptr`].
     ///
-    /// This pointer should point to memory consisting of an even number of
-    /// interleaved `Mono` samples.
+    /// This pointer should point to memory consisting of an even number of interleaved `Mono`
+    /// samples.
     ///
     /// ## Safety
     ///
-    /// If `ptr` is not null, the memory area must be initialized, and have the
-    /// exact length (in [`Mono`] samples) passed as an argument.
+    /// If `ptr` is not null, the memory area must be initialized, and have the exact length (in
+    /// [`Mono`] samples) passed as an argument.
     ///
     /// In particular, `length` must be even.
     fn from_ptr(length: usize, ptr: *mut Mono) -> Self {
@@ -348,8 +401,7 @@ impl Buffer<Stereo> {
         }
     }
 
-    /// Creates a [`Stereo`] buffer from a wav file, with a given [`WavSample`]
-    /// format.
+    /// Creates a [`Stereo`] buffer from a wav file, with a given [`WavSample`] format.
     ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///

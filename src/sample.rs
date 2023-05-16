@@ -9,7 +9,9 @@ use rand::{distributions::Standard, prelude::Distribution, Rng};
 use std::{
     fmt::Debug,
     iter::Sum,
-    ops::{Add, AddAssign, Div, DivAssign, FnMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Div, DivAssign, FnMut, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+    },
 };
 
 /// A sample of mono audio, typically holding a value between `-1.0` and `1.0`.
@@ -72,6 +74,18 @@ pub trait Sample: SampleLike {
     /// The number of values stored in the sample.
     const CHANNELS: u8;
 
+    /// The array with the corresponding number of channels.
+    type Array<T>: Index<usize, Output = T> + IndexMut<usize, Output = T>;
+
+    /// Initializes a new array with the corresponding number of channels, by calling `f` with each
+    /// index.
+    fn new_array_with<T, F: FnMut(u8) -> T>(f: F) -> Self::Array<T>;
+
+    /// Initializes the array `[0.0; CHANNELS]`.
+    fn new_array_f64() -> Self::Array<f64> {
+        Self::new_array_with(|_| 0.0)
+    }
+
     /// Gets the value from channel `index`. Reads the last channel if out of
     /// bounds.
     fn get_unchecked(&self, index: u8) -> f64;
@@ -122,11 +136,9 @@ pub trait Sample: SampleLike {
     }
 
     /// Executes a function for each channel index.
-    fn for_each<F: FnMut(u8)>(mut f: F) {
-        for index in 0..Self::CHANNELS {
-            f(index);
-        }
-    }
+    ///
+    /// This unfolds to either 1 or 2 individual function calls.
+    fn for_each<F: FnMut(u8)>(f: F);
 
     /// Initializes a new sample by calling `f(index)` on each index.
     fn from_fn<F: FnMut(u8) -> f64>(mut f: F) -> Self {
@@ -226,6 +238,16 @@ impl SampleLike for Mono {
 impl Sample for Mono {
     const CHANNELS: u8 = 1;
 
+    type Array<T> = [T; 1];
+
+    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
+        [f(0)]
+    }
+
+    fn for_each<F: FnMut(u8)>(mut f: F) {
+        f(0);
+    }
+
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0
     }
@@ -243,6 +265,17 @@ impl SampleLike for Stereo {
 
 impl Sample for Stereo {
     const CHANNELS: u8 = 2;
+
+    type Array<T> = [T; 2];
+
+    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
+        [f(0), f(1)]
+    }
+
+    fn for_each<F: FnMut(u8)>(mut f: F) {
+        f(0);
+        f(1);
+    }
 
     fn get_unchecked(&self, index: u8) -> f64 {
         if index == 0 {
@@ -269,6 +302,16 @@ impl SampleLike for Env {
 
 impl Sample for Env {
     const CHANNELS: u8 = 1;
+
+    type Array<T> = [T; 1];
+
+    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
+        [f(0)]
+    }
+
+    fn for_each<F: FnMut(u8)>(mut f: F) {
+        f(0);
+    }
 
     fn get_unchecked(&self, _: u8) -> f64 {
         self.0
