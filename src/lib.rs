@@ -109,6 +109,9 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     // Using the timer like this does lead to some floating-point imprecision. We hope however that
     // it is negligible over relevant timespans.
     let mut timer = Time::ZERO;
+
+    // The size is either 1 or 2.
+    #[allow(clippy::cast_possible_truncation)]
     let mut writer = WavWriter::create(filename, spec(A::SIZE as u8))?;
 
     while timer < length {

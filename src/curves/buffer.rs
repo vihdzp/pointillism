@@ -109,8 +109,8 @@ impl<S: Sample> Buffer<S> {
 
         for sample in self {
             S::for_each(|index| {
-                let peak = &mut res[index as usize];
-                let new = sample.get_unchecked(index).abs();
+                let peak = &mut res[index];
+                let new = sample[index].abs();
 
                 if *peak > new {
                     *peak = new;
@@ -128,15 +128,15 @@ impl<S: Sample> Buffer<S> {
 
         for sample in self {
             S::for_each(|index| {
-                let new = sample.get_unchecked(index);
-                res[index as usize] += new * new;
+                let new = sample[index];
+                res[index] += new * new;
             });
         }
 
         // Precision loss should not occur in practice.
         #[allow(clippy::cast_precision_loss)]
         S::for_each(|index| {
-            res[index as usize] = (res[index as usize] / self.len() as f64).sqrt();
+            res[index] = (res[index] / self.len() as f64).sqrt();
         });
 
         res

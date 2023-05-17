@@ -66,6 +66,7 @@ impl SampleLike for f64 {
     const ZERO: Self = 0.0;
 }
 
+/// A trait for array-like types that store a compile-time amount of data contiguously.
 pub trait ArrayLike:
     AsRef<[Self::Item]>
     + AsMut<[Self::Item]>
@@ -73,36 +74,28 @@ pub trait ArrayLike:
     + IndexMut<usize>
     + Sized
 {
+    /// The type of items this array stores.
     type Item;
+
+    /// The size of the array.
     const SIZE: usize;
 
+    /// The array type with the same number of elements as `SIZE`.
+    ///
+    /// If we could use `[T; Self::SIZE]`, this wouldn't be needed.
     type Array<T>: ArrayLike<Item = T>;
 
+    /// Creates a value from an array.
     fn from_array(array: Self::Array<Self::Item>) -> Self;
 
+    /// Turns this value into an array.
     fn into_array(self) -> Self::Array<Self::Item>;
 
+    /// Creates the array `[f(0), f(1), ...]`.
     fn from_fn<F: FnMut(usize) -> Self::Item>(f: F) -> Self;
 
-    /// Gets the value from channel `index`. Reads the last channel if out of bounds.
-    ///
-    /// ## Panics
-    ///
-    /// This should never panic when called on a [`Sample`].
-    ///  
-    /// Panics if the size of the array is 0.
-    fn get_unchecked(&self, index: usize) -> &Self::Item;
-
-    /// Gets a mutable reference to the value from channel `index`. Reads the last channel if out of
-    /// bounds.
-    ///
-    /// ## Panics
-    ///
-    /// This should never panic when called on a [`Sample`].
-    ///
-    /// Panics if the size of the array is 0.
-    fn get_mut_unchecked(&mut self, index: usize) -> &mut Self::Item;
-
+    /// Initializes a new array with default values.
+    #[must_use]
     fn new_default() -> Self
     where
         Self::Item: Default,
@@ -113,7 +106,7 @@ pub trait ArrayLike:
     /// Gets the value from channel `index`.
     fn get(&self, index: usize) -> Option<&Self::Item> {
         if index < Self::SIZE {
-            Some(self.get_unchecked(index))
+            Some(&self.as_ref()[index])
         } else {
             None
         }
@@ -126,13 +119,13 @@ pub trait ArrayLike:
     /// Panics if the index is greater than the number of channels.
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Item> {
         if index < Self::SIZE {
-            Some(self.get_mut_unchecked(index))
+            Some(&mut self.as_mut()[index])
         } else {
             None
         }
     }
 
-    /// Executes a function for each channel index.
+    /// Executes a function for each element in the array type.
     fn for_each<F: FnMut(usize)>(mut f: F) {
         for i in 0..Self::SIZE {
             f(i);
@@ -142,12 +135,12 @@ pub trait ArrayLike:
     /// Applies a function `f` to all entries of the sample.
     #[must_use]
     fn map<F: FnMut(&Self::Item) -> Self::Item>(&self, mut f: F) -> Self {
-        Self::from_fn(|index| f(self.get_unchecked(index)))
+        Self::from_fn(|index| f(&self[index]))
     }
 
     /// Mutably applies a function `f` to all entries of the sample.
     fn map_mut<F: FnMut(&mut Self::Item)>(&mut self, mut f: F) {
-        Self::for_each(|index| f(self.get_mut_unchecked(index)));
+        Self::for_each(|index| f(&mut self[index]));
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
@@ -157,15 +150,15 @@ pub trait ArrayLike:
         rhs: Self,
         mut f: F,
     ) -> Self {
-        Self::from_fn(|index| f(self.get_unchecked(index), rhs.get_unchecked(index)))
+        Self::from_fn(|index| f(&self[index], &rhs[index]))
     }
 
     /// Mutably applies a function `f` to pairs of entries of the samples.
     fn pairwise_mut<F: FnMut(&mut Self::Item, &Self::Item)>(&mut self, rhs: Self, mut f: F) {
-        Self::for_each(|index| f(self.get_mut_unchecked(index), rhs.get_unchecked(index)));
+        Self::for_each(|index| f(&mut self[index], &rhs[index]));
     }
 
-    /// Initializes a sample where all channels use the specified value.
+    /// Initializes an array filled with the specified value.
     #[must_use]
     fn from_val(val: Self::Item) -> Self
     where
@@ -182,22 +175,30 @@ pub trait ArrayLike:
 pub trait Sample: SampleLike + ArrayLike<Item = f64> {
     /// Gets the value from the first channel.
     fn fst(&self) -> f64 {
-        *self.get_unchecked(0)
+        self[0]
     }
 
     /// Gets a mutable reference to the value from the first channel.
     fn fst_mut(&mut self) -> &mut f64 {
-        self.get_mut_unchecked(0)
+        &mut self[0]
     }
 
     /// Gets the value from the second channel, defaulting to the first.
     fn snd(&self) -> f64 {
-        *self.get_unchecked(1)
+        if Self::SIZE >= 2 {
+            self[1]
+        } else {
+            self[0]
+        }
     }
 
     /// Gets a mutable reference to the value from the second channel, defaulting to the first.
     fn snd_mut(&mut self) -> &mut f64 {
-        self.get_mut_unchecked(1)
+        if Self::SIZE >= 2 {
+            &mut self[1]
+        } else {
+            &mut self[0]
+        }
     }
 
     /// Generates a random sample from a given `Rng` object.
@@ -249,7 +250,7 @@ pub trait Audio: Sample {
         for index in 0..Self::SIZE {
             // In practice, truncation should never occur.
             #[allow(clippy::cast_possible_truncation)]
-            writer.write_sample(*self.get_unchecked(index) as f32)?;
+            writer.write_sample(self[index] as f32)?;
         }
 
         Ok(())
@@ -277,14 +278,6 @@ impl ArrayLike for Mono {
 
     fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
         Self(f(0))
-    }
-
-    fn get_unchecked(&self, _: usize) -> &f64 {
-        &self.0
-    }
-
-    fn get_mut_unchecked(&mut self, _: usize) -> &mut f64 {
-        &mut self.0
     }
 }
 
@@ -314,22 +307,6 @@ impl ArrayLike for Stereo {
     fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
         Self(f(0), f(1))
     }
-
-    fn get_unchecked(&self, index: usize) -> &f64 {
-        if index == 0 {
-            &self.0
-        } else {
-            &self.1
-        }
-    }
-
-    fn get_mut_unchecked(&mut self, index: usize) -> &mut f64 {
-        if index == 0 {
-            &mut self.0
-        } else {
-            &mut self.1
-        }
-    }
 }
 
 impl Sample for Stereo {}
@@ -358,14 +335,6 @@ impl ArrayLike for Env {
     fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
         Self(f(0))
     }
-
-    fn get_unchecked(&self, _: usize) -> &f64 {
-        &self.0
-    }
-
-    fn get_mut_unchecked(&mut self, _: usize) -> &mut f64 {
-        &mut self.0
-    }
 }
 
 impl Sample for Env {}
@@ -387,24 +356,6 @@ impl<T, const N: usize> ArrayLike for [T; N] {
 
     fn into_array(self) -> Self {
         self
-    }
-
-    fn get_unchecked(&self, index: usize) -> &T {
-        if index < Self::SIZE {
-            &self[index]
-        } else {
-            self.last()
-                .expect("get_unchecked can't be called on zero-sized arrays")
-        }
-    }
-
-    fn get_mut_unchecked(&mut self, index: usize) -> &mut Self::Item {
-        if index < Self::SIZE {
-            &mut self[index]
-        } else {
-            self.last_mut()
-                .expect("get_unchecked can't be called on zero-sized arrays")
-        }
     }
 }
 
@@ -477,17 +428,7 @@ macro_rules! impl_sum {
     };
 }
 
-/// Implements `Distribution<Self>` for `Standard`.
-macro_rules! impl_rand {
-    ($ty: ty) => {
-        impl Distribution<$ty> for Standard {
-            fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> $ty {
-                <$ty>::rand_with(rng)
-            }
-        }
-    };
-}
-
+/// Implements trait `Index`.
 macro_rules! impl_index {
     ($ty: ty) => {
         impl Index<usize> for $ty {
@@ -520,7 +461,7 @@ impl AsRef<[f64]> for Env {
 
 impl AsRef<[f64]> for Stereo {
     fn as_ref(&self) -> &[f64] {
-        unsafe { std::slice::from_raw_parts(&self.0 as *const _, 2) }
+        unsafe { std::slice::from_raw_parts(std::ptr::addr_of!(self.0), 2) }
     }
 }
 
@@ -538,8 +479,19 @@ impl AsMut<[f64]> for Env {
 
 impl AsMut<[f64]> for Stereo {
     fn as_mut(&mut self) -> &mut [f64] {
-        unsafe { std::slice::from_raw_parts_mut(&mut self.0 as *mut _, 2) }
+        unsafe { std::slice::from_raw_parts_mut(std::ptr::addr_of_mut!(self.0), 2) }
     }
+}
+
+/// Implements `Distribution<Self>` for `Standard`.
+macro_rules! impl_rand {
+    ($ty: ty) => {
+        impl Distribution<$ty> for Standard {
+            fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> $ty {
+                <$ty>::rand_with(rng)
+            }
+        }
+    };
 }
 
 /// Implements all traits for the specified type.
@@ -552,8 +504,8 @@ macro_rules! impl_all {
             impl_op_assign_f64!($ty; MulAssign, mul_assign, DivAssign, div_assign);
             impl_neg!($ty);
             impl_sum!($ty);
-            impl_rand!($ty);
             impl_index!($ty);
+            impl_rand!($ty);
         )*
     };
 }
