@@ -138,6 +138,12 @@ pub trait ArrayLike:
         Self::from_fn(|index| f(&self[index]))
     }
 
+    /// Applies a function `f` to all entries of the sample.
+    #[must_use]
+    fn map_array<T: ArrayLike, F: FnMut(&Self::Item) -> T::Item>(&self, mut f: F) -> T {
+        T::from_fn(|index| f(&self[index]))
+    }
+
     /// Mutably applies a function `f` to all entries of the sample.
     fn map_mut<F: FnMut(&mut Self::Item)>(&mut self, mut f: F) {
         Self::for_each(|index| f(&mut self[index]));

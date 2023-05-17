@@ -104,7 +104,7 @@ impl<S: Sample> Buffer<S> {
 
     /// Returns the sample corresponding to peak amplitude on all channels.
     #[must_use]
-    pub fn peak(&self) -> S::Array<f64> {
+    pub fn peak(&self) -> S::Array<Vol> {
         let mut res = S::Array::new_default();
 
         for sample in self {
@@ -118,12 +118,12 @@ impl<S: Sample> Buffer<S> {
             });
         }
 
-        res
+        res.map_array(|&x| Vol::new(x))
     }
 
     /// Calculates the RMS on all channels.
     #[must_use]
-    pub fn rms(&self) -> S::Array<f64> {
+    pub fn rms(&self) -> S::Array<Vol> {
         let mut res: S::Array<f64> = ArrayLike::new_default();
 
         for sample in self {
@@ -139,7 +139,7 @@ impl<S: Sample> Buffer<S> {
             res[index] = (res[index] / self.len() as f64).sqrt();
         });
 
-        res
+        res.map_array(|&x| Vol::new(x))
     }
 }
 
