@@ -43,7 +43,7 @@ impl<S: Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
     type Output = S;
 
     fn eval(&self, x: S) -> S {
-        x.map(|y| self.func.eval(y))
+        x.map(|y| self.func.eval(*y))
     }
 }
 

@@ -66,38 +66,123 @@ impl SampleLike for f64 {
     const ZERO: Self = 0.0;
 }
 
+pub trait ArrayLike:
+    AsRef<[Self::Item]>
+    + AsMut<[Self::Item]>
+    + Index<usize, Output = Self::Item>
+    + IndexMut<usize>
+    + Sized
+{
+    type Item;
+    const SIZE: usize;
+
+    type Array<T>: ArrayLike<Item = T>;
+
+    fn from_array(array: Self::Array<Self::Item>) -> Self;
+
+    fn into_array(self) -> Self::Array<Self::Item>;
+
+    fn from_fn<F: FnMut(usize) -> Self::Item>(f: F) -> Self;
+
+    /// Gets the value from channel `index`. Reads the last channel if out of bounds.
+    ///
+    /// ## Panics
+    ///
+    /// This should never panic when called on a [`Sample`].
+    ///  
+    /// Panics if the size of the array is 0.
+    fn get_unchecked(&self, index: usize) -> &Self::Item;
+
+    /// Gets a mutable reference to the value from channel `index`. Reads the last channel if out of
+    /// bounds.
+    ///
+    /// ## Panics
+    ///
+    /// This should never panic when called on a [`Sample`].
+    ///
+    /// Panics if the size of the array is 0.
+    fn get_mut_unchecked(&mut self, index: usize) -> &mut Self::Item;
+
+    fn new_default() -> Self
+    where
+        Self::Item: Default,
+    {
+        Self::from_fn(|_| Default::default())
+    }
+
+    /// Gets the value from channel `index`.
+    fn get(&self, index: usize) -> Option<&Self::Item> {
+        if index < Self::SIZE {
+            Some(self.get_unchecked(index))
+        } else {
+            None
+        }
+    }
+
+    /// Gets a mutable reference to the value from channel `index`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is greater than the number of channels.
+    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Item> {
+        if index < Self::SIZE {
+            Some(self.get_mut_unchecked(index))
+        } else {
+            None
+        }
+    }
+
+    /// Executes a function for each channel index.
+    fn for_each<F: FnMut(usize)>(mut f: F) {
+        for i in 0..Self::SIZE {
+            f(i);
+        }
+    }
+
+    /// Applies a function `f` to all entries of the sample.
+    #[must_use]
+    fn map<F: FnMut(&Self::Item) -> Self::Item>(&self, mut f: F) -> Self {
+        Self::from_fn(|index| f(self.get_unchecked(index)))
+    }
+
+    /// Mutably applies a function `f` to all entries of the sample.
+    fn map_mut<F: FnMut(&mut Self::Item)>(&mut self, mut f: F) {
+        Self::for_each(|index| f(self.get_mut_unchecked(index)));
+    }
+
+    /// Applies a function `f` to pairs of entries of the samples.
+    #[must_use]
+    fn pairwise<F: FnMut(&Self::Item, &Self::Item) -> Self::Item>(
+        &self,
+        rhs: Self,
+        mut f: F,
+    ) -> Self {
+        Self::from_fn(|index| f(self.get_unchecked(index), rhs.get_unchecked(index)))
+    }
+
+    /// Mutably applies a function `f` to pairs of entries of the samples.
+    fn pairwise_mut<F: FnMut(&mut Self::Item, &Self::Item)>(&mut self, rhs: Self, mut f: F) {
+        Self::for_each(|index| f(self.get_mut_unchecked(index), rhs.get_unchecked(index)));
+    }
+
+    /// Initializes a sample where all channels use the specified value.
+    #[must_use]
+    fn from_val(val: Self::Item) -> Self
+    where
+        Self::Item: Copy,
+    {
+        Self::from_fn(|_| val)
+    }
+}
+
 /// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
 ///
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
 /// envelopes such as in an LFO.
-pub trait Sample: SampleLike {
-    /// The number of values stored in the sample.
-    const CHANNELS: u8;
-
-    /// The array with the corresponding number of channels.
-    type Array<T>: Index<usize, Output = T> + IndexMut<usize, Output = T>;
-
-    /// Initializes a new array with the corresponding number of channels, by calling `f` with each
-    /// index.
-    fn new_array_with<T, F: FnMut(u8) -> T>(f: F) -> Self::Array<T>;
-
-    /// Initializes the array `[0.0; CHANNELS]`.
-    #[must_use]
-    fn new_array_f64() -> Self::Array<f64> {
-        Self::new_array_with(|_| 0.0)
-    }
-
-    /// Gets the value from channel `index`. Reads the last channel if out of
-    /// bounds.
-    fn get_unchecked(&self, index: u8) -> f64;
-
-    /// Gets a mutable reference to the value from channel `index`. Reads the last
-    /// channel if out of bounds.
-    fn get_mut_unchecked(&mut self, index: u8) -> &mut f64;
-
+pub trait Sample: SampleLike + ArrayLike<Item = f64> {
     /// Gets the value from the first channel.
     fn fst(&self) -> f64 {
-        self.get_unchecked(0)
+        *self.get_unchecked(0)
     }
 
     /// Gets a mutable reference to the value from the first channel.
@@ -107,73 +192,12 @@ pub trait Sample: SampleLike {
 
     /// Gets the value from the second channel, defaulting to the first.
     fn snd(&self) -> f64 {
-        self.get_unchecked(1)
+        *self.get_unchecked(1)
     }
 
-    /// Gets a mutable reference to the value from the second channel,
-    /// defaulting to the first.
+    /// Gets a mutable reference to the value from the second channel, defaulting to the first.
     fn snd_mut(&mut self) -> &mut f64 {
         self.get_mut_unchecked(1)
-    }
-
-    /// Gets the value from channel `index`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the index is greater than the number of channels.
-    fn get(&self, index: u8) -> f64 {
-        assert!(index < Self::CHANNELS, "index {index} out of bounds");
-        self.get_unchecked(index)
-    }
-
-    /// Gets a reference to the value from channel `index`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the index is greater than the number of channels.
-    fn get_mut(&mut self, index: u8) -> &mut f64 {
-        assert!(index < Self::CHANNELS, "index {index} out of bounds");
-        self.get_mut_unchecked(index)
-    }
-
-    /// Executes a function for each channel index.
-    ///
-    /// This unfolds to either 1 or 2 individual function calls.
-    fn for_each<F: FnMut(u8)>(f: F);
-
-    /// Initializes a new sample by calling `f(index)` on each index.
-    fn from_fn<F: FnMut(u8) -> f64>(mut f: F) -> Self {
-        let mut res = Self::default();
-        Self::for_each(|index| *res.get_mut_unchecked(index) = f(index));
-        res
-    }
-
-    /// Applies a function `f` to all entries of the sample.
-    #[must_use]
-    fn map<F: FnMut(f64) -> f64>(&self, mut f: F) -> Self {
-        Self::from_fn(|index| f(self.get(index)))
-    }
-
-    /// Mutably applies a function `f` to all entries of the sample.
-    fn map_mut<F: FnMut(&mut f64)>(&mut self, mut f: F) {
-        Self::for_each(|index| f(self.get_mut_unchecked(index)));
-    }
-
-    /// Applies a function `f` to pairs of entries of the samples.
-    #[must_use]
-    fn pairwise<F: FnMut(f64, f64) -> f64>(&self, rhs: Self, mut f: F) -> Self {
-        Self::from_fn(|index| f(self.get(index), rhs.get(index)))
-    }
-
-    /// Mutably applies a function `f` to pairs of entries of the samples.
-    fn pairwise_mut<F: FnMut(&mut f64, f64)>(&mut self, rhs: Self, mut f: F) {
-        Self::for_each(|index| f(self.get_mut(index), rhs.get(index)));
-    }
-
-    /// Initializes a sample where all channels use the specified value.
-    #[must_use]
-    fn from_val(val: f64) -> Self {
-        Self::from_fn(|_| val)
     }
 
     /// Generates a random sample from a given `Rng` object.
@@ -222,10 +246,10 @@ pub trait Audio: Sample {
         &self,
         writer: &mut WavWriter<W>,
     ) -> hound::Result<()> {
-        for index in 0..Self::CHANNELS {
+        for index in 0..Self::SIZE {
             // In practice, truncation should never occur.
             #[allow(clippy::cast_possible_truncation)]
-            writer.write_sample(self.get_unchecked(index) as f32)?;
+            writer.write_sample(*self.get_unchecked(index) as f32)?;
         }
 
         Ok(())
@@ -236,27 +260,35 @@ impl SampleLike for Mono {
     const ZERO: Self = Self(0.0);
 }
 
-impl Sample for Mono {
-    const CHANNELS: u8 = 1;
+impl ArrayLike for Mono {
+    const SIZE: usize = 1;
+
+    type Item = f64;
 
     type Array<T> = [T; 1];
 
-    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
-        [f(0)]
+    fn from_array(array: [f64; 1]) -> Self {
+        Self(array[0])
     }
 
-    fn for_each<F: FnMut(u8)>(mut f: F) {
-        f(0);
+    fn into_array(self) -> [f64; 1] {
+        [self.0]
     }
 
-    fn get_unchecked(&self, _: u8) -> f64 {
-        self.0
+    fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
+        Self(f(0))
     }
 
-    fn get_mut_unchecked(&mut self, _: u8) -> &mut f64 {
+    fn get_unchecked(&self, _: usize) -> &f64 {
+        &self.0
+    }
+
+    fn get_mut_unchecked(&mut self, _: usize) -> &mut f64 {
         &mut self.0
     }
 }
+
+impl Sample for Mono {}
 
 impl Audio for Mono {}
 
@@ -264,29 +296,34 @@ impl SampleLike for Stereo {
     const ZERO: Self = Self(0.0, 0.0);
 }
 
-impl Sample for Stereo {
-    const CHANNELS: u8 = 2;
+impl ArrayLike for Stereo {
+    const SIZE: usize = 2;
+
+    type Item = f64;
 
     type Array<T> = [T; 2];
 
-    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
-        [f(0), f(1)]
+    fn from_array(array: [f64; 2]) -> Self {
+        Self(array[0], array[1])
     }
 
-    fn for_each<F: FnMut(u8)>(mut f: F) {
-        f(0);
-        f(1);
+    fn into_array(self) -> [f64; 2] {
+        [self.0, self.1]
     }
 
-    fn get_unchecked(&self, index: u8) -> f64 {
+    fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
+        Self(f(0), f(1))
+    }
+
+    fn get_unchecked(&self, index: usize) -> &f64 {
         if index == 0 {
-            self.0
+            &self.0
         } else {
-            self.1
+            &self.1
         }
     }
 
-    fn get_mut_unchecked(&mut self, index: u8) -> &mut f64 {
+    fn get_mut_unchecked(&mut self, index: usize) -> &mut f64 {
         if index == 0 {
             &mut self.0
         } else {
@@ -295,31 +332,79 @@ impl Sample for Stereo {
     }
 }
 
+impl Sample for Stereo {}
+
 impl Audio for Stereo {}
 
 impl SampleLike for Env {
     const ZERO: Self = Self(0.0);
 }
 
-impl Sample for Env {
-    const CHANNELS: u8 = 1;
+impl ArrayLike for Env {
+    const SIZE: usize = 2;
+
+    type Item = f64;
 
     type Array<T> = [T; 1];
 
-    fn new_array_with<T, F: FnMut(u8) -> T>(mut f: F) -> Self::Array<T> {
-        [f(0)]
+    fn from_array(array: [f64; 1]) -> Self {
+        Self(array[0])
     }
 
-    fn for_each<F: FnMut(u8)>(mut f: F) {
-        f(0);
+    fn into_array(self) -> [f64; 1] {
+        [self.0]
     }
 
-    fn get_unchecked(&self, _: u8) -> f64 {
-        self.0
+    fn from_fn<F: FnMut(usize) -> Self::Item>(mut f: F) -> Self {
+        Self(f(0))
     }
 
-    fn get_mut_unchecked(&mut self, _: u8) -> &mut f64 {
+    fn get_unchecked(&self, _: usize) -> &f64 {
+        &self.0
+    }
+
+    fn get_mut_unchecked(&mut self, _: usize) -> &mut f64 {
         &mut self.0
+    }
+}
+
+impl Sample for Env {}
+
+impl<T, const N: usize> ArrayLike for [T; N] {
+    const SIZE: usize = N;
+
+    type Item = T;
+
+    type Array<U> = [U; N];
+
+    fn from_fn<F: FnMut(usize) -> Self::Item>(f: F) -> Self {
+        std::array::from_fn(f)
+    }
+
+    fn from_array(array: Self) -> Self {
+        array
+    }
+
+    fn into_array(self) -> Self {
+        self
+    }
+
+    fn get_unchecked(&self, index: usize) -> &T {
+        if index < Self::SIZE {
+            &self[index]
+        } else {
+            self.last()
+                .expect("get_unchecked can't be called on zero-sized arrays")
+        }
+    }
+
+    fn get_mut_unchecked(&mut self, index: usize) -> &mut Self::Item {
+        if index < Self::SIZE {
+            &mut self[index]
+        } else {
+            self.last_mut()
+                .expect("get_unchecked can't be called on zero-sized arrays")
+        }
     }
 }
 
@@ -329,7 +414,7 @@ macro_rules! impl_op {
         $(impl $op for $ty {
             type Output = Self;
             fn $fn(self, rhs: Self) -> Self::Output {
-                self.pairwise(rhs, std::ops::$op::$fn)
+                self.pairwise(rhs, |x, y| std::ops::$op::$fn(x, y))
             }
         })*
     };
@@ -340,7 +425,7 @@ macro_rules! impl_op_assign {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op for $ty {
             fn $fn(&mut self, rhs: Self) {
-                self.pairwise_mut(rhs, std::ops::$op::$fn);
+                self.pairwise_mut(rhs, |x, y| std::ops::$op::$fn(x, y));
             }
         })*
     };
@@ -403,6 +488,60 @@ macro_rules! impl_rand {
     };
 }
 
+macro_rules! impl_index {
+    ($ty: ty) => {
+        impl Index<usize> for $ty {
+            type Output = f64;
+
+            fn index(&self, index: usize) -> &f64 {
+                self.get(index).unwrap()
+            }
+        }
+
+        impl IndexMut<usize> for $ty {
+            fn index_mut(&mut self, index: usize) -> &mut f64 {
+                self.get_mut(index).unwrap()
+            }
+        }
+    };
+}
+
+impl AsRef<[f64]> for Mono {
+    fn as_ref(&self) -> &[f64] {
+        std::slice::from_ref(&self.0)
+    }
+}
+
+impl AsRef<[f64]> for Env {
+    fn as_ref(&self) -> &[f64] {
+        std::slice::from_ref(&self.0)
+    }
+}
+
+impl AsRef<[f64]> for Stereo {
+    fn as_ref(&self) -> &[f64] {
+        unsafe { std::slice::from_raw_parts(&self.0 as *const _, 2) }
+    }
+}
+
+impl AsMut<[f64]> for Mono {
+    fn as_mut(&mut self) -> &mut [f64] {
+        std::slice::from_mut(&mut self.0)
+    }
+}
+
+impl AsMut<[f64]> for Env {
+    fn as_mut(&mut self) -> &mut [f64] {
+        std::slice::from_mut(&mut self.0)
+    }
+}
+
+impl AsMut<[f64]> for Stereo {
+    fn as_mut(&mut self) -> &mut [f64] {
+        unsafe { std::slice::from_raw_parts_mut(&mut self.0 as *mut _, 2) }
+    }
+}
+
 /// Implements all traits for the specified type.
 macro_rules! impl_all {
     ($($ty: ty),*) => {
@@ -414,6 +553,7 @@ macro_rules! impl_all {
             impl_neg!($ty);
             impl_sum!($ty);
             impl_rand!($ty);
+            impl_index!($ty);
         )*
     };
 }

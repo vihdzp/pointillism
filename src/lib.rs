@@ -109,7 +109,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     // Using the timer like this does lead to some floating-point imprecision. We hope however that
     // it is negligible over relevant timespans.
     let mut timer = Time::ZERO;
-    let mut writer = WavWriter::create(filename, spec(A::CHANNELS))?;
+    let mut writer = WavWriter::create(filename, spec(A::SIZE as u8))?;
 
     while timer < length {
         song(timer).write(&mut writer)?;
