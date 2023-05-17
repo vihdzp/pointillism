@@ -91,7 +91,8 @@ pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
 
-/// Creates a song with a given duration, writing down each sample as it comes.
+/// Creates a song with a given duration, writing down each sample as it comes. The duration of the
+/// file is exact to the frame.
 ///
 /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
 /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
@@ -101,12 +102,14 @@ pub fn sgn(x: f64) -> f64 {
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
+// Precision loss should never occur in practical circumstances.
+#[allow(clippy::cast_precision_loss)]
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
     mut song: F,
 ) -> Result<()> {
-    let length = dbg!(length.frames() as u64);
+    let length = length.frames() as u64;
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]
