@@ -1,7 +1,5 @@
 //! Defines [`RawTime`] and its basic methods.
 
-
-
 use std::{
     fmt::{Formatter, Result as FmtResult},
     ops::{Div, DivAssign, Mul, MulAssign},

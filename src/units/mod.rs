@@ -64,6 +64,7 @@ impl Mul<Time> for Freq {
 
 impl RawTime {
     /// Converts time into frequency.
+    #[must_use]
     pub fn raw_freq(self) -> RawFreq {
         RawFreq::new(1.0 / self.seconds())
     }
@@ -71,6 +72,7 @@ impl RawTime {
 
 impl RawFreq {
     /// Converts frequency into time.
+    #[must_use]
     pub fn raw_time(self) -> RawTime {
         RawTime::new(1.0 / self.hz())
     }
@@ -78,6 +80,7 @@ impl RawFreq {
 
 impl Time {
     /// Converts time into frequency.
+    #[must_use]
     pub fn freq(self) -> Freq {
         Freq::new(1.0 / self.samples.into_f64())
     }
@@ -85,6 +88,7 @@ impl Time {
 
 impl Freq {
     /// Converts frequency into time.
+    #[must_use]
     pub fn time(self) -> Time {
         Time::new(FracInt::from_f64(1.0 / self.samples()))
     }

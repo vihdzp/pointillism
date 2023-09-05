@@ -37,6 +37,9 @@ impl FracInt {
     /// The number one.
     pub const ONE: Self = Self::new(1);
 
+    /// The maximum number that can be stored by this type.
+    pub const MAX: Self = Self::new(u64::MAX);
+
     /// Initializes a [`FracInt`] from the integer and fractional parts.
     ///
     /// The number `int` must be less than 2<sup>48</sup>.
@@ -66,21 +69,35 @@ impl FracInt {
     }
 
     /// Rounds an `f32` into a [`FracInt`].
+    ///
+    /// The value ought to be between 0 and 2<sup>48</sup>.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn from_f32(value: f32) -> Self {
         Self::from_parts(value as u64, (value.fract() * POW_TWO_F32).round() as u16)
     }
 
     /// Rounds an `f64` into a [`FracInt`].
+    ///
+    /// The value ought to be between 0 and 2<sup>48</sup>.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn from_f64(value: f64) -> Self {
         Self::from_parts(value as u64, (value.fract() * POW_TWO_F64).round() as u16)
     }
 
     /// Rounds this value as an `f32`.
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn into_f32(self) -> f32 {
         self.0 as f32 / POW_TWO_F32
     }
 
     /// Rounds this value as an `f64`.
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn into_f64(self) -> f64 {
         self.0 as f64 / POW_TWO_F64
     }
@@ -140,6 +157,7 @@ impl_mul_div_uint!(u8, u16, u32, u64);
 impl Mul<f64> for FracInt {
     type Output = Self;
 
+    #[allow(clippy::cast_precision_loss)]
     fn mul(self, rhs: f64) -> Self {
         Self::from_f64(self.0 as f64 * rhs)
     }
@@ -148,6 +166,7 @@ impl Mul<f64> for FracInt {
 impl Div<f64> for FracInt {
     type Output = Self;
 
+    #[allow(clippy::cast_precision_loss)]
     fn div(self, rhs: f64) -> Self {
         Self::from_f64(self.0 as f64 / rhs)
     }
