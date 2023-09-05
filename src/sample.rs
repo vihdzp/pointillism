@@ -271,7 +271,6 @@ impl ArrayLike for Mono {
     const SIZE: usize = 1;
 
     type Item = f64;
-
     type Array<T> = [T; 1];
 
     fn from_array(array: [f64; 1]) -> Self {
@@ -299,7 +298,6 @@ impl ArrayLike for Stereo {
     const SIZE: usize = 2;
 
     type Item = f64;
-
     type Array<T> = [T; 2];
 
     fn from_array(array: [f64; 2]) -> Self {

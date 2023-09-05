@@ -111,9 +111,8 @@ pub trait Frequency: SignalMut {
     fn freq_mut(&mut self) -> &mut Freq;
 }
 
-/// A trait for a signal with a "base" signal that can be modified.
-///
-/// This is often a generator in a chain of effects.
+/// A trait for a signal with a "base" signal that can be modified. This is often a generator in a
+/// chain of effects.
 ///
 /// This is implemented both for basic signals that don't depend on others, as well as
 /// straightforward wrappers of these.

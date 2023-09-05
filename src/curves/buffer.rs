@@ -264,9 +264,10 @@ impl Buffer<Mono> {
         let ptr = unsafe { alloc::alloc(layout) }.cast::<Mono>();
 
         if ptr.is_null() {
-            alloc::handle_alloc_error(layout);
+            alloc::handle_alloc_error(layout)
+        } else {
+            ptr
         }
-        ptr
     }
 
     /// Reads from a `WavReader` into a pointer (returned from [`Self::get_ptr`]).

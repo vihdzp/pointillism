@@ -21,10 +21,11 @@ Signals may be composed to create more complex signals, using for instance the `
 structs. Moreover, you can implement the `Signal` and `SignalMut` traits for your own structs,
 giving you vast control over the samples you're producing.
 
-Signals that generate audio on their own are called *generators*. Their names are suffixed by `Gen`.
-Signals that modify the output from another signal are called *effects*.
+We categorize signals into two broad families. Signals that generate audio on their own are called
+*generators*. Their names are suffixed by `Gen`. Signals that modify the output from another signal
+are called *effects*.
 
-## Compile-time
+### Compile-time
 
 You can think of pointillism as a compile-time modular synthesizer, where every new struct is its
 own module.
@@ -35,6 +36,16 @@ customizable and complex signal with many layers by composing some functions tog
 The downside is that these synths end up having unwieldy type signatures. Moreso, it's really hard
 to build synths in real time.
 
+### Features
+
+The project uses the following features:
+
+| Feature | Enables |
+|-|-|
+| `human-duration` | Pretty-printing for the `Time` type. |
+
+(todo: `rodio` integration)
+
 ## Versions
 
 The following versions of `pointillism` exist:
@@ -42,3 +53,17 @@ The following versions of `pointillism` exist:
 - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
 - 0.2.0 - 0.2.10: more stable versions, but still subject to drastic change.
 - 0.3.0 - 0.3.1: stable versions, tracked by a changelog.
+
+### Goals
+
+Future goals of `pointillism` are:
+
+- Filters (as soon as I learn what the word "biquad" means)
+- [Me](https://viiii.bandcamp.com) making a whole album with it :D
+
+## Disclaimer
+
+This is a passion project made by one college student. I make no guarantees on it being
+well-designed, well-maintained, or useable for your own goals.
+
+That said, if you happen to stumble across this and make something cool, please let me know!

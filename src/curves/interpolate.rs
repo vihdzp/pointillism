@@ -30,7 +30,7 @@ pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     let a2 = x2 - x0;
     let a3 = x1;
 
-    a0 * (t * t * t) + a1 * (t * t) + a2 * t + a3
+    ((a0 * t + a1) * t + a2) * t + a3
 }
 
 /// Applies Hermite interpolation between `x1` and `x2`. Makes use of the
@@ -72,7 +72,7 @@ pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
     type Sample: Sample;
 
-    /// How many samples ahead of the current one must be loaded.
+    /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
 
     /// The size of the buffer.
