@@ -1,3 +1,5 @@
+//! Implements the [`SampleRate`] type.
+
 /// Represents the sample rate of an audio file, or of playback. Measured in **samples per second**.
 ///
 /// Various common sample rates are defined as constants. We've set [`SampleRate::CD`] as the type
@@ -26,12 +28,6 @@ impl SampleRate {
 impl Default for SampleRate {
     fn default() -> Self {
         Self::CD
-    }
-}
-
-impl From<SampleRate> for f32 {
-    fn from(value: SampleRate) -> Self {
-        value.0 as f32
     }
 }
 

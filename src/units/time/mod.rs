@@ -1,3 +1,5 @@
+//! Implements the types for frequency: [`RawTime`] and [`Time`].
+
 mod raw;
 mod time;
 

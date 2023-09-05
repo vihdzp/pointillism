@@ -4,6 +4,12 @@
 
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
+/// The floating point 2<sup>16</sup> as an `f32`.
+#[allow(clippy::cast_precision_loss)]
+const POW_TWO_F32: f32 = (1u32 << 16) as f32;
+/// The floating point 2<sup>16</sup> as an `f64`.
+const POW_TWO_F64: f64 = (1u32 << 16) as f64;
+
 /// A fractional number backed by a `u64`.
 ///
 /// The number `FracInt(x)` represents x / 2<sup>16</sup>.
@@ -59,12 +65,32 @@ impl FracInt {
         self.0 as u16
     }
 
+    /// Rounds an `f32` into a [`FracInt`].
+    pub fn from_f32(value: f32) -> Self {
+        Self::from_parts(value as u64, (value.fract() * POW_TWO_F32).round() as u16)
+    }
+
+    /// Rounds an `f64` into a [`FracInt`].
+    pub fn from_f64(value: f64) -> Self {
+        Self::from_parts(value as u64, (value.fract() * POW_TWO_F64).round() as u16)
+    }
+
+    /// Rounds this value as an `f32`.
+    pub fn into_f32(self) -> f32 {
+        self.0 as f32 / POW_TWO_F32
+    }
+
+    /// Rounds this value as an `f64`.
+    pub fn into_f64(self) -> f64 {
+        self.0 as f64 / POW_TWO_F64
+    }
+
     /// The fractional part of this number.
     ///
     /// Since `f32` has more than the 16 needed mantissa digits, this conversion is exact.
     #[must_use]
     pub fn frac(self) -> f32 {
-        f32::from(self.frac_int()) / ((1 << 16) as f32)
+        f32::from(self.frac_int()) / POW_TWO_F32
     }
 }
 
@@ -79,33 +105,7 @@ macro_rules! impl_from_int {
     )*};
 }
 
-impl_from_int!(u8, u16, u32, u64, u128);
-
-/// Implements [`From`] for floating point types.
-macro_rules! impl_from_float {
-    ($($ty: ty),*) => {
-        $(impl From<$ty> for FracInt {
-            fn from(value: $ty) -> Self {
-                Self::from_parts(value as u64, (value.fract() * ((1 << 16) as $ty)).round() as u16)
-            }
-        }
-    )*};
-}
-
-impl_from_float!(f32, f64);
-
-/// Implements [`Into`] for floating point types.
-macro_rules! impl_into_float {
-    ($($ty: ty),*) => {
-        $(impl From<FracInt> for $ty {
-            fn from(value: FracInt) -> Self {
-                value.0 as $ty / ((1 << 16) as $ty)
-            }
-        }
-    )*};
-}
-
-impl_into_float!(f32, f64);
+impl_from_int!(u8, u16, u32);
 
 impl std::fmt::Display for FracInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -114,14 +114,14 @@ impl std::fmt::Display for FracInt {
     }
 }
 
-/// Implements the [`Mul`] and [`Div`] traits.
-macro_rules! impl_mul_div {
+/// Implements the basic [`Mul`] and [`Div`] traits for integer types.
+macro_rules! impl_mul_div_uint {
     ($($ty: ty),*) => {$(
         impl Mul<$ty> for FracInt {
             type Output = Self;
 
             fn mul(self, rhs: $ty) -> Self {
-                Self::from(self.0 as $ty * rhs)
+                Self(self.0 * rhs as u64)
             }
         }
 
@@ -129,10 +129,33 @@ macro_rules! impl_mul_div {
             type Output = Self;
 
             fn div(self, rhs: $ty) -> Self {
-                Self::from(self.0 as $ty / rhs)
+                Self(self.0 / rhs as u64)
             }
         }
+    )*};
+}
 
+impl_mul_div_uint!(u8, u16, u32, u64);
+
+impl Mul<f64> for FracInt {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self {
+        Self::from_f64(self.0 as f64 * rhs)
+    }
+}
+
+impl Div<f64> for FracInt {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self {
+        Self::from_f64(self.0 as f64 / rhs)
+    }
+}
+
+/// Implements the remaining [`Mul`] and [`Div`] traits.
+macro_rules! impl_mul_div_other {
+    ($($ty: ty),*) => {$(
         impl Mul<FracInt> for $ty {
             type Output = FracInt;
 
@@ -155,13 +178,13 @@ macro_rules! impl_mul_div {
     )*};
 }
 
-impl_mul_div!(u8, u16, u32, u64, f64);
+impl_mul_div_other!(u8, u16, u32, u64, f64);
 
 impl Div for FracInt {
     type Output = f64;
 
     fn div(self, rhs: Self) -> f64 {
-        f64::from(self) / f64::from(rhs)
+        self.into_f64() / rhs.into_f64()
     }
 }
 
@@ -173,6 +196,6 @@ mod test {
     fn display() {
         assert_eq!(format!("{}", FracInt::new(0)), "0");
         assert_eq!(format!("{}", FracInt::new(1)), "1");
-        assert_eq!(format!("{}", FracInt::from(0.375f32)), "0.375")
+        assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375")
     }
 }

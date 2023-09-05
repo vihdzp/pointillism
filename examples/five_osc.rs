@@ -21,7 +21,7 @@ fn main() {
             // A triangle wave with a placeholder frequency.
             LoopGen::new(Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new_phase(Sin, Freq::from(NUM_OSC * time), phase),
+            LoopGen::new_phase(Sin, (NUM_OSC * time).freq(), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             FnWrapper::new(|sgn: &mut LoopGen<_, _>, val: Env| {

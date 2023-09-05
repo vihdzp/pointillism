@@ -1,3 +1,5 @@
+//! Implements the [`Freq`] type.
+
 use crate::{
     prelude::Note,
     units::{SampleRate, A4_MIDI},

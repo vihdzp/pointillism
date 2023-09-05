@@ -27,8 +27,6 @@ pub use freq::{Freq, Interval, RawFreq};
 pub use sample_rate::SampleRate;
 pub use time::{RawTime, Time, Timer};
 
-use crate::sample::Sample;
-
 /// This magic number `69.0` corresponds to the MIDI index of A4.
 const A4_MIDI: f64 = midi::Note::A4.note as f64;
 
@@ -52,7 +50,7 @@ impl Mul<Freq> for Time {
     type Output = f64;
 
     fn mul(self, rhs: Freq) -> f64 {
-        f64::from(self.samples) * rhs.samples()
+        self.samples.into_f64() * rhs.samples()
     }
 }
 
@@ -64,27 +62,31 @@ impl Mul<Time> for Freq {
     }
 }
 
-impl From<RawTime> for RawFreq {
-    fn from(value: RawTime) -> Self {
-        Self::new(1.0 / value.seconds())
+impl RawTime {
+    /// Converts time into frequency.
+    pub fn raw_freq(self) -> RawFreq {
+        RawFreq::new(1.0 / self.seconds())
     }
 }
 
-impl From<RawFreq> for RawTime {
-    fn from(value: RawFreq) -> Self {
-        Self::new(1.0 / value.hz())
+impl RawFreq {
+    /// Converts frequency into time.
+    pub fn raw_time(self) -> RawTime {
+        RawTime::new(1.0 / self.hz())
     }
 }
 
-impl From<Time> for Freq {
-    fn from(value: Time) -> Self {
-        Self::new(1.0 / f64::from(value.samples))
+impl Time {
+    /// Converts time into frequency.
+    pub fn freq(self) -> Freq {
+        Freq::new(1.0 / self.samples.into_f64())
     }
 }
 
-impl From<Freq> for Time {
-    fn from(value: Freq) -> Self {
-        Self::new(FracInt::from(1.0 / value.samples()))
+impl Freq {
+    /// Converts frequency into time.
+    pub fn time(self) -> Time {
+        Time::new(FracInt::from_f64(1.0 / self.samples()))
     }
 }
 
@@ -92,7 +94,7 @@ impl Mul<RawTime> for SampleRate {
     type Output = Time;
 
     fn mul(self, rhs: RawTime) -> Time {
-        Time::new(FracInt::from(self.0 as f64 * rhs.seconds()))
+        Time::new(FracInt::from_f64(f64::from(self.0) * rhs.seconds()))
     }
 }
 
@@ -108,7 +110,7 @@ impl Div<SampleRate> for Time {
     type Output = RawTime;
 
     fn div(self, rhs: SampleRate) -> RawTime {
-        RawTime::new(f64::from(self.samples / rhs.0))
+        RawTime::new((self.samples / rhs.0).into_f64())
     }
 }
 
