@@ -29,5 +29,4 @@ pub use crate::{
     sgn,
     signal::*,
     units::{midi::Note, Freq, Interval, RawFreq, RawTime, SampleRate, Time, Timer},
-    SAMPLE_RATE, SAMPLE_RATE_F64,
 };

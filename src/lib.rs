@@ -17,17 +17,11 @@ use prelude::*;
 
 use hound::{Result, SampleFormat, WavSpec, WavWriter};
 
-/// The sample rate for the audio file, in samples per second.
-pub const SAMPLE_RATE: u16 = 44100;
-
-/// The sample rate for the audio file, in samples per second.
-pub const SAMPLE_RATE_F64: f64 = SAMPLE_RATE as f64;
-
 /// The specification for the output file.
-const fn spec(channels: u8) -> WavSpec {
+const fn spec(channels: u8, sample_rate: SampleRate) -> WavSpec {
     WavSpec {
         channels: channels as u16,
-        sample_rate: SAMPLE_RATE as u32,
+        sample_rate: sample_rate.0,
         bits_per_sample: 32,
         sample_format: SampleFormat::Float,
     }
@@ -46,7 +40,7 @@ pub fn sgn(x: f64) -> f64 {
 }
 
 /// Creates a song with a given duration, writing down each sample as it comes. The duration of the
-/// file is exact to the frame.
+/// file is exact to the sample.
 ///
 /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
 /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
@@ -62,13 +56,14 @@ pub fn sgn(x: f64) -> f64 {
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
+    sample_rate: SampleRate,
     mut song: F,
 ) -> Result<()> {
     let length = length.samples.int();
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]
-    let mut writer = WavWriter::create(filename, spec(A::SIZE as u8))?;
+    let mut writer = WavWriter::create(filename, spec(A::SIZE as u8, sample_rate))?;
 
     let mut time = Time::ZERO;
     for _ in 0..length {
@@ -90,10 +85,11 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
     filename: P,
     length: Time,
+    sample_rate: SampleRate,
     mut sgn: S,
 ) -> Result<()>
 where
     S::Sample: Audio,
 {
-    create(filename, length, |_| sgn.next())
+    create(filename, length, sample_rate, |_| sgn.next())
 }

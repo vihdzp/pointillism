@@ -6,6 +6,9 @@
 use pointillism::prelude::*;
 use rand::Rng;
 
+/// Project sample rate.
+const SAMPLE_RATE: SampleRate = SampleRate::CD;
+
 /// First ten harmonic volumes of a piano sample.
 const HARMONICS: [f64; 10] = [
     0.700, 0.243, 0.229, 0.095, 0.139, 0.087, 0.288, 0.199, 0.124, 0.090,
@@ -79,18 +82,18 @@ fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
 
     // Some subtle ADSR.
     let adsr = Adsr::new(
-        Time::from_sec_default(0.1),
-        Time::from_sec_default(0.2),
+        Time::from_sec(0.1, SAMPLE_RATE),
+        Time::from_sec(0.2, SAMPLE_RATE),
         Vol::new(0.7),
-        Time::from_sec_default(0.1),
+        Time::from_sec(0.1, SAMPLE_RATE),
     );
 
     AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
 }
 
 fn main() {
-    let c3 = Freq::from_raw_default(RawFreq::C3);
-    let sec = Time::from_raw_default(RawTime::SEC);
+    let c3 = Freq::from_raw(RawFreq::C3, SAMPLE_RATE);
+    let sec = Time::from_raw(RawTime::SEC, SAMPLE_RATE);
 
     // One piano for each note.
     let (mut p1, mut p2, mut p3) = (
@@ -99,9 +102,8 @@ fn main() {
         trem_piano(3.0 / 2.0 * c3, Freq::from_hz_default(6.0)),
     );
 
-    let mut stop_notes = false;
-
-    pointillism::create("examples/e_piano.wav", 5.2 * sec, |time| {
+    let mut timer = Timer::new(5.0 * sec);
+    pointillism::create("examples/e_piano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.
@@ -114,11 +116,11 @@ fn main() {
             sgn += p3.next();
         }
 
-        if time >= 5u8 * sec && !stop_notes {
+        // Stops all notes after five seconds.
+        if timer.tick(time) {
             p1.stop();
             p2.stop();
             p3.stop();
-            stop_notes = false;
         }
 
         sgn / 3.0

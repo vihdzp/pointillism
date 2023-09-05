@@ -2,6 +2,9 @@
 
 use pointillism::prelude::*;
 
+/// Project sample rate.
+const SAMPLE_RATE: SampleRate = SampleRate::CD;
+
 fn main() {
     const FILENAME: &str = "examples/buffer.wav";
 
@@ -9,6 +12,7 @@ fn main() {
     pointillism::create_from_sgn(
         FILENAME,
         Time::from_raw_default(RawTime::SEC),
+        SAMPLE_RATE,
         LoopGen::<Mono, Sin>::default(),
     )
     .unwrap();
@@ -23,5 +27,5 @@ fn main() {
 
     // We can change the interpolation method here.
     let sgn = Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-    pointillism::create_from_sgn(FILENAME, time * FACTOR, sgn).unwrap();
+    pointillism::create_from_sgn(FILENAME, time * FACTOR, SAMPLE_RATE, sgn).unwrap();
 }

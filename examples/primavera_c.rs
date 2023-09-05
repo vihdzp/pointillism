@@ -9,16 +9,13 @@ use pointillism::prelude::*;
 
 // Base note for binaural beats.
 const BASE: RawFreq = RawFreq::new(222.2);
-
 // Fade-in / fade-out time for instruments.
 const FADE: RawTime = RawTime::new(20.0);
-
 // Period for the vibrato.
 const VIB_FREQ: RawFreq = RawFreq::new(1.0 / 40.0);
 
 // RawTime until the melody starts.
 const MELODY_TIME: RawTime = RawTime::new(120.0);
-
 // Length of the song.
 const LENGTH: RawTime = RawTime::new(5.0 * 60.0);
 
@@ -99,7 +96,7 @@ fn main() {
     let melody_time = Time::from_raw_default(MELODY_TIME);
     let fade_time = Time::from_raw_default(FADE);
 
-    pointillism::create("examples/primavera_c.wav", length, |time| {
+    pointillism::create("examples/primavera_c.wav", length, SampleRate::CD, |time| {
         let mut sample = binaural.next() * fade(time, length, fade_time);
 
         // The triangle waves start playing 2 minutes in.

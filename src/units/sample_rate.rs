@@ -5,6 +5,7 @@
 /// Various common sample rates are defined as constants. We've set [`SampleRate::CD`] as the type
 /// default, but we recognize that other standards exist, and have thus abstained from making many
 /// helper methods using this assumption.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SampleRate(pub u32);
 
 impl SampleRate {

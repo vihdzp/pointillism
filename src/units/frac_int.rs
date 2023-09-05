@@ -158,8 +158,10 @@ impl Mul<f64> for FracInt {
     type Output = Self;
 
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     fn mul(self, rhs: f64) -> Self {
-        Self::from_f64(self.0 as f64 * rhs)
+        Self((self.0 as f64 * rhs) as u64)
     }
 }
 
@@ -167,8 +169,10 @@ impl Div<f64> for FracInt {
     type Output = Self;
 
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     fn div(self, rhs: f64) -> Self {
-        Self::from_f64(self.0 as f64 / rhs)
+        Self((self.0 as f64 / rhs) as u64)
     }
 }
 

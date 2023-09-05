@@ -6,14 +6,17 @@
 use pointillism::prelude::*;
 use rand::Rng;
 
+/// Project sample rate.
+const SAMPLE_RATE: SampleRate = SampleRate::TELEPHONE;
+
 fn main() {
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(350.0);
     // Length of each note.
     const NOTE_LEN: RawTime = RawTime::new(5.0);
 
-    let base = Freq::from_raw_default(BASE);
-    let note_len = Time::from_raw_default(NOTE_LEN);
+    let base = Freq::from_raw(BASE, SAMPLE_RATE);
+    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
@@ -56,5 +59,6 @@ fn main() {
 
     // This gives a really weird effect.
     let dist = PwMapSgn::cubic(poly_loop);
-    pointillism::create_from_sgn("examples/poly_5edo.wav", 10u8 * note_len, dist).unwrap();
+    pointillism::create_from_sgn("examples/poly_5edo.wav", 10u8 * note_len, SAMPLE_RATE, dist)
+        .unwrap();
 }

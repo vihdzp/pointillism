@@ -9,6 +9,19 @@
 use pointillism::prelude::*;
 use rand::Rng;
 
+/// Project sample rate.
+const SAMPLE_RATE: SampleRate = SampleRate::CD;
+
+/// Possible values to multiply a frequency by.
+const MULTS: [f64; 6] = [
+    4.0 / 3.0,
+    3.0 / 4.0,
+    3.0 / 2.0,
+    2.0 / 3.0,
+    7.0 / 4.0,
+    4.0 / 7.0,
+];
+
 fn main() {
     // Frequency of base note.
     const BASE: RawFreq = RawFreq::new(400.0);
@@ -22,7 +35,7 @@ fn main() {
     // Number of notes actually played (accounting for fade-out).
     const NOTE_COUNT: u16 = 185;
 
-    let note_len = Time::from_raw_default(NOTE_LEN);
+    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // Envelope for the wave shape.
     let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
@@ -38,7 +51,7 @@ fn main() {
                     note_len,
                     Time::ZERO,
                     Vol::FULL,
-                    Time::from_raw_default(RELEASE_LEN),
+                    Time::from_raw(RELEASE_LEN, SAMPLE_RATE),
                 ),
                 OnceGen::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
@@ -53,26 +66,16 @@ fn main() {
     };
 
     // Base frequency.
-    let base = Freq::from_raw_default(BASE);
+    let base = Freq::from_raw(BASE, SAMPLE_RATE);
     // Frequency of note being played.
     let mut freq = base;
-
-    // Possible values to multiply a frequency by.
-    let mults = [
-        4.0 / 3.0,
-        3.0 / 4.0,
-        3.0 / 2.0,
-        2.0 / 3.0,
-        7.0 / 4.0,
-        4.0 / 7.0,
-    ];
 
     // Initializes a new `Polyphony` object, plays a single note, centered.
     let mut poly = Polyphony::new();
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
-    let note_len = Time::from_raw_default(NOTE_LEN);
+    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // The song loop.
     let poly_loop = Loop::new(
@@ -84,7 +87,7 @@ fn main() {
             index += 1;
 
             // Changes the frequency randomly.
-            freq *= mults[rand::thread_rng().gen_range(0..mults.len())];
+            freq *= MULTS[rand::thread_rng().gen_range(0..MULTS.len())];
 
             // Clamps the frequency between two octaves.
             if freq >= 2.0 * base {
@@ -103,6 +106,7 @@ fn main() {
     pointillism::create_from_sgn(
         "examples/continuum.wav",
         NOTE_COUNT_LEN * note_len,
+        SAMPLE_RATE,
         // 10.0 might be too much, but just to be safe from clipping.
         Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
     )
