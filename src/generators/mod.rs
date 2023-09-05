@@ -30,7 +30,6 @@ pub struct Val(f64);
 impl Val {
     /// The zero value.
     pub const ZERO: Self = Val(0.0);
-
     /// The one value.
     pub const ONE: Self = Val(1.0);
 
@@ -82,12 +81,7 @@ impl Val {
 
     /// Advances the inner value in order to play a wave with the specified frequency.
     pub fn advance_freq(&mut self, freq: Freq) {
-        self.0 = (self.0 + freq.samples()) % 1.0;
-    }
-
-    /// Advances the inner value in order to play a wave for the specified duration.
-    pub fn advance_time(&mut self, time: RawTime) {
-        self.0 += 1.0 / time.frames();
+        self.0 += freq.samples();
         self.0 = self.0.min(1.0);
     }
 }
@@ -136,7 +130,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Map for CurvePlayer<S, C> {
     }
 }
 
-/// Plays a sample curve at a specified speed, until it reaches the right endpoint.
+/// Plays a sample curve for a specifi.
 ///
 /// Initialize with [`Self::new_curve`].
 ///
@@ -148,12 +142,10 @@ where
 {
     /// The curve we're playing.
     map: C,
-
-    /// How far along the curve we are.
-    val: Val,
-
-    /// The time for which the curve is played.
-    time: RawTime,
+    /// How long has the curve played for?
+    elapsed: Time,
+    /// The time for which the curve is to be played.
+    time: Time,
 }
 
 impl<C: Map<Input = Val>> OnceCurveGen<C>
@@ -164,10 +156,10 @@ where
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`OnceCurveGen`] from a plain curve, use [`OnceGen::new`].
-    pub const fn new_curve(map: C, time: RawTime) -> Self {
+    pub const fn new_curve(map: C, time: Time) -> Self {
         Self {
             map,
-            val: Val::ZERO,
+            elapsed: Time::ZERO,
             time,
         }
     }
@@ -182,19 +174,19 @@ where
         &mut self.map
     }
 
-    /// Returns how far along the curve we are.
-    pub const fn val(&self) -> Val {
-        self.val
+    /// Returns how long the curve has been played for.
+    pub const fn elapsed(&self) -> Time {
+        self.elapsed
     }
 
-    /// The time for which the curve is played.
-    pub const fn time(&self) -> RawTime {
+    /// The time for which the curve is to be played.
+    pub const fn time(&self) -> Time {
         self.time
     }
 
-    /// A mutable reference to the time for which this curve is played.
-    pub fn time_mut(&mut self) -> &mut RawTime {
-        &mut self.time
+    /// How far along the curve are we?
+    pub fn val(&self) -> Val {
+        Val::new(self.elapsed / self.time)
     }
 }
 
@@ -205,7 +197,7 @@ where
     type Sample = C::Output;
 
     fn get(&self) -> C::Output {
-        self.map.eval(self.val)
+        self.map.eval(self.val())
     }
 }
 
@@ -214,11 +206,14 @@ where
     C::Output: Sample,
 {
     fn advance(&mut self) {
-        self.val.advance_time(self.time());
+        self.elapsed.advance();
+        if self.elapsed > self.time {
+            self.elapsed = self.time;
+        }
     }
 
     fn retrigger(&mut self) {
-        self.val.retrigger();
+        self.elapsed = Time::ZERO;
     }
 }
 
@@ -243,7 +238,7 @@ where
     C::Output: Sample,
 {
     fn stop(&mut self) {
-        self.val.stop();
+        self.elapsed = self.time;
     }
 }
 
@@ -267,7 +262,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
     ///
     /// Note that this builds a [`OnceGen`]. In order to build a more general [`OnceCurveGen`], use
     /// `OnceCurveGen::new_curve`.
-    pub const fn new(curve: C, time: RawTime) -> Self {
+    pub const fn new(curve: C, time: Time) -> Self {
         Self::new_curve(CurvePlayer::new(curve), time)
     }
 
@@ -294,10 +289,8 @@ where
 {
     /// The curve being played.
     map: C,
-
-    /// How far along the curve we are.
+    /// How far along the curve we are?
     val: Val,
-
     /// The frequency at which the curve is played.
     freq: Freq,
 }
@@ -349,7 +342,7 @@ where
     }
 
     /// A mutable reference to the frequency at which this curve is played.
-    pub fn time_mut(&mut self) -> &mut Freq {
+    pub fn freq_mut(&mut self) -> &mut Freq {
         &mut self.freq
     }
 }

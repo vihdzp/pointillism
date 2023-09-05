@@ -11,6 +11,9 @@ const LENGTH: RawTime = RawTime::new(6.0);
 const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
+    let note_time = Time::from_raw_default(NOTE_TIME);
+    let length = Time::from_raw_default(LENGTH);
+
     // The notes played in the arpeggio.
     let notes: Vec<_> = [RawFreq::C4, RawFreq::E4, RawFreq::G4, RawFreq::A4]
         .map(Freq::from_raw_default)
@@ -18,7 +21,7 @@ fn main() {
 
     // Initializes the arpeggio.
     let mut arp = Arpeggio::new_arp(
-        vec![NOTE_TIME],
+        vec![note_time],
         LoopGen::<Mono, _>::new(Tri, Freq::from_raw_default(RawFreq::C0)),
         notes,
     );
@@ -26,9 +29,9 @@ fn main() {
     // `C0` is a dummy value that gets replaced here.
     arp.skip_to_next();
 
-    let mut timer = RawTimer::new(LENGTH);
+    let mut timer = Timer::new(Time::from_raw_default(LENGTH));
 
-    pointillism::create("examples/arpeggio.wav", 2.0 * LENGTH, |time| {
+    pointillism::create("examples/arpeggio.wav", 2.0 * length, |time| {
         // We switch up the arpeggio after the first phrase.
         if timer.tick(time) {
             arp.arp_mut().notes[2] = Freq::from_raw_default(RawFreq::F4);

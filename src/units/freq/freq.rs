@@ -49,6 +49,16 @@ impl Freq {
         Self::from_hz(hz, SampleRate::default())
     }
 
+    /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
+    pub fn into_raw(self, sample_rate: SampleRate) -> RawFreq {
+        RawFreq::new(self.samples() * f64::from(sample_rate))
+    }
+
+    /// Converts [`Freq`] into [`RawFreq`], using the default sample rate.
+    pub fn into_raw_default(self) -> RawFreq {
+        self.into_raw(SampleRate::default())
+    }
+
     /// Bends a note by a number of notes in a given `edo`.
     ///
     /// You can use this to generate an scale in some EDO, based on some note.

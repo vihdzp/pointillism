@@ -79,10 +79,10 @@ fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
 
     // Some subtle ADSR.
     let adsr = Adsr::new(
-        RawTime::new(0.1),
-        RawTime::new(0.2),
+        Time::from_sec_default(0.1),
+        Time::from_sec_default(0.2),
         Vol::new(0.7),
-        RawTime::new(0.1),
+        Time::from_sec_default(0.1),
     );
 
     AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)

@@ -59,20 +59,21 @@ pub fn sgn(x: f64) -> f64 {
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 #[allow(clippy::cast_sign_loss)]
-pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(RawTime) -> A>(
+pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
-    length: RawTime,
+    length: Time,
     mut song: F,
 ) -> Result<()> {
-    // Precision loss should never occur in practical circumstances.
-    let length = length.frames() as u64;
+    let length = length.samples().int();
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]
     let mut writer = WavWriter::create(filename, spec(A::SIZE as u8))?;
 
-    for frames in 0..length {
-        song(RawTime::new_frames(frames as f64)).write(&mut writer)?;
+    let mut time = Time::ZERO;
+    for _ in 0..length {
+        song(time).write(&mut writer)?;
+        time.advance();
     }
 
     writer.finalize()
@@ -88,7 +89,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(RawTime) -> A>(
 /// This should only return an error in case of an IO error.
 pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
     filename: P,
-    length: RawTime,
+    length: Time,
     mut sgn: S,
 ) -> Result<()>
 where

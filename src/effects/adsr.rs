@@ -38,16 +38,13 @@ pub enum Stage {
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.
-    pub attack: RawTime,
-
+    pub attack: Time,
     /// The time from the signal peak to its sustain point.
-    pub decay: RawTime,
-
+    pub decay: Time,
     /// The sustain value for the signal.
     pub sustain: Vol,
-
     /// The time from the signal stop to it being done.
-    pub release: RawTime,
+    pub release: Time,
 
     /// Current stage of the envelope.
     stage: Stage,
@@ -58,21 +55,21 @@ pub struct Adsr {
     /// phase.
     sustain_val: Vol,
 
-    /// A value from `0.0` to `1.0` representing how far along the phase we are.
-    val: f64,
+    /// How many frames have we spent in this phase?
+    phase_time: Time,
 }
 
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub const fn new(attack: RawTime, decay: RawTime, sustain: Vol, release: RawTime) -> Self {
+    pub const fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self {
             attack,
             decay,
             sustain,
             release,
             stage: Stage::Attack,
-            val: 0.0,
+            phase_time: Time::ZERO,
 
             // Is properly initialized in `stop`.
             sustain_val: Vol::ZERO,
@@ -91,10 +88,10 @@ impl Signal for Adsr {
 
     fn get(&self) -> Env {
         Env(match self.stage() {
-            Stage::Attack => self.val,
-            Stage::Decay => 1.0 + (self.sustain.gain - 1.0) * self.val,
+            Stage::Attack => self.phase_time / self.attack,
+            Stage::Decay => 1.0 + (self.sustain.gain - 1.0) * (self.phase_time / self.decay),
             Stage::Sustain => self.sustain.gain,
-            Stage::Release => self.sustain_val.gain * (1.0 - self.val),
+            Stage::Release => self.sustain_val.gain * (1.0 - self.phase_time / self.release),
             Stage::Done => 0.0,
         })
     }
@@ -102,29 +99,25 @@ impl Signal for Adsr {
 
 impl SignalMut for Adsr {
     fn advance(&mut self) {
+        self.phase_time.advance();
+
         match self.stage() {
             Stage::Attack => {
-                self.val += 1.0 / self.attack.frames();
-
-                if self.val > 1.0 {
+                if self.phase_time > self.attack {
                     self.stage = Stage::Decay;
-                    self.val = 0.0;
+                    self.phase_time -= self.attack;
                 }
             }
 
             Stage::Decay => {
-                self.val += 1.0 / self.decay.frames();
-
-                if self.val > 1.0 {
+                if self.phase_time > self.decay {
                     self.stage = Stage::Sustain;
-                    self.val = 0.0;
+                    self.phase_time -= self.decay;
                 }
             }
 
             Stage::Release => {
-                self.val += 1.0 / self.release.frames();
-
-                if self.val > 1.0 {
+                if self.phase_time > self.release {
                     self.stage = Stage::Done;
                 }
             }
@@ -135,7 +128,7 @@ impl SignalMut for Adsr {
 
     fn retrigger(&mut self) {
         self.stage = Stage::Attack;
-        self.val = 0.0;
+        self.phase_time = Time::ZERO;
     }
 }
 
@@ -148,7 +141,7 @@ impl Done for Adsr {
 impl Stop for Adsr {
     fn stop(&mut self) {
         self.sustain_val = Vol::new(self.get().0);
-        self.val = 0.0;
+        self.phase_time = Time::ZERO;
         self.stage = Stage::Release;
     }
 }
@@ -166,13 +159,7 @@ pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
 impl<S: SignalMut> AdsrEnvelope<S> {
     /// Initializes an [`AdsrEnvelope`] with the given parameters.
-    pub fn new_adsr(
-        sgn: S,
-        attack: RawTime,
-        decay: RawTime,
-        sustain: Vol,
-        release: RawTime,
-    ) -> Self {
+    pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
         Self::new(sgn, Adsr::new(attack, decay, sustain, release))
     }
 }

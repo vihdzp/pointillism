@@ -63,12 +63,10 @@ impl<S: Sample> Buffer<S> {
         self.data.is_empty()
     }
 
-    /// Returns the time that takes to play this buffer at a standard sample rate of 44.1 kHz.
+    /// Returns the time that takes to play this buffer.
     #[must_use]
-    pub fn time(&self) -> RawTime {
-        // Any precision loss should be insignificant.
-        #[allow(clippy::cast_precision_loss)]
-        RawTime::new_frames(self.data.len() as f64)
+    pub fn time(&self) -> Time {
+        Time::new(crate::units::FracInt::new(self.data.len() as u64))
     }
 
     /// Gets a sample at a given index.

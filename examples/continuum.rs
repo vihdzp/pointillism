@@ -22,6 +22,8 @@ fn main() {
     // Number of notes actually played (accounting for fade-out).
     const NOTE_COUNT: u16 = 185;
 
+    let note_len = Time::from_raw_default(NOTE_LEN);
+
     // Envelope for the wave shape.
     let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
 
@@ -33,12 +35,12 @@ fn main() {
                     // Saw-triangle wave with specified frequency.
                     LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
-                    NOTE_LEN,
-                    RawTime::ZERO,
+                    note_len,
+                    Time::ZERO,
                     Vol::FULL,
-                    RELEASE_LEN,
+                    Time::from_raw_default(RELEASE_LEN),
                 ),
-                OnceGen::new(shape_env, NOTE_LEN),
+                OnceGen::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
                 FnWrapper::new(
                     |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: Env| {
@@ -70,9 +72,11 @@ fn main() {
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
+    let note_len = Time::from_raw_default(NOTE_LEN);
+
     // The song loop.
     let poly_loop = Loop::new(
-        vec![NOTE_LEN],
+        vec![note_len],
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>| {
             // Stops the previous note.
@@ -98,7 +102,7 @@ fn main() {
 
     pointillism::create_from_sgn(
         "examples/continuum.wav",
-        NOTE_COUNT_LEN as f64 * NOTE_LEN,
+        NOTE_COUNT_LEN as u64 * note_len,
         // 10.0 might be too much, but just to be safe from clipping.
         Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
     )

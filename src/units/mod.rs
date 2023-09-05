@@ -19,16 +19,18 @@ pub mod midi;
 mod sample_rate;
 mod time;
 
+use std::ops::Mul;
+
 // We define these in different files for simplicity, but they're all ultimately units.
 pub use frac_int::FracInt;
 pub use freq::{Freq, Interval, RawFreq};
 pub use sample_rate::SampleRate;
-pub use time::{RawTime, RawTimer, Time};
+pub use time::{RawTime, Time, Timer};
 
 /// This magic number `69.0` corresponds to the MIDI index of A4.
 const A4_MIDI: f64 = midi::Note::A4.note as f64;
 
-impl std::ops::Mul<RawFreq> for RawTime {
+impl Mul<RawFreq> for RawTime {
     type Output = f64;
 
     fn mul(self, rhs: RawFreq) -> f64 {
@@ -36,7 +38,7 @@ impl std::ops::Mul<RawFreq> for RawTime {
     }
 }
 
-impl std::ops::Mul<RawTime> for RawFreq {
+impl Mul<RawTime> for RawFreq {
     type Output = f64;
 
     fn mul(self, rhs: RawTime) -> f64 {
@@ -44,10 +46,50 @@ impl std::ops::Mul<RawTime> for RawFreq {
     }
 }
 
-impl std::ops::Mul<Freq> for Time {
+impl Mul<Freq> for Time {
     type Output = f64;
 
     fn mul(self, rhs: Freq) -> f64 {
         f64::from(self.samples()) * rhs.samples()
+    }
+}
+
+impl Mul<Time> for Freq {
+    type Output = f64;
+
+    fn mul(self, rhs: Time) -> f64 {
+        rhs * self
+    }
+}
+
+impl From<RawTime> for RawFreq {
+    fn from(value: RawTime) -> Self {
+        Self::new(1.0 / value.seconds())
+    }
+}
+
+impl From<RawFreq> for RawTime {
+    fn from(value: RawFreq) -> Self {
+        Self::new(1.0 / value.hz())
+    }
+}
+
+impl From<Time> for Freq {
+    fn from(value: Time) -> Self {
+        Self::new(1.0 / f64::from(value.samples()))
+    }
+}
+
+impl From<Freq> for Time {
+    fn from(value: Freq) -> Self {
+        Self::new(FracInt::from(1.0 / value.samples()))
+    }
+}
+
+impl Mul<Time> for SampleRate {
+    type Output = f64;
+
+    fn mul(self, rhs: Time) -> Self::Output {
+        f64::from(self.0 as u64 * rhs.samples())
     }
 }

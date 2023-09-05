@@ -1,12 +1,28 @@
 use crate::prelude::*;
 use crate::units::FracInt;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    ops::{Div, DivAssign, Mul, MulAssign},
+};
 
 /// A time, measured in **samples**.
 ///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
 /// [`SampleRate`].
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    PartialOrd,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Rem,
+    derive_more::RemAssign,
+    derive_more::Sum,
+)]
 pub struct Time {
     /// The number of samples.
     ///
@@ -16,6 +32,11 @@ pub struct Time {
 }
 
 impl Time {
+    /// No time.
+    pub const ZERO: Self = Self::new(FracInt::ZERO);
+    /// One sample.
+    pub const SAMPLE: Self = Self::new(FracInt::ONE);
+
     /// Initializes a time in **samples**.
     ///
     /// If you want to use the more natural unit of seconds, see [`Self::from_raw`].
@@ -47,10 +68,76 @@ impl Time {
     pub fn from_sec_default(hz: f64) -> Self {
         Self::from_sec(hz, SampleRate::default())
     }
+
+    /// Converts [`Time`] into [`RawTime`], using the specified sample rate.
+    pub fn into_raw(self, sample_rate: SampleRate) -> RawTime {
+        RawTime::new(f64::from(self.samples()) / f64::from(sample_rate))
+    }
+
+    /// Converts [`Time`] into [`RawTime`], using the default sample rate.
+    pub fn into_raw_default(self) -> RawTime {
+        self.into_raw(SampleRate::default())
+    }
+
+    /// Advances the time by one sample.
+    pub fn advance(&mut self) {
+        *self += Self::SAMPLE;
+    }
 }
 
 impl Display for Time {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{} samples", self.samples)
+    }
+}
+
+/// Implements the [`Mul`] and [`Div`] traits.
+macro_rules! impl_mul_div {
+    ($($ty: ty),*) => {$(
+        impl Mul<Time> for $ty {
+            type Output = Time;
+
+            fn mul(self, rhs: Time) -> Time {
+                Time::new(self * rhs.samples)
+            }
+        }
+
+        impl Mul<$ty> for Time {
+            type Output = Self;
+
+            fn mul(self, rhs: $ty) -> Self {
+                rhs * self
+            }
+        }
+
+        impl MulAssign<$ty> for Time {
+            fn mul_assign(&mut self, rhs: $ty) {
+                *self = *self * rhs
+            }
+        }
+
+        impl Div<$ty> for Time {
+            type Output = Self;
+
+            fn div(self, rhs: $ty) -> Self {
+                Self::new(self.samples / rhs)
+            }
+        }
+
+        impl DivAssign<$ty> for Time {
+            fn div_assign(&mut self, rhs: $ty) {
+                *self = *self / rhs
+            }
+        }
+    )*};
+}
+
+impl_mul_div!(u64, f64);
+
+impl Div<Time> for Time {
+    type Output = f64;
+
+    fn div(self, rhs: Time) -> f64 {
+        self.samples / rhs.samples
     }
 }

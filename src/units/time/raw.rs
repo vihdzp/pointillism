@@ -1,10 +1,10 @@
 //! Defines [`RawTime`] and its basic methods.
 
-use crate::{units::freq::RawFreq, SAMPLE_RATE_F64};
+use crate::units::freq::RawFreq;
 
 use std::{
     fmt::{Formatter, Result as FmtResult},
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
+    ops::{Div, DivAssign, Mul, MulAssign, Rem, RemAssign},
     time::Duration,
 };
 
@@ -21,7 +21,20 @@ const YR_SECS: f64 = 365.0 * DAY_SECS;
 ///
 /// Most methods will require a [`Time`] instead, which is dependent on your sample rate. See
 /// [`Time::from_raw`].
-#[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
+#[derive(
+    Clone,
+    Copy,
+    Default,
+    PartialEq,
+    PartialOrd,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Rem,
+    derive_more::RemAssign,
+    derive_more::Sum,
+)]
 pub struct RawTime {
     /// Number of frames.
     pub seconds: f64,
@@ -49,14 +62,6 @@ impl RawTime {
         Self { seconds }
     }
 
-    /// Initializes a time variable for the number of frames.
-    ///
-    /// This number must be nonnegative, although this isn't checked.
-    #[must_use]
-    pub fn new_frames(frames: f64) -> Self {
-        Self::new(frames / SAMPLE_RATE_F64)
-    }
-
     /// The time for a single beat at a given BPM.
     ///
     /// This number must be nonnegative, although this isn't checked.
@@ -81,17 +86,6 @@ impl RawTime {
     #[must_use]
     pub fn milliseconds(&self) -> f64 {
         1e3 * self.seconds()
-    }
-
-    /// The time in frames.
-    #[must_use]
-    pub fn frames(&self) -> f64 {
-        self.seconds() * SAMPLE_RATE_F64
-    }
-
-    /// Advances the time by one frame.
-    pub fn advance(&mut self) {
-        self.seconds += 1.0 / SAMPLE_RATE_F64;
     }
 }
 
@@ -122,34 +116,6 @@ impl std::fmt::Debug for RawTime {
 impl std::fmt::Display for RawTime {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{} s", self.seconds())
-    }
-}
-
-impl Add for RawTime {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self {
-        Self::new(self.seconds + rhs.seconds)
-    }
-}
-
-impl AddAssign for RawTime {
-    fn add_assign(&mut self, rhs: Self) {
-        self.seconds += rhs.seconds;
-    }
-}
-
-impl Sub for RawTime {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self {
-        Self::new(self.seconds - rhs.seconds)
-    }
-}
-
-impl SubAssign for RawTime {
-    fn sub_assign(&mut self, rhs: Self) {
-        self.seconds -= rhs.seconds;
     }
 }
 
@@ -208,51 +174,5 @@ impl Rem for RawTime {
 impl RemAssign for RawTime {
     fn rem_assign(&mut self, rhs: Self) {
         self.seconds %= rhs.seconds;
-    }
-}
-
-impl std::iter::Sum for RawTime {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        Self::new(iter.map(|x| x.seconds()).sum())
-    }
-}
-
-/// A helper struct that can be used to do an event once after a certain time duration.
-#[derive(Clone, Copy, Debug)]
-pub struct RawTimer {
-    /// Length of the timer.
-    length: RawTime,
-
-    /// Whether the timer is active.
-    active: bool,
-}
-
-impl RawTimer {
-    /// Initializes a new timer with the given length.
-    #[must_use]
-    pub const fn new(length: RawTime) -> Self {
-        Self {
-            length,
-            active: true,
-        }
-    }
-
-    /// Whether the timer should activate, given the current time elapsed. A timer can only activate
-    /// once.
-    pub fn tick(&mut self, time: RawTime) -> bool {
-        if !self.active {
-            return false;
-        }
-
-        let done = time >= self.length;
-        if done {
-            self.active = false;
-        }
-        done
-    }
-
-    /// Resets the timer, allowing it to activate again.
-    pub fn reset(&mut self) {
-        self.active = true;
     }
 }

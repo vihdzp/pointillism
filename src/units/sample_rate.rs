@@ -1,4 +1,4 @@
-/// Represents the sample rate of an audio file, or of playback.
+/// Represents the sample rate of an audio file, or of playback. Measured in **samples per second**.
 ///
 /// Various common sample rates are defined as constants. We've set [`SampleRate::CD`] as the type
 /// default, but we recognize that other standards exist, and have thus abstained from making many

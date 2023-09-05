@@ -2,10 +2,27 @@
 //!
 //! This is used for [`Time::samples`].
 
+use std::ops::{Div, DivAssign, Mul, MulAssign};
+
 /// A fractional number backed by a `u64`.
 ///
 /// The number `FracInt(x)` represents x / 2<sup>16</sup>.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Rem,
+    derive_more::RemAssign,
+    derive_more::Sum,
+)]
 pub struct FracInt(u64);
 
 impl FracInt {
@@ -43,22 +60,6 @@ impl FracInt {
     /// Since `f32` has more than the 16 needed mantissa digits, this conversion is exact.
     pub fn frac(self) -> f32 {
         self.frac_int() as f32 / ((1 << 16) as f32)
-    }
-}
-
-impl std::ops::Add for FracInt {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0 + rhs.0)
-    }
-}
-
-impl std::ops::Sub for FracInt {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self(self.0 - rhs.0)
     }
 }
 
@@ -105,6 +106,73 @@ impl std::fmt::Display for FracInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let decimal = format!("{}", self.frac());
         write!(f, "{}{}", self.int(), &decimal[1..])
+    }
+}
+
+impl Mul<u64> for FracInt {
+    type Output = Self;
+
+    fn mul(self, rhs: u64) -> Self {
+        Self::new(self.0 * rhs)
+    }
+}
+
+impl Div<u64> for FracInt {
+    type Output = Self;
+
+    fn div(self, rhs: u64) -> Self {
+        Self::new(self.0 / rhs)
+    }
+}
+
+impl Mul<f64> for FracInt {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self {
+        Self::from(self.0 as f64 * rhs)
+    }
+}
+
+impl Div<f64> for FracInt {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self {
+        Self::from(self.0 as f64 / rhs)
+    }
+}
+
+/// Implements the remaining [`Mul`] and [`Div`] traits.
+macro_rules! impl_mul_div {
+    ($($ty: ty),*) => {$(
+        impl Mul<FracInt> for $ty {
+            type Output = FracInt;
+
+            fn mul(self, rhs: FracInt) -> FracInt {
+                rhs * self
+            }
+        }
+
+        impl MulAssign<$ty> for FracInt {
+            fn mul_assign(&mut self, rhs: $ty) {
+                *self = *self * rhs
+            }
+        }
+
+        impl DivAssign<$ty> for FracInt {
+            fn div_assign(&mut self, rhs: $ty) {
+                *self = *self / rhs
+            }
+        }
+    )*};
+}
+
+impl_mul_div!(u64, f64);
+
+impl Div for FracInt {
+    type Output = f64;
+
+    fn div(self, rhs: Self) -> f64 {
+        f64::from(self) / f64::from(rhs)
     }
 }
 
