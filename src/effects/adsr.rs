@@ -38,16 +38,16 @@ pub enum Stage {
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.
-    pub attack: Time,
+    pub attack: RawTime,
 
     /// The time from the signal peak to its sustain point.
-    pub decay: Time,
+    pub decay: RawTime,
 
     /// The sustain value for the signal.
     pub sustain: Vol,
 
     /// The time from the signal stop to it being done.
-    pub release: Time,
+    pub release: RawTime,
 
     /// Current stage of the envelope.
     stage: Stage,
@@ -65,7 +65,7 @@ pub struct Adsr {
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub const fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+    pub const fn new(attack: RawTime, decay: RawTime, sustain: Vol, release: RawTime) -> Self {
         Self {
             attack,
             decay,
@@ -166,7 +166,13 @@ pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
 impl<S: SignalMut> AdsrEnvelope<S> {
     /// Initializes an [`AdsrEnvelope`] with the given parameters.
-    pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+    pub fn new_adsr(
+        sgn: S,
+        attack: RawTime,
+        decay: RawTime,
+        sustain: Vol,
+        release: RawTime,
+    ) -> Self {
         Self::new(sgn, Adsr::new(attack, decay, sustain, release))
     }
 }

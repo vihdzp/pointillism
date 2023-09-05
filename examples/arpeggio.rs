@@ -3,9 +3,9 @@
 use pointillism::prelude::*;
 
 /// Quarter notes at 160 BPM.
-const NOTE_TIME: Time = Time::new(3.0 / 32.0);
+const NOTE_TIME: RawTime = RawTime::new(3.0 / 32.0);
 /// The length of each arpeggio "phrase".
-const LENGTH: Time = Time::new(6.0);
+const LENGTH: RawTime = RawTime::new(6.0);
 
 /// Sample rate of song.
 const SAMPLE_RATE: SampleRate = SampleRate::CD;
@@ -26,7 +26,7 @@ fn main() {
     // `C0` is a dummy value that gets replaced here.
     arp.skip_to_next();
 
-    let mut timer = Timer::new(LENGTH);
+    let mut timer = RawTimer::new(LENGTH);
 
     pointillism::create("examples/arpeggio.wav", 2.0 * LENGTH, |time| {
         // We switch up the arpeggio after the first phrase.

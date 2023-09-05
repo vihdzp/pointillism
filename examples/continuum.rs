@@ -13,9 +13,9 @@ fn main() {
     // Frequency of base note.
     const BASE: RawFreq = RawFreq::new(400.0);
     // Length of each note.
-    const NOTE_LEN: Time = Time::new(3.0);
+    const NOTE_LEN: RawTime = RawTime::new(3.0);
     // Length of released note.
-    const RELEASE_LEN: Time = Time::new(45.0);
+    const RELEASE_LEN: RawTime = RawTime::new(45.0);
 
     // Length of song in notes.
     const NOTE_COUNT_LEN: u16 = 200;
@@ -34,7 +34,7 @@ fn main() {
                     LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     NOTE_LEN,
-                    Time::ZERO,
+                    RawTime::ZERO,
                     Vol::FULL,
                     RELEASE_LEN,
                 ),

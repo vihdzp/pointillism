@@ -9,8 +9,8 @@ fn main() {
     const NUM_OSC: u8 = 5;
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(400.0);
-    // Time to complete a cycle.
-    const TIME: Time = Time::new(10.0);
+    // RawTime to complete a cycle.
+    const TIME: RawTime = RawTime::new(10.0);
 
     let base = Freq::from_raw_default(BASE);
 
@@ -20,7 +20,11 @@ fn main() {
             // A triangle wave with a placeholder frequency.
             LoopGen::new(Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new_phase(Sin, Freq::from_raw_default((NUM_OSC as f64 * TIME).freq()), phase),
+            LoopGen::new_phase(
+                Sin,
+                Freq::from_raw_default((NUM_OSC as f64 * TIME).freq()),
+                phase,
+            ),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             FnWrapper::new(|sgn: &mut LoopGen<_, _>, val: Env| {

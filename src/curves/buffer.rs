@@ -65,10 +65,10 @@ impl<S: Sample> Buffer<S> {
 
     /// Returns the time that takes to play this buffer at a standard sample rate of 44.1 kHz.
     #[must_use]
-    pub fn time(&self) -> Time {
+    pub fn time(&self) -> RawTime {
         // Any precision loss should be insignificant.
         #[allow(clippy::cast_precision_loss)]
-        Time::new_frames(self.data.len() as f64)
+        RawTime::new_frames(self.data.len() as f64)
     }
 
     /// Gets a sample at a given index.

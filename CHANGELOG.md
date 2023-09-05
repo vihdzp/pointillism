@@ -5,7 +5,7 @@ The types `Time` and `Freq` have been refactored.
 A "raw" version of both types has been added, which records these quantities in natural units `s`
 and `s⁻¹` respectively.
 
-These raw types can be converted into `Time` and `Freq`, which are now in units `samples` and
+These raw types can be converted into `RawTime` and `Freq`, which are now in units `samples` and
 `samples⁻¹` instead. This change achieves two things:
 
 - Advancing time by one sample no longer loses precision.

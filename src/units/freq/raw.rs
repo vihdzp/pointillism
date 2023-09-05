@@ -77,8 +77,8 @@ impl RawFreq {
 
     /// The period, which equals the reciprocal of the frequency.
     #[must_use]
-    pub fn period(&self) -> Time {
-        Time::new(1.0 / self.hz())
+    pub fn period(&self) -> RawTime {
+        RawTime::new(1.0 / self.hz())
     }
 
     /// Bends a note by a number of notes in a given `edo`.

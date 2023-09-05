@@ -6,7 +6,7 @@ fn main() {
     const FILENAME: &str = "examples/buffer.wav";
 
     // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
-    pointillism::create_from_sgn(FILENAME, Time::SEC, LoopGen::<Mono, Sin>::default()).unwrap();
+    pointillism::create_from_sgn(FILENAME, RawTime::SEC, LoopGen::<Mono, Sin>::default()).unwrap();
 
     // Read back the file, stretch it to 5 seconds.
     //

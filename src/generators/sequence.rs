@@ -28,7 +28,7 @@ fn mod_advance(len: usize, index: &mut usize) {
 #[derive(Clone, Debug)]
 pub struct Sequence<S: SignalMut, F: Mut<S>> {
     /// A list of time intervals between an event and the next.
-    times: Vec<Time>,
+    times: Vec<RawTime>,
 
     /// A signal being modified.
     sgn: S,
@@ -39,29 +39,29 @@ pub struct Sequence<S: SignalMut, F: Mut<S>> {
     /// The current event being read.
     index: usize,
 
-    /// Time since last event.
-    since: Time,
+    /// RawTime since last event.
+    since: RawTime,
 }
 
 impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Initializes a new sequence.
-    pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
+    pub const fn new(times: Vec<RawTime>, sgn: S, func: F) -> Self {
         Self {
             times,
             sgn,
             func,
             index: 0,
-            since: Time::ZERO,
+            since: RawTime::ZERO,
         }
     }
 
     /// Returns a reference to the list of time intervals between events.
-    pub fn times(&self) -> &[Time] {
+    pub fn times(&self) -> &[RawTime] {
         &self.times
     }
 
     /// Returns the time for the current event.
-    pub fn current_time(&self) -> Option<Time> {
+    pub fn current_time(&self) -> Option<RawTime> {
         self.times.get(self.index()).copied()
     }
 
@@ -95,8 +95,8 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.index
     }
 
-    /// Time since last event.
-    pub const fn since(&self) -> Time {
+    /// RawTime since last event.
+    pub const fn since(&self) -> RawTime {
         self.since
     }
 
@@ -117,7 +117,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.index = index;
         let res = index < self.len();
         if res {
-            self.since = Time::ZERO;
+            self.since = RawTime::ZERO;
             self.modify();
             self.index += 1;
         }
@@ -173,7 +173,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.index = 0;
-        self.since = Time::ZERO;
+        self.since = RawTime::ZERO;
     }
 }
 
@@ -216,7 +216,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     ///
     /// This method is entirely safe. However, panics can occur in other methods if an empty `times`
     /// array is passed.
-    pub const fn new_unchecked(times: Vec<Time>, sgn: S, func: F) -> Self {
+    pub const fn new_unchecked(times: Vec<RawTime>, sgn: S, func: F) -> Self {
         Self::new_seq_unchecked(Sequence::new(times, sgn, func))
     }
 
@@ -225,12 +225,12 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// This method panics if the `times` vector is empty.
-    pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
+    pub fn new(times: Vec<RawTime>, sgn: S, func: F) -> Self {
         Self::new_seq(Sequence::new(times, sgn, func))
     }
 
     /// Returns a reference to the list of time intervals between events.
-    pub fn times(&self) -> &[Time] {
+    pub fn times(&self) -> &[RawTime] {
         self.seq.times()
     }
 
@@ -239,7 +239,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// Panics if the loop is empty.
-    pub fn current_time(&self) -> Time {
+    pub fn current_time(&self) -> RawTime {
         self.seq.current_time().unwrap()
     }
 
@@ -276,8 +276,8 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
         self.seq.index
     }
 
-    /// Time since last event.
-    pub const fn since(&self) -> Time {
+    /// RawTime since last event.
+    pub const fn since(&self) -> RawTime {
         self.seq.since
     }
 
@@ -302,7 +302,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     ///
     /// Panics if the loop is empty.
     pub fn skip_to(&mut self, index: usize) {
-        self.seq.since = Time::ZERO;
+        self.seq.since = RawTime::ZERO;
         self.modify();
         self.seq.index = (index + 1) % self.len();
     }
@@ -316,7 +316,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     ///
     /// Panics if the loop is empty.
     pub fn skip_to_next(&mut self) {
-        self.seq.since = Time::ZERO;
+        self.seq.since = RawTime::ZERO;
         self.modify();
         mod_advance(self.len(), &mut self.seq.index);
     }
@@ -416,7 +416,7 @@ impl<S: Frequency> Arpeggio<S> {
     ///
     /// This method is entirely safe. However, panics can occur in other methods if an empty `times`
     /// array is passed.
-    pub const fn new_arp_unchecked(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
+    pub const fn new_arp_unchecked(times: Vec<RawTime>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new_unchecked(times, sgn, Arp::new(notes))
     }
 
@@ -428,7 +428,7 @@ impl<S: Frequency> Arpeggio<S> {
     /// ## Panics
     ///
     /// his method panics if the times vector is empty.
-    pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
+    pub fn new_arp(times: Vec<RawTime>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
     }
 

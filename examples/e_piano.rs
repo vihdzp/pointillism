@@ -79,10 +79,10 @@ fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
 
     // Some subtle ADSR.
     let adsr = Adsr::new(
-        Time::new(0.1),
-        Time::new(0.2),
+        RawTime::new(0.1),
+        RawTime::new(0.2),
         Vol::new(0.7),
-        Time::new(0.1),
+        RawTime::new(0.1),
     );
 
     AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
@@ -100,20 +100,20 @@ fn main() {
 
     let mut stop_notes = false;
 
-    pointillism::create("examples/e_piano.wav", 5.2 * Time::SEC, |time| {
+    pointillism::create("examples/e_piano.wav", 5.2 * RawTime::SEC, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.
-        if time > Time::SEC {
+        if time > RawTime::SEC {
             sgn += p2.next();
         }
 
         // Play the third note after two seconds.
-        if time > 2.0 * Time::SEC {
+        if time > 2.0 * RawTime::SEC {
             sgn += p3.next();
         }
 
-        if time >= 5.0 * Time::SEC && !stop_notes {
+        if time >= 5.0 * RawTime::SEC && !stop_notes {
             p1.stop();
             p2.stop();
             p3.stop();

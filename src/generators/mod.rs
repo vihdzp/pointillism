@@ -86,7 +86,7 @@ impl Val {
     }
 
     /// Advances the inner value in order to play a wave for the specified duration.
-    pub fn advance_time(&mut self, time: Time) {
+    pub fn advance_time(&mut self, time: RawTime) {
         self.0 += 1.0 / time.frames();
         self.0 = self.0.min(1.0);
     }
@@ -153,7 +153,7 @@ where
     val: Val,
 
     /// The time for which the curve is played.
-    time: Time,
+    time: RawTime,
 }
 
 impl<C: Map<Input = Val>> OnceCurveGen<C>
@@ -164,7 +164,7 @@ where
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`OnceCurveGen`] from a plain curve, use [`OnceGen::new`].
-    pub const fn new_curve(map: C, time: Time) -> Self {
+    pub const fn new_curve(map: C, time: RawTime) -> Self {
         Self {
             map,
             val: Val::ZERO,
@@ -188,12 +188,12 @@ where
     }
 
     /// The time for which the curve is played.
-    pub const fn time(&self) -> Time {
+    pub const fn time(&self) -> RawTime {
         self.time
     }
 
     /// A mutable reference to the time for which this curve is played.
-    pub fn time_mut(&mut self) -> &mut Time {
+    pub fn time_mut(&mut self) -> &mut RawTime {
         &mut self.time
     }
 }
@@ -267,7 +267,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
     ///
     /// Note that this builds a [`OnceGen`]. In order to build a more general [`OnceCurveGen`], use
     /// `OnceCurveGen::new_curve`.
-    pub const fn new(curve: C, time: Time) -> Self {
+    pub const fn new(curve: C, time: RawTime) -> Self {
         Self::new_curve(CurvePlayer::new(curve), time)
     }
 

@@ -376,7 +376,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 /// const SCALE: f64 = 1.0 / NUM as f64;
 ///
 /// /// Length of the detuning envelope.
-/// const LEN: Time = Time::new(5.0);
+/// const LEN: RawTime = RawTime::new(5.0);
 ///
 /// fn main() {
 ///     // Plays a number of notes, and detunes them up to an octave.

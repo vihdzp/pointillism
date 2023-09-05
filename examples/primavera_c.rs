@@ -11,21 +11,21 @@ use pointillism::prelude::*;
 const BASE: RawFreq = RawFreq::new(222.2);
 
 // Fade-in / fade-out time for instruments.
-const FADE: Time = Time::new(20.0);
+const FADE: RawTime = RawTime::new(20.0);
 
 // Period for the vibrato.
 const VIB_FREQ: RawFreq = RawFreq::new(1.0 / 40.0);
 
-// Time until the melody starts.
-const MELODY_TIME: Time = Time::new(120.0);
+// RawTime until the melody starts.
+const MELODY_TIME: RawTime = RawTime::new(120.0);
 
 // Length of the song.
-const LENGTH: Time = Time::new(5.0 * 60.0);
+const LENGTH: RawTime = RawTime::new(5.0 * 60.0);
 
 /// A fade-in and fade-out effect.
 ///
 /// TODO: implement this directly in pointillism.
-fn fade(time: Time, length: Time, fade: Time) -> f64 {
+fn fade(time: RawTime, length: RawTime, fade: RawTime) -> f64 {
     if time < fade {
         time.seconds / fade.seconds
     } else if time > length - fade {
@@ -64,19 +64,20 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     let shape = move |freq| {
         MutSgn::new(
             wave(freq),
-            OnceGen::new(PosSaw, Time::new(5.0)),
+            OnceGen::new(PosSaw, RawTime::new(5.0)),
             FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
                 sgn.curve_mut().shape = 1.0 - val.0.powf(0.2) / 2.0;
             }),
         )
     };
-    let trem = move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw, Time::new(10.0)));
+    let trem =
+        move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw, RawTime::new(10.0)));
 
     let poly = Polyphony::new();
     let mut index = 0;
 
     Loop::new(
-        vec![Time::new(4.0)],
+        vec![RawTime::new(4.0)],
         poly,
         FnWrapper::new(move |poly: &mut Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];

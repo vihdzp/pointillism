@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
@@ -60,9 +59,9 @@ pub fn sgn(x: f64) -> f64 {
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 #[allow(clippy::cast_sign_loss)]
-pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
+pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(RawTime) -> A>(
     filename: P,
-    length: Time,
+    length: RawTime,
     mut song: F,
 ) -> Result<()> {
     // Precision loss should never occur in practical circumstances.
@@ -73,7 +72,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     let mut writer = WavWriter::create(filename, spec(A::SIZE as u8))?;
 
     for frames in 0..length {
-        song(Time::new_frames(frames as f64)).write(&mut writer)?;
+        song(RawTime::new_frames(frames as f64)).write(&mut writer)?;
     }
 
     writer.finalize()
@@ -89,7 +88,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 /// This should only return an error in case of an IO error.
 pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
     filename: P,
-    length: Time,
+    length: RawTime,
     mut sgn: S,
 ) -> Result<()>
 where

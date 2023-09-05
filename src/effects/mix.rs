@@ -148,7 +148,7 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
 /// let mut signal = LoopGen::new(Saw, Freq::A3);
 /// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::new(3.0));
 ///
-/// pointillism::create("examples/routing.wav", 5.0 * Time::SEC, |_| {
+/// pointillism::create("examples/routing.wav", 5.0 * RawTime::SEC, |_| {
 ///     // Thanks to `Ref`, we're able to re-use these signals.
 ///     let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
 ///     let sgn2 = Tremolo::new(Ref::new(&signal), Ref::new(&trem_env));

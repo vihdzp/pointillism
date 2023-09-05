@@ -1,11 +1,11 @@
 //! Implements a positive fractional number type.
 //!
-//! For our purposes, this is faster, more convenient, and more precise than floating point.
+//! This is used for [`Time::samples`].
 
 /// A fractional number backed by a `u64`.
 ///
 /// The number `FracInt(x)` represents x / 2<sup>16</sup>.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FracInt(u64);
 
 impl FracInt {
@@ -38,16 +38,6 @@ impl FracInt {
         self.0 as u16
     }
 
-    /// Rounds an `f32` into a [`FracInt`].
-    pub fn from_f32(x: f32) -> Self {
-        Self::from_parts(x as u64, (x.fract() * ((1 << 16) as f32)).round() as u16)
-    }
-
-    /// Rounds an `f64` into a [`FracInt`].
-    pub fn from_f64(x: f64) -> Self {
-        Self::from_parts(x as u64, (x.fract() * ((1 << 16) as f64)).round() as u16)
-    }
-
     /// The fractional part of this number.
     ///
     /// Since `f32` has more than the 16 needed mantissa digits, this conversion is exact.
@@ -72,10 +62,10 @@ impl std::ops::Sub for FracInt {
     }
 }
 
-/// Implements [`From`].
-macro_rules! impl_from {
+/// Implements [`From`] for integer types.
+macro_rules! impl_from_int {
     ($($ty: ty),*) => {
-        $(impl From<$ty> for FracInt{
+        $(impl From<$ty> for FracInt {
             fn from(value: $ty) -> Self {
                 Self::new(value as u64)
             }
@@ -83,7 +73,33 @@ macro_rules! impl_from {
     )*};
 }
 
-impl_from!(u8, u16, u32, u64, u128);
+impl_from_int!(u8, u16, u32, u64, u128);
+
+/// Implements [`From`] for floating point types.
+macro_rules! impl_from_float {
+    ($($ty: ty),*) => {
+        $(impl From<$ty> for FracInt {
+            fn from(value: $ty) -> Self {
+                Self::from_parts(value as u64, (value.fract() * ((1 << 16) as $ty)).round() as u16)
+            }
+        }
+    )*};
+}
+
+impl_from_float!(f32, f64);
+
+/// Implements [`Into`] for floating point types.
+macro_rules! impl_into_float {
+    ($($ty: ty),*) => {
+        $(impl From<FracInt> for $ty {
+            fn from(value: FracInt) -> Self {
+                value.0 as $ty / ((1 << 16) as $ty)
+            }
+        }
+    )*};
+}
+
+impl_into_float!(f32, f64);
 
 impl std::fmt::Display for FracInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -100,6 +116,6 @@ mod test {
     fn display() {
         assert_eq!(format!("{}", FracInt::new(0)), "0");
         assert_eq!(format!("{}", FracInt::new(1)), "1");
-        assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375")
+        assert_eq!(format!("{}", FracInt::from(0.375f32)), "0.375")
     }
 }

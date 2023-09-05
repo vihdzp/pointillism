@@ -3,13 +3,13 @@ use crate::{
     units::{SampleRate, A4_MIDI},
 };
 
-use super::{raw_freq::RawFreq, Interval};
+use super::{raw::RawFreq, Interval};
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 /// A frequency, measured in **inverse samples**.
 ///
 /// Note that in order to convert between a [`RawFreq`] in hertz and this type, you must know the
-/// [`SampleRate`]. Many methods will assume 44.1 kHz if not explicitly specified, so be careful!
+/// [`SampleRate`].
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in inverse samples.
@@ -39,12 +39,12 @@ impl Freq {
         Self::from_raw(raw, SampleRate::default())
     }
 
-    /// Initializes a [`Freq`] from the unit in hertz, and a sample rate.
+    /// Initializes a [`Freq`] from the value in hertz, and a sample rate.
     pub fn from_hz(hz: f64, sample_rate: SampleRate) -> Self {
         Self::from_raw(RawFreq::new(hz), sample_rate)
     }
 
-    /// Initializes a [`Freq`] from the unit in hertz, using the default sample rate.
+    /// Initializes a [`Freq`] from the value in hertz, using the default sample rate.
     pub fn from_hz_default(hz: f64) -> Self {
         Self::from_hz(hz, SampleRate::default())
     }

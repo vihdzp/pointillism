@@ -11,9 +11,9 @@
 
 mod freq;
 mod interval;
-mod raw_freq;
+mod raw;
 
-pub use {freq::Freq, interval::Interval, raw_freq::RawFreq};
+pub use {freq::Freq, interval::Interval, raw::RawFreq};
 
 #[cfg(test)]
 mod test {

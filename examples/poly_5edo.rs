@@ -10,7 +10,7 @@ fn main() {
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(350.0);
     // Length of each note.
-    const NOTE_LEN: Time = Time::new(5.0);
+    const NOTE_LEN: RawTime = RawTime::new(5.0);
 
     let base = Freq::from_raw_default(BASE);
 

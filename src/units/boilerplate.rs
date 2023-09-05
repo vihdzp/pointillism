@@ -6,8 +6,8 @@
 //! Enharmonic notes are given their individual constant names, for good measure.
 //!
 //! We only implement the notes from octaves -1 to 10, as anything lower is unsupported as a
-//! [`Note`], and anything higher is too high-pitched to be practical. This range well-covers the
-//! human hearing range.
+//! (standard) MIDI note, and anything higher is too high-pitched to be practical. This range
+//! well-covers the human hearing range.
 //!
 //! This will hopefully be replaced with some macro code eventually.
 

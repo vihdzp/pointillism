@@ -1,5 +1,9 @@
 {
     "editor.rulers": [
         100
+    ],
+    "rust-analyzer.linkedProjects": [
+        ".\\Cargo.toml",
+        ".\\Cargo.toml"
     ]
 }

@@ -42,7 +42,7 @@ The project uses the following features:
 
 | Feature | Enables |
 |-|-|
-| `human-duration` | Pretty-printing for the `Time` type. |
+| `human-duration` | Pretty-printing for the `RawRawTime` type. |
 
 (todo: `rodio` integration)
 
