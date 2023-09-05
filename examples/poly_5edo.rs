@@ -13,6 +13,7 @@ fn main() {
     const NOTE_LEN: RawTime = RawTime::new(5.0);
 
     let base = Freq::from_raw_default(BASE);
+    let note_len = Time::from_raw_default(NOTE_LEN);
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
@@ -21,10 +22,10 @@ fn main() {
             LoopGen::<Stereo, _>::new(Sin, freq),
             // ADSR envelope with long attack, long release.
             Adsr::new(
-                0.8 * NOTE_LEN,
-                0.2 * NOTE_LEN,
+                0.8 * note_len,
+                0.2 * note_len,
                 Vol::new(0.8),
-                1.5 * NOTE_LEN,
+                1.5 * note_len,
             ),
         )
     };
@@ -37,7 +38,7 @@ fn main() {
     // The song loop.
     let poly_loop = Loop::new(
         // Every NOTE_LEN seconds,
-        vec![NOTE_LEN],
+        vec![note_len],
         // we modify the signal `poly`,
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>| {
@@ -55,5 +56,5 @@ fn main() {
 
     // This gives a really weird effect.
     let dist = PwMapSgn::cubic(poly_loop);
-    pointillism::create_from_sgn("examples/poly_5edo.wav", 10.0 * NOTE_LEN, dist).unwrap();
+    pointillism::create_from_sgn("examples/poly_5edo.wav", 10u8 * note_len, dist).unwrap();
 }

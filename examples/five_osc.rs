@@ -13,6 +13,7 @@ fn main() {
     const TIME: RawTime = RawTime::new(10.0);
 
     let base = Freq::from_raw_default(BASE);
+    let time = Time::from_raw_default(TIME);
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
@@ -20,11 +21,7 @@ fn main() {
             // A triangle wave with a placeholder frequency.
             LoopGen::new(Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new_phase(
-                Sin,
-                Freq::from_raw_default((NUM_OSC as f64 * TIME).freq()),
-                phase,
-            ),
+            LoopGen::new_phase(Sin, Freq::from(NUM_OSC * time), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             FnWrapper::new(|sgn: &mut LoopGen<_, _>, val: Env| {
@@ -39,7 +36,7 @@ fn main() {
         oscillators.push(osc(Val::new(i as f64 / NUM_OSC as f64)));
     }
 
-    pointillism::create("examples/five_osc.wav", 2.0 * TIME, |_| {
+    pointillism::create("examples/five_osc.wav", 2u8 * time, |_| {
         oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
     })
     .unwrap();

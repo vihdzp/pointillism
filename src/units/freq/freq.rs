@@ -20,41 +20,49 @@ impl Freq {
     /// Initializes a frequency in **inverse samples**.
     ///
     /// If you want to use the more natural unit of hertz, see [`Self::from_raw`].
+    #[must_use]
     pub const fn new(samples: f64) -> Self {
         Self { samples }
     }
 
     /// The frequency in inverse samples.
+    #[must_use]
     pub const fn samples(self) -> f64 {
         self.samples
     }
 
     /// Converts [`RawFreq`] into [`Freq`], using the specified sample rate.
+    #[must_use]
     pub fn from_raw(raw: RawFreq, sample_rate: SampleRate) -> Self {
-        Self::new(raw.hz() / f64::from(sample_rate))
+        raw / sample_rate
     }
 
     /// Converts [`RawFreq`] into [`Freq`], using the default sample rate.
+    #[must_use]
     pub fn from_raw_default(raw: RawFreq) -> Self {
         Self::from_raw(raw, SampleRate::default())
     }
 
     /// Initializes a [`Freq`] from the value in hertz, and a sample rate.
+    #[must_use]
     pub fn from_hz(hz: f64, sample_rate: SampleRate) -> Self {
         Self::from_raw(RawFreq::new(hz), sample_rate)
     }
 
     /// Initializes a [`Freq`] from the value in hertz, using the default sample rate.
+    #[must_use]
     pub fn from_hz_default(hz: f64) -> Self {
         Self::from_hz(hz, SampleRate::default())
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
+    #[must_use]
     pub fn into_raw(self, sample_rate: SampleRate) -> RawFreq {
         RawFreq::new(self.samples() * f64::from(sample_rate))
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the default sample rate.
+    #[must_use]
     pub fn into_raw_default(self) -> RawFreq {
         self.into_raw(SampleRate::default())
     }
@@ -136,6 +144,7 @@ impl RawFreq {
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
     ///
     /// To use the default 44.1 kHz sample rate, use [`Self::from_freq`].
+    #[must_use]
     pub fn from_freq_with(freq: Freq, sample_rate: SampleRate) -> Self {
         Self::new(freq.samples() * f64::from(sample_rate))
     }
@@ -143,6 +152,7 @@ impl RawFreq {
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
     ///
     /// To specify the sample rate, use [`Self::from_freq`].
+    #[must_use]
     pub fn from_freq(freq: Freq) -> Self {
         Self::from_freq_with(freq, SampleRate::default())
     }

@@ -16,6 +16,7 @@ impl SampleRate {
     pub const FILM: Self = Self::new(48_000);
 
     /// Initializes a [`SampleRate`].
+    #[must_use]
     pub const fn new(value: u32) -> Self {
         Self(value)
     }
@@ -36,7 +37,7 @@ impl From<SampleRate> for f32 {
 
 impl From<SampleRate> for f64 {
     fn from(value: SampleRate) -> Self {
-        value.0 as f64
+        f64::from(value.0)
     }
 }
 

@@ -7,6 +7,8 @@ use std::{
 
 /// A time, measured in **samples**.
 ///
+/// Since we use a backing [`FracInt`], multiplication and division by an integer is allowed.
+///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
 /// [`SampleRate`].
 #[derive(
@@ -40,41 +42,43 @@ impl Time {
     /// Initializes a time in **samples**.
     ///
     /// If you want to use the more natural unit of seconds, see [`Self::from_raw`].
+    #[must_use]
     pub const fn new(samples: FracInt) -> Self {
         Self { samples }
     }
 
-    /// The time in samples.
-    pub const fn samples(self) -> FracInt {
-        self.samples
-    }
-
     /// Converts [`RawTime`] into [`Time`], using the specified sample rate.
+    #[must_use]
     pub fn from_raw(raw: RawTime, sample_rate: SampleRate) -> Self {
-        Self::new(FracInt::from(raw.seconds() * f64::from(sample_rate)))
+        raw * sample_rate
     }
 
     /// Converts [`RawTime`] into [`Time`], using the default sample rate.
+    #[must_use]
     pub fn from_raw_default(raw: RawTime) -> Self {
         Self::from_raw(raw, SampleRate::default())
     }
 
     /// Initializes a [`Time`] from the value in seconds, and a sample rate.
+    #[must_use]
     pub fn from_sec(seconds: f64, sample_rate: SampleRate) -> Self {
         Self::from_raw(RawTime::new(seconds), sample_rate)
     }
 
     /// Initializes a [`Time`] from the value in seconds, using the default sample rate.
-    pub fn from_sec_default(hz: f64) -> Self {
-        Self::from_sec(hz, SampleRate::default())
+    #[must_use]
+    pub fn from_sec_default(seconds: f64) -> Self {
+        Self::from_sec(seconds, SampleRate::default())
     }
 
     /// Converts [`Time`] into [`RawTime`], using the specified sample rate.
+    #[must_use]
     pub fn into_raw(self, sample_rate: SampleRate) -> RawTime {
-        RawTime::new(f64::from(self.samples()) / f64::from(sample_rate))
+        self / sample_rate
     }
 
     /// Converts [`Time`] into [`RawTime`], using the default sample rate.
+    #[must_use]
     pub fn into_raw_default(self) -> RawTime {
         self.into_raw(SampleRate::default())
     }
@@ -132,7 +136,7 @@ macro_rules! impl_mul_div {
     )*};
 }
 
-impl_mul_div!(u64, f64);
+impl_mul_div!(u8, u16, u32, u64, f64);
 
 impl Div<Time> for Time {
     type Output = f64;

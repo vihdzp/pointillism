@@ -95,7 +95,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.index
     }
 
-    /// RawTime since last event.
+    /// Time since last event.
     pub const fn since(&self) -> Time {
         self.since
     }
@@ -276,7 +276,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
         self.seq.index
     }
 
-    /// RawTime since last event.
+    /// Time since last event.
     pub const fn since(&self) -> Time {
         self.seq.since
     }

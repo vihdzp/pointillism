@@ -64,7 +64,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     length: Time,
     mut song: F,
 ) -> Result<()> {
-    let length = length.samples().int();
+    let length = length.samples.int();
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]

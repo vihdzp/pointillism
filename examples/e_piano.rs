@@ -90,6 +90,7 @@ fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
 
 fn main() {
     let c3 = Freq::from_raw_default(RawFreq::C3);
+    let sec = Time::from_raw_default(RawTime::SEC);
 
     // One piano for each note.
     let (mut p1, mut p2, mut p3) = (
@@ -100,20 +101,20 @@ fn main() {
 
     let mut stop_notes = false;
 
-    pointillism::create("examples/e_piano.wav", 5.2 * RawTime::SEC, |time| {
+    pointillism::create("examples/e_piano.wav", 5.2 * sec, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.
-        if time > RawTime::SEC {
+        if time > Time::from_raw_default(RawTime::SEC) {
             sgn += p2.next();
         }
 
         // Play the third note after two seconds.
-        if time > 2.0 * RawTime::SEC {
+        if time > 2u8 * sec {
             sgn += p3.next();
         }
 
-        if time >= 5.0 * RawTime::SEC && !stop_notes {
+        if time >= 5u8 * sec && !stop_notes {
             p1.stop();
             p2.stop();
             p3.stop();

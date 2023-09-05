@@ -34,22 +34,26 @@ impl FracInt {
     /// Initializes a [`FracInt`] from the integer and fractional parts.
     ///
     /// The number `int` must be less than 2<sup>48</sup>.
+    #[must_use]
     pub const fn from_parts(int: u64, frac: u16) -> Self {
         Self((int << 16) + frac as u64)
     }
 
     /// Converts a number `x` less than 2<sup>48</sup> into a [`FracInt`].
+    #[must_use]
     pub const fn new(x: u64) -> Self {
         Self::from_parts(x, 0)
     }
 
     /// The integer part of this number.
+    #[must_use]
     pub const fn int(self) -> u64 {
         self.0 >> 16
     }
 
     /// The fractional part of this number, multiplied by 2<sup>16</sup>.
     #[allow(clippy::cast_possible_truncation)]
+    #[must_use]
     pub const fn frac_int(self) -> u16 {
         // Truncation is exactly what we want.
         self.0 as u16
@@ -58,8 +62,9 @@ impl FracInt {
     /// The fractional part of this number.
     ///
     /// Since `f32` has more than the 16 needed mantissa digits, this conversion is exact.
+    #[must_use]
     pub fn frac(self) -> f32 {
-        self.frac_int() as f32 / ((1 << 16) as f32)
+        f32::from(self.frac_int()) / ((1 << 16) as f32)
     }
 }
 
@@ -109,41 +114,25 @@ impl std::fmt::Display for FracInt {
     }
 }
 
-impl Mul<u64> for FracInt {
-    type Output = Self;
-
-    fn mul(self, rhs: u64) -> Self {
-        Self::new(self.0 * rhs)
-    }
-}
-
-impl Div<u64> for FracInt {
-    type Output = Self;
-
-    fn div(self, rhs: u64) -> Self {
-        Self::new(self.0 / rhs)
-    }
-}
-
-impl Mul<f64> for FracInt {
-    type Output = Self;
-
-    fn mul(self, rhs: f64) -> Self {
-        Self::from(self.0 as f64 * rhs)
-    }
-}
-
-impl Div<f64> for FracInt {
-    type Output = Self;
-
-    fn div(self, rhs: f64) -> Self {
-        Self::from(self.0 as f64 / rhs)
-    }
-}
-
-/// Implements the remaining [`Mul`] and [`Div`] traits.
+/// Implements the [`Mul`] and [`Div`] traits.
 macro_rules! impl_mul_div {
     ($($ty: ty),*) => {$(
+        impl Mul<$ty> for FracInt {
+            type Output = Self;
+
+            fn mul(self, rhs: $ty) -> Self {
+                Self::from(self.0 as $ty * rhs)
+            }
+        }
+
+        impl Div<$ty> for FracInt {
+            type Output = Self;
+
+            fn div(self, rhs: $ty) -> Self {
+                Self::from(self.0 as $ty / rhs)
+            }
+        }
+
         impl Mul<FracInt> for $ty {
             type Output = FracInt;
 
@@ -166,7 +155,7 @@ macro_rules! impl_mul_div {
     )*};
 }
 
-impl_mul_div!(u64, f64);
+impl_mul_div!(u8, u16, u32, u64, f64);
 
 impl Div for FracInt {
     type Output = f64;

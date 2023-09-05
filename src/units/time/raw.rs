@@ -4,7 +4,7 @@ use crate::units::freq::RawFreq;
 
 use std::{
     fmt::{Formatter, Result as FmtResult},
-    ops::{Div, DivAssign, Mul, MulAssign, Rem, RemAssign},
+    ops::{Div, DivAssign, Mul, MulAssign},
     time::Duration,
 };
 
@@ -68,12 +68,6 @@ impl RawTime {
     #[must_use]
     pub fn new_beat(bpm: f64) -> Self {
         Self::new(MIN_SECS / bpm)
-    }
-
-    /// RawTime to frequency.
-    #[must_use]
-    pub fn freq(&self) -> RawFreq {
-        RawFreq::new(1.0 / self.seconds())
     }
 
     /// The time in seconds.
@@ -160,19 +154,5 @@ impl Div<RawTime> for RawTime {
 
     fn div(self, rhs: RawTime) -> f64 {
         self.seconds / rhs.seconds
-    }
-}
-
-impl Rem for RawTime {
-    type Output = Self;
-
-    fn rem(self, rhs: Self) -> Self {
-        Self::new(self.seconds % rhs.seconds)
-    }
-}
-
-impl RemAssign for RawTime {
-    fn rem_assign(&mut self, rhs: Self) {
-        self.seconds %= rhs.seconds;
     }
 }

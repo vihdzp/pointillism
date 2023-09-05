@@ -25,11 +25,11 @@ const LENGTH: RawTime = RawTime::new(5.0 * 60.0);
 /// A fade-in and fade-out effect.
 ///
 /// TODO: implement this directly in pointillism.
-fn fade(time: RawTime, length: RawTime, fade: RawTime) -> f64 {
+fn fade(time: Time, length: Time, fade: Time) -> f64 {
     if time < fade {
-        time.seconds / fade.seconds
+        time.samples / fade.samples
     } else if time > length - fade {
-        (length - time).seconds / fade.seconds
+        (length - time).samples / fade.samples
     } else {
         1.0
     }
@@ -64,20 +64,24 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     let shape = move |freq| {
         MutSgn::new(
             wave(freq),
-            OnceGen::new(PosSaw, RawTime::new(5.0)),
+            OnceGen::new(PosSaw, Time::from_sec_default(5.0)),
             FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
                 sgn.curve_mut().shape = 1.0 - val.0.powf(0.2) / 2.0;
             }),
         )
     };
-    let trem =
-        move |freq| StopTremolo::new(shape(freq), OnceGen::new(PosInvSaw, RawTime::new(10.0)));
+    let trem = move |freq| {
+        StopTremolo::new(
+            shape(freq),
+            OnceGen::new(PosInvSaw, Time::from_sec_default(10.0)),
+        )
+    };
 
     let poly = Polyphony::new();
     let mut index = 0;
 
     Loop::new(
-        vec![RawTime::new(4.0)],
+        vec![Time::from_sec_default(4.0)],
         poly,
         FnWrapper::new(move |poly: &mut Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];
@@ -91,12 +95,16 @@ fn main() {
     let mut binaural = binaural();
     let mut melody = melody();
 
-    pointillism::create("examples/primavera_c.wav", LENGTH, |time| {
-        let mut sample = binaural.next() * fade(time, LENGTH, FADE);
+    let length = Time::from_raw_default(LENGTH);
+    let melody_time = Time::from_raw_default(MELODY_TIME);
+    let fade_time = Time::from_raw_default(FADE);
+
+    pointillism::create("examples/primavera_c.wav", length, |time| {
+        let mut sample = binaural.next() * fade(time, length, fade_time);
 
         // The triangle waves start playing 2 minutes in.
-        if time > MELODY_TIME {
-            sample += (melody.next() * fade(time - MELODY_TIME, LENGTH - MELODY_TIME, FADE))
+        if time > melody_time {
+            sample += (melody.next() * fade(time - melody_time, length - melody_time, fade_time))
                 .duplicate()
                 / 10.0;
         }

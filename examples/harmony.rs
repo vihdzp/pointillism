@@ -8,10 +8,10 @@ fn main() {
         AdsrEnvelope::new(
             LoopGen::<Stereo, _>::new(Tri, freq),
             Adsr::new(
-                RawTime::new(4.0),
-                RawTime::new(6.0),
+                Time::from_sec_default(4.0),
+                Time::from_sec_default(6.0),
                 Vol::new(0.25),
-                RawTime::new(3.0),
+                Time::from_sec_default(3.0),
             ),
         )
     };
@@ -38,7 +38,7 @@ fn main() {
 
     let mut idx = 0;
     let mut seq = Sequence::new(
-        vec![RawTime::new(10.0); chords.len() + 1],
+        vec![Time::from_sec_default(10.0); chords.len() + 1],
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>| {
             if idx != chords.len() {
@@ -60,7 +60,7 @@ fn main() {
 
     pointillism::create(
         "examples/harmony.wav",
-        RawTime::new(10.0) * chords.len() as f64 + RawTime::new(3.0),
+        Time::from_sec_default(10.0) * chords.len() as f64 + Time::from_sec_default(3.0),
         |_| seq.next() / 6.0,
     )
     .unwrap();

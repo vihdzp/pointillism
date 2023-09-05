@@ -19,13 +19,15 @@ pub mod midi;
 mod sample_rate;
 mod time;
 
-use std::ops::Mul;
+use std::ops::{Div, Mul};
 
 // We define these in different files for simplicity, but they're all ultimately units.
 pub use frac_int::FracInt;
 pub use freq::{Freq, Interval, RawFreq};
 pub use sample_rate::SampleRate;
 pub use time::{RawTime, Time, Timer};
+
+use crate::sample::Sample;
 
 /// This magic number `69.0` corresponds to the MIDI index of A4.
 const A4_MIDI: f64 = midi::Note::A4.note as f64;
@@ -50,7 +52,7 @@ impl Mul<Freq> for Time {
     type Output = f64;
 
     fn mul(self, rhs: Freq) -> f64 {
-        f64::from(self.samples()) * rhs.samples()
+        f64::from(self.samples) * rhs.samples()
     }
 }
 
@@ -76,7 +78,7 @@ impl From<RawFreq> for RawTime {
 
 impl From<Time> for Freq {
     fn from(value: Time) -> Self {
-        Self::new(1.0 / f64::from(value.samples()))
+        Self::new(1.0 / f64::from(value.samples))
     }
 }
 
@@ -86,10 +88,50 @@ impl From<Freq> for Time {
     }
 }
 
-impl Mul<Time> for SampleRate {
-    type Output = f64;
+impl Mul<RawTime> for SampleRate {
+    type Output = Time;
 
-    fn mul(self, rhs: Time) -> Self::Output {
-        f64::from(self.0 as u64 * rhs.samples())
+    fn mul(self, rhs: RawTime) -> Time {
+        Time::new(FracInt::from(self.0 as f64 * rhs.seconds()))
+    }
+}
+
+impl Mul<SampleRate> for RawTime {
+    type Output = Time;
+
+    fn mul(self, rhs: SampleRate) -> Time {
+        rhs * self
+    }
+}
+
+impl Div<SampleRate> for Time {
+    type Output = RawTime;
+
+    fn div(self, rhs: SampleRate) -> RawTime {
+        RawTime::new(f64::from(self.samples / rhs.0))
+    }
+}
+
+impl Mul<Freq> for SampleRate {
+    type Output = RawFreq;
+
+    fn mul(self, rhs: Freq) -> RawFreq {
+        RawFreq::new(f64::from(self.0) * rhs.samples())
+    }
+}
+
+impl Mul<SampleRate> for Freq {
+    type Output = RawFreq;
+
+    fn mul(self, rhs: SampleRate) -> RawFreq {
+        rhs * self
+    }
+}
+
+impl Div<SampleRate> for RawFreq {
+    type Output = Freq;
+
+    fn div(self, rhs: SampleRate) -> Freq {
+        Freq::new(self.hz() / f64::from(rhs))
     }
 }
