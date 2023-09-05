@@ -110,11 +110,11 @@ impl<S: SignalMut> SignalMut for Volume<S> {
 }
 
 impl<S: Frequency> Frequency for Volume<S> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.inner.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.inner.freq_mut()
     }
 }
@@ -241,11 +241,11 @@ impl<S: SignalMut, E: SignalMut<Sample = Env>> SignalMut for Tremolo<S, E> {
 }
 
 impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Tremolo<S, E> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.inner.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.inner.freq_mut()
     }
 }
@@ -362,11 +362,11 @@ impl<S: SignalMut, E: Stop<Sample = Env>> SignalMut for StopTremolo<S, E> {
 }
 
 impl<S: Frequency, E: Stop<Sample = Env>> Frequency for StopTremolo<S, E> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.inner.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.inner.freq_mut()
     }
 }
@@ -482,11 +482,11 @@ impl<S: SignalMut, E: SignalMut<Sample = Env>> SignalMut for Gate<S, E> {
 }
 
 impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Gate<S, E> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.sgn.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.sgn.freq_mut()
     }
 }

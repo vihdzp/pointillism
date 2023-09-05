@@ -28,10 +28,6 @@ pub use crate::{
     sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,
-    units::{
-        freq::{Freq, Interval},
-        midi::MidiNote,
-        time::{Time, Timer},
-    },
+    units::{midi::Note, Freq, Interval, RawFreq, Time, Timer},
     SAMPLE_RATE, SAMPLE_RATE_F64,
 };

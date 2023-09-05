@@ -81,7 +81,7 @@ impl Val {
     }
 
     /// Advances the inner value in order to play a wave with the specified frequency.
-    pub fn advance_freq(&mut self, freq: Freq) {
+    pub fn advance_freq(&mut self, freq: RawFreq) {
         self.0 = (self.0 + freq.hz() / SAMPLE_RATE_F64) % 1.0;
     }
 
@@ -299,7 +299,7 @@ where
     val: Val,
 
     /// The frequency at which the curve is played.
-    freq: Freq,
+    freq: RawFreq,
 }
 
 impl<C: Map<Input = Val>> LoopCurveGen<C>
@@ -307,7 +307,7 @@ where
     C::Output: Sample,
 {
     /// Initializes a new [`LoopCurveGen`] with a given phase.
-    pub const fn new_curve_phase(map: C, freq: Freq, phase: Val) -> Self {
+    pub const fn new_curve_phase(map: C, freq: RawFreq, phase: Val) -> Self {
         Self {
             map,
             freq,
@@ -319,7 +319,7 @@ where
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`LoopCurveGen`] from a plain curve, use [`LoopGen::new`].
-    pub const fn new_curve(map: C, freq: Freq) -> Self {
+    pub const fn new_curve(map: C, freq: RawFreq) -> Self {
         Self::new_curve_phase(map, freq, Val::ZERO)
     }
 
@@ -344,12 +344,12 @@ where
     }
 
     /// The frequency at which the curve is played.
-    pub const fn freq(&self) -> Freq {
+    pub const fn freq(&self) -> RawFreq {
         self.freq
     }
 
     /// A mutable reference to the frequency at which this curve is played.
-    pub fn time_mut(&mut self) -> &mut Freq {
+    pub fn time_mut(&mut self) -> &mut RawFreq {
         &mut self.freq
     }
 }
@@ -382,11 +382,11 @@ impl<C: Map<Input = Val>> Frequency for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.freq
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         &mut self.freq
     }
 }
@@ -403,7 +403,7 @@ pub type LoopGen<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
     /// Initializes a new [`LoopGen`] with a given phase.
-    pub const fn new_phase(curve: C, freq: Freq, phase: Val) -> Self {
+    pub const fn new_phase(curve: C, freq: RawFreq, phase: Val) -> Self {
         Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)
     }
 
@@ -414,7 +414,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
     ///
     /// Note that this builds a [`LoopGen`]. In order to build a more general [`LoopCurveGen`], use
     /// `LoopCurveGen::new_curve`.
-    pub const fn new(curve: C, freq: Freq) -> Self {
+    pub const fn new(curve: C, freq: RawFreq) -> Self {
         Self::new_phase(curve, freq, Val::ZERO)
     }
 

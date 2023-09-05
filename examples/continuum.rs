@@ -11,7 +11,7 @@ use rand::Rng;
 
 fn main() {
     // Frequency of base note.
-    const BASE: Freq = Freq::new(400.0);
+    const BASE: RawFreq = RawFreq::new(400.0);
 
     // Length of each note.
     const NOTE_LEN: Time = Time::new(3.0);

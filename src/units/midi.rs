@@ -1,4 +1,4 @@
-//! Defines the type [`MidiNote`] and its basic methods.
+//! Defines the type [`Note`] and its basic methods.
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -6,22 +6,19 @@ use std::{
     str::FromStr,
 };
 
-/// This magic number `69.0` corresponds to the MIDI index of A4.
-pub const A4_MIDI: f64 = MidiNote::A4.note as f64;
-
 /// A MIDI note. Note that `C4 = 60`, `A4 = 69`.
 ///
 /// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
 /// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`Freq`](crate::freq::Freq) into [`MidiNote`] and viceversa don't run out of range.
+/// convert [`Freq`](crate::freq::Freq) into [`Note`] and viceversa don't run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct MidiNote {
+pub struct Note {
     /// The MIDI note index.
     pub note: i16,
 }
 
-impl MidiNote {
-    /// Initializes a new [`MidiNote`].
+impl Note {
+    /// Initializes a new [`Note`].
     #[must_use]
     pub const fn new(note: i16) -> Self {
         Self { note }
@@ -29,7 +26,7 @@ impl MidiNote {
 }
 
 /// We use `A4` as a default note.
-impl Default for MidiNote {
+impl Default for Note {
     fn default() -> Self {
         Self::A4
     }
@@ -78,7 +75,7 @@ pub const fn note_to_letter(note: u8) -> &'static str {
     }
 }
 
-/// An error in [`MidiNote::from_str`].
+/// An error in [`Note::from_str`].
 #[derive(Clone, Debug)]
 pub enum NameError {
     /// The string is not at least two characters long.
@@ -111,7 +108,7 @@ impl Display for NameError {
 
 impl std::error::Error for NameError {}
 
-impl FromStr for MidiNote {
+impl FromStr for Note {
     type Err = NameError;
 
     fn from_str(name: &str) -> Result<Self, NameError> {
@@ -133,7 +130,7 @@ impl FromStr for MidiNote {
                 };
 
                 note += 12 * (name[index..].parse::<i16>()? + 1);
-                Ok(MidiNote::new(note))
+                Ok(Note::new(note))
             } else {
                 Err(NameError::Letter(letter))
             }
@@ -143,7 +140,7 @@ impl FromStr for MidiNote {
     }
 }
 
-impl Display for MidiNote {
+impl Display for Note {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         // Truncation is impossible.
         #[allow(clippy::cast_possible_truncation)]

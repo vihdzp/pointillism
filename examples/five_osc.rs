@@ -9,7 +9,7 @@ fn main() {
     const NUM_OSC: u8 = 5;
 
     // Base frequency.
-    const BASE: Freq = Freq::new(400.0);
+    const BASE: RawFreq = RawFreq::new(400.0);
 
     // Time to complete a cycle.
     const TIME: Time = Time::new(10.0);

@@ -8,7 +8,7 @@ use rand::Rng;
 
 fn main() {
     // Base frequency.
-    const BASE: Freq = Freq::new(350.0);
+    const BASE: RawFreq = RawFreq::new(350.0);
 
     // Length of each note.
     const NOTE_LEN: Time = Time::new(5.0);
@@ -47,7 +47,7 @@ fn main() {
             // and adding a new one.
             poly.add(
                 index,
-                osc(Freq::new_edo_note(
+                osc(RawFreq::new_edo_note(
                     BASE,
                     5,
                     rand::thread_rng().gen_range(0..=7) as f64,

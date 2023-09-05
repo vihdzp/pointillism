@@ -8,13 +8,13 @@
 use pointillism::prelude::*;
 
 // Base note for binaural beats.
-const BASE: Freq = Freq::new(222.2);
+const BASE: RawFreq = RawFreq::new(222.2);
 
 // Fade-in / fade-out time for instruments.
 const FADE: Time = Time::new(20.0);
 
 // Period for the vibrato.
-const VIB_FREQ: Freq = Freq::new(1.0 / 40.0);
+const VIB_FREQ: RawFreq = RawFreq::new(1.0 / 40.0);
 
 // Time until the melody starts.
 const MELODY_TIME: Time = Time::new(120.0);
@@ -54,7 +54,7 @@ fn binaural() -> impl SignalMut<Sample = Stereo> {
 
 fn melody() -> impl SignalMut<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
-    let mut freq = 2.0 * Freq::A4;
+    let mut freq = 2.0 * RawFreq::A4;
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
     let wave = |freq| LoopGen::new(SawTri::tri(), freq);

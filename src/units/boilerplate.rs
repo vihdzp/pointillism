@@ -1,4 +1,4 @@
-//! We initialize constants for [`Freq`] and [`MidiNote`]. For instance, [`Freq::A4`] = 440 Hz.
+//! We initialize constants for [`Freq`] and [`Note`]. For instance, [`Freq::A4`] = 440 Hz.
 //!
 //! Each name is made out of a pitch letter, followed by an optional `S` or `B` for sharps and
 //! flats, followed by the octave number. We use `N` for a negative sign.
@@ -6,49 +6,14 @@
 //! Enharmonic notes are given their individual constant names, for good measure.
 //!
 //! We only implement the notes from octaves -1 to 10, as anything lower is unsupported as a
-//! [`MidiNote`], and anything higher is too high-pitched to be practical. This range well-covers
+//! [`Note`], and anything higher is too high-pitched to be practical. This range well-covers
 //! the human hearing range.
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-use super::{
-    freq::{Freq, Interval},
-    midi::MidiNote,
-};
+use super::{freq::RawFreq, midi::Note};
 
-impl Interval {
-    /// Unison interval `1/1`.
-    pub const UNISON: Self = Self::new(1.0);
-
-    /// Minor third `6/5`.
-    pub const MIN3: Self = Self::new(6.0 / 5.0);
-
-    /// Major third `5/4`.
-    pub const MAJ3: Self = Self::new(5.0 / 4.0);
-
-    /// Perfect fourth `4/3`.
-    pub const P4: Self = Self::new(4.0 / 3.0);
-
-    /// Perfect fifth `3/2`.
-    pub const P5: Self = Self::new(3.0 / 2.0);
-
-    /// Minor sixth `5/3`.
-    pub const MIN6: Self = Self::new(8.0 / 5.0);
-
-    /// Major sixth `5/3`.
-    pub const MAJ6: Self = Self::new(5.0 / 3.0);
-
-    /// Harmonic seventh `7/4`.
-    pub const H7: Self = Self::new(7.0 / 4.0);
-
-    /// Octave interval `2/1`.
-    pub const OCTAVE: Self = Self::new(2.0);
-
-    /// Tritave interval `3/1`.
-    pub const TRITAVE: Self = Self::new(3.0);
-}
-
-impl MidiNote {
+impl Note {
     // OCTAVE -1
 
     /// The note B#-2.
@@ -722,7 +687,7 @@ impl MidiNote {
     pub const CB11: Self = Self::B10;
 }
 
-impl Freq {
+impl RawFreq {
     // OCTAVE -1
 
     /// The note B#-2.

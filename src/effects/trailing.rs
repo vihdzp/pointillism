@@ -39,11 +39,11 @@ impl<S: SignalMut> SignalMut for Trailing<S> {
 }
 
 impl<S: Frequency> Frequency for Trailing<S> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.sgn.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.sgn.freq_mut()
     }
 }
@@ -113,11 +113,11 @@ impl<S: SignalMut> SignalMut for Stopping<S> {
 }
 
 impl<S: Frequency> Frequency for Stopping<S> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> RawFreq {
         self.sgn.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut RawFreq {
         self.sgn.freq_mut()
     }
 }

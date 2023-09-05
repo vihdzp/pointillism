@@ -1,19 +1,14 @@
 //! Defines structures pertaining to frequency, of sounds and other oscillators.
 //!
-//! [`Freq`] represents a frequency in Hertz, while [`Interval`] represents the ratio between two
-//! frequencies. Arithmetic on these types is defined in a sensible manner.
+//! The types defined in this file are the following:
 //!
-//! ## Equal division of the octave
+//! - [`RawFreq`]: a frequency in Hertz
+//! - [`Freq`]: a frequency in inverse samples
+//! - [`Interval`]: the ratio between two frequencies
 //!
-//! Most music is written using 12 notes. These form an [equal division of the
-//! octave](https://en.wikipedia.org/wiki/Equal_temperament). However, there exists (and can exist)
-//! many interesting music that uses other more complicated scales. For this reason, although we
-//! provide convenience methods for 12-EDO, we also provide many other methods that allow you to
-//! specify your own equal division of the octave. If you want something even more general, you can
-//! always input the raw numbers yourself.
+//! Arithmetic and conversions between these types is defined in a sensible manner.
 
-use super::midi::{MidiNote, NameError, A4_MIDI};
-use super::time::Time;
+use crate::prelude::*;
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -21,73 +16,18 @@ use std::{
     str::FromStr,
 };
 
-/// Represents an interval, or a ratio between notes.
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-pub struct Interval {
-    /// The ratio in question.
-    pub ratio: f64,
-}
+/// This magic number `69.0` corresponds to the MIDI index of A4.
+const A4_MIDI: f64 = Note::A4.note as f64;
 
-impl Default for Interval {
-    fn default() -> Self {
-        Self::UNISON
-    }
-}
-
-impl Interval {
-    /// Initializes a new ratio.
-    #[must_use]
-    pub const fn new(ratio: f64) -> Self {
-        Self { ratio }
-    }
-
-    /// Relative pitch corresponding to a note in a given EDO.
-    #[must_use]
-    pub fn edo_note(edo: u16, note: f64) -> Self {
-        Self::new(2f64.powf(note / f64::from(edo)))
-    }
-
-    /// Relative pitch corresponding to a note in 12-EDO.
-    ///
-    /// See also [`Self::edo_note`].
-    #[must_use]
-    pub fn note(note: f64) -> Self {
-        Self::edo_note(12, note)
-    }
-
-    /// Returns the inverse ratio.
-    #[must_use]
-    pub fn inv(self) -> Self {
-        Self::new(1.0 / self.ratio)
-    }
-
-    /// Takes the square root of an interval.
-    ///
-    /// For instance, a 12-EDO tritone is exactly the square root of an octave.
-    #[must_use]
-    pub fn sqrt(self) -> Self {
-        Self::new(self.ratio.sqrt())
-    }
-
-    /// Raises an interval to an integer power.
-    #[must_use]
-    pub fn powi(self, n: i32) -> Self {
-        Self::new(self.ratio.powi(n))
-    }
-
-    /// Raises an interval to a floating point power.
-    #[must_use]
-    pub fn powf(self, n: f64) -> Self {
-        Self::new(self.ratio.powf(n))
-    }
-}
-
-/// Represents a frequency.
+/// Represents a frequency in hertz.
+///
+/// Most methods will require a [`Freq`] instead, which is dependent on your sample rate. See
+/// [`Freq::from_raw`].
 ///
 /// Not to be confused with [`Frequency`](crate::signal::Frequency).
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-pub struct Freq {
-    /// The frequency in hertz.
+pub struct RawFreq {
+    /// The frequency in Hertz.
     pub hz: f64,
 }
 
@@ -98,15 +38,15 @@ pub struct Freq {
 /// let osc = LoopGen::<Mono, Sin>::default();
 /// ```
 ///
-/// will result in a 440 Hz sine wave.
-impl Default for Freq {
+/// will result in a 440 Hz sine wave when sampled at 44.1 kHz.
+impl Default for RawFreq {
     fn default() -> Self {
-        Freq::A4
+        RawFreq::A4
     }
 }
 
 /// The alternate formatting mode results in `"{note} {cents}c"`.
-impl Debug for Freq {
+impl Debug for RawFreq {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         if f.alternate() {
             let (note, semitones) = self.midi_semitones();
@@ -121,13 +61,13 @@ impl Debug for Freq {
     }
 }
 
-impl Display for Freq {
+impl Display for RawFreq {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{} Hz", self.hz())
     }
 }
 
-impl Freq {
+impl RawFreq {
     /// Initializes a given frequency.
     ///
     /// Note that the frequency will generally be assumed to be positive.
@@ -161,7 +101,7 @@ impl Freq {
     /// assert_approx_eq!(C5.hz, Freq::C5.hz);
     /// ```
     #[must_use]
-    pub fn new_edo_note(base: Freq, edo: u16, note: f64) -> Self {
+    pub fn new_edo_note(base: RawFreq, edo: u16, note: f64) -> Self {
         Interval::edo_note(edo, note) * base
     }
 
@@ -180,7 +120,7 @@ impl Freq {
     /// assert_approx_eq!(C5.hz, Freq::C5.hz);
     /// ```
     #[must_use]
-    pub fn new_note(base: Freq, note: f64) -> Self {
+    pub fn new_note(base: RawFreq, note: f64) -> Self {
         Self::new_edo_note(base, 12, note)
     }
 
@@ -201,7 +141,7 @@ impl Freq {
     /// This allows the user to specify the `A4` tuning. Use [`Self::new_midi`] for the default of
     /// 440 Hz.
     #[must_use]
-    pub fn new_midi_with(a4: Freq, note: MidiNote) -> Self {
+    pub fn new_midi_with(a4: RawFreq, note: Note) -> Self {
         Self::new_edo_note(a4, 12, f64::from(note.note) - A4_MIDI)
     }
 
@@ -209,13 +149,13 @@ impl Freq {
     ///
     /// See [`Self::new_midi_with`] in order to specify the `A4` tuning.
     #[must_use]
-    pub fn new_midi(note: MidiNote) -> Self {
-        Self::new_midi_with(Freq::A4, note)
+    pub fn new_midi(note: Note) -> Self {
+        Self::new_midi_with(RawFreq::A4, note)
     }
 
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
-    fn round_midi_aux(self, a4: Freq) -> f64 {
+    fn round_midi_aux(self, a4: RawFreq) -> f64 {
         (self.hz() / a4.hz()).log2() * 12.0 + A4_MIDI
     }
 
@@ -226,7 +166,7 @@ impl Freq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    /// Panics if this frequency is outside of the range for a [`Note`].
     ///
     /// ## Example
     /// ```
@@ -235,13 +175,13 @@ impl Freq {
     /// let freq = Freq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi_with(Freq::A4), MidiNote::AS4);
+    /// assert_eq!(freq.round_midi_with(Freq::A4), Note::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi_with(self, a4: Freq) -> MidiNote {
+    pub fn round_midi_with(self, a4: RawFreq) -> Note {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
+        Note::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -250,7 +190,7 @@ impl Freq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    /// Panics if this frequency is outside of the range for a [`Note`].
     ///
     /// ## Example
     /// ```
@@ -259,11 +199,11 @@ impl Freq {
     /// let freq = Freq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi(), MidiNote::AS4);
+    /// assert_eq!(freq.round_midi(), Note::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi(self) -> MidiNote {
-        self.round_midi_with(Freq::A4)
+    pub fn round_midi(self) -> Note {
+        self.round_midi_with(RawFreq::A4)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -280,17 +220,17 @@ impl Freq {
     /// let (note, semitones) = freq.midi_semitones_with(Freq::A4);
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, MidiNote::AS4);
+    /// assert_eq!(note, Note::AS4);
     /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
-    pub fn midi_semitones_with(self, a4: Freq) -> (MidiNote, f64) {
+    pub fn midi_semitones_with(self, a4: RawFreq) -> (Note, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        (MidiNote::new(round as i16), note - round)
+        (Note::new(round as i16), note - round)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -307,31 +247,31 @@ impl Freq {
     /// let (note, semitones) = freq.midi_semitones();
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, MidiNote::AS4);
+    /// assert_eq!(note, Note::AS4);
     /// assert_approx_eq!(semitones, -0.4);
     /// ```
     #[must_use]
-    pub fn midi_semitones(self) -> (MidiNote, f64) {
-        self.midi_semitones_with(Freq::A4)
+    pub fn midi_semitones(self) -> (Note, f64) {
+        self.midi_semitones_with(RawFreq::A4)
     }
 }
 
 /// We use A4 = 440 Hz.
-impl From<MidiNote> for Freq {
-    fn from(note: MidiNote) -> Self {
+impl From<Note> for RawFreq {
+    fn from(note: Note) -> Self {
         Self::new_midi(note)
     }
 }
 
-impl FromStr for Freq {
-    type Err = NameError;
+impl FromStr for RawFreq {
+    type Err = crate::units::midi::NameError;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        MidiNote::from_str(name).map(Freq::from)
+        Note::from_str(name).map(RawFreq::from)
     }
 }
 
-impl Mul<f64> for Freq {
+impl Mul<f64> for RawFreq {
     type Output = Self;
 
     fn mul(self, rhs: f64) -> Self::Output {
@@ -339,13 +279,13 @@ impl Mul<f64> for Freq {
     }
 }
 
-impl MulAssign<f64> for Freq {
+impl MulAssign<f64> for RawFreq {
     fn mul_assign(&mut self, rhs: f64) {
         self.hz *= rhs;
     }
 }
 
-impl Div<f64> for Freq {
+impl Div<f64> for RawFreq {
     type Output = Self;
 
     fn div(self, rhs: f64) -> Self {
@@ -353,13 +293,13 @@ impl Div<f64> for Freq {
     }
 }
 
-impl DivAssign<f64> for Freq {
+impl DivAssign<f64> for RawFreq {
     fn div_assign(&mut self, rhs: f64) {
         self.hz /= rhs;
     }
 }
 
-impl Mul<Interval> for Freq {
+impl Mul<Interval> for RawFreq {
     type Output = Self;
 
     fn mul(self, rhs: Interval) -> Self::Output {
@@ -367,21 +307,21 @@ impl Mul<Interval> for Freq {
     }
 }
 
-impl Mul<Freq> for Interval {
-    type Output = Freq;
+impl Mul<RawFreq> for Interval {
+    type Output = RawFreq;
 
-    fn mul(self, rhs: Freq) -> Self::Output {
+    fn mul(self, rhs: RawFreq) -> Self::Output {
         self.ratio * rhs
     }
 }
 
-impl MulAssign<Interval> for Freq {
+impl MulAssign<Interval> for RawFreq {
     fn mul_assign(&mut self, rhs: Interval) {
         self.hz *= rhs.ratio;
     }
 }
 
-impl Div<Interval> for Freq {
+impl Div<Interval> for RawFreq {
     type Output = Self;
 
     fn div(self, rhs: Interval) -> Self {
@@ -389,60 +329,16 @@ impl Div<Interval> for Freq {
     }
 }
 
-impl DivAssign<Interval> for Freq {
+impl DivAssign<Interval> for RawFreq {
     fn div_assign(&mut self, rhs: Interval) {
         self.hz /= rhs.ratio;
     }
 }
 
-impl Div for Freq {
+impl Div for RawFreq {
     type Output = Interval;
 
-    fn div(self, rhs: Freq) -> Interval {
+    fn div(self, rhs: RawFreq) -> Interval {
         Interval::new(self.hz / rhs.hz)
-    }
-}
-
-impl Mul for Interval {
-    type Output = Self;
-
-    fn mul(self, rhs: Interval) -> Self {
-        Self::new(self.ratio * rhs.ratio)
-    }
-}
-
-impl MulAssign for Interval {
-    fn mul_assign(&mut self, rhs: Self) {
-        self.ratio *= rhs.ratio;
-    }
-}
-
-impl Div for Interval {
-    type Output = Self;
-
-    fn div(self, rhs: Interval) -> Self {
-        Self::new(self.ratio / rhs.ratio)
-    }
-}
-
-impl DivAssign for Interval {
-    fn div_assign(&mut self, rhs: Self) {
-        self.ratio /= rhs.ratio;
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn print_a4() {
-        assert_eq!(format!("{:#?}", Freq::A4), "A4 +0c");
-    }
-
-    #[test]
-    fn parse_a4() {
-        let a4: Freq = "A4".parse().unwrap();
-        assert_approx_eq::assert_approx_eq!(a4.hz, Freq::A4.hz);
     }
 }

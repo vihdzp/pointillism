@@ -1,6 +1,6 @@
 //! Defines [`Time`] and its basic methods.
 
-use crate::{units::freq::Freq, SAMPLE_RATE_F64};
+use crate::{units::freq::RawFreq, SAMPLE_RATE_F64};
 
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -68,8 +68,8 @@ impl Time {
 
     /// Time to frequency.
     #[must_use]
-    pub fn freq(&self) -> Freq {
-        Freq::new(1.0 / self.seconds())
+    pub fn freq(&self) -> RawFreq {
+        RawFreq::new(1.0 / self.seconds())
     }
 
     /// The time in seconds.
@@ -130,11 +130,11 @@ impl Display for Time {
     }
 }
 
-impl Mul<Freq> for f64 {
-    type Output = Freq;
+impl Mul<RawFreq> for f64 {
+    type Output = RawFreq;
 
-    fn mul(self, rhs: Freq) -> Freq {
-        Freq::new(self * rhs.hz)
+    fn mul(self, rhs: RawFreq) -> RawFreq {
+        RawFreq::new(self * rhs.hz)
     }
 }
 

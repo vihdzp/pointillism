@@ -35,7 +35,7 @@
 //! }
 //! ```
 
-use crate::{sample::Sample, units::freq::Freq};
+use crate::{sample::Sample, units::RawFreq};
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
@@ -99,16 +99,16 @@ pub trait SignalMut: Signal {
 
 /// A trait for a signal with a "main" frequency that can be modified.
 ///
-/// Not to be confused with [`Freq`].
-///
 /// This is implemented both for signals that have a frequency parameter such as
 /// [`LoopGen`](crate::generators::LoopGen), as well as straightforward wrappers for these signals.
+///
+/// Not to be confused with [`Freq`].
 pub trait Frequency: SignalMut {
     /// The "main" frequency of the signal.
-    fn freq(&self) -> Freq;
+    fn freq(&self) -> RawFreq;
 
     /// Returns a mutable reference to the "main" frequency of the signal.
-    fn freq_mut(&mut self) -> &mut Freq;
+    fn freq_mut(&mut self) -> &mut RawFreq;
 }
 
 /// A trait for a signal with a "base" signal that can be modified. This is often a generator in a
