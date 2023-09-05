@@ -67,6 +67,7 @@ name = "pointillism"
 version = "0.3.3"
 dependencies = [
  "assert_approx_eq",
+ "cfg-if",
  "derive_more",
  "hound",
  "human-duration",

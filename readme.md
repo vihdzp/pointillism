@@ -42,9 +42,9 @@ The project uses the following features:
 
 | Feature | Enables |
 |-|-|
-| `human-duration` | Pretty-printing for the `RawRawTime` type. |
+| `human-duration` | Pretty-printing for the `RawTime` type. |
 
-(todo: `rodio` integration)
+(todo: `cpal` integration)
 
 ## Versions
 

@@ -1,4 +1,8 @@
-#![doc = include_str!("../README.md")]
+#![cfg_attr(not(feature = "github-actions-hack"), doc = include_str!("../README.md"))]
+#![cfg_attr(
+    feature = "github-actions-hack",
+    doc = "This is a workaround for GitHub actions not finding the documentation file."
+)]
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]

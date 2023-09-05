@@ -9,10 +9,6 @@ pub use raw::RawTime;
 
 use super::{FracInt, SampleRate};
 
-/// If the `human_duration` feature is enabled, we use the [`human_duration`] crate for
-/// pretty-printing.
-const HUMAN_DURATION: bool = cfg!(feature = "human-duration");
-
 /// A time, measured in **samples**.
 ///
 /// Since we use a backing [`FracInt`], multiplication and division by an integer is allowed.
@@ -199,7 +195,7 @@ mod test {
 
     #[test]
     fn yr_secs() {
-        if HUMAN_DURATION {
+        if cfg!(feature = "human-duration") {
             assert_eq!(format!("{:#?}", RawTime::YR), "1y 0mon 0d 0h 0m 0s 0ms");
         }
     }

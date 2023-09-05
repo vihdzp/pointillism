@@ -95,13 +95,14 @@ impl From<RawTime> for Duration {
 
 impl std::fmt::Debug for RawTime {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        if super::HUMAN_DURATION && f.alternate() {
-            write!(f, "{}", human_duration::human_duration(&(*self).into()))
-        } else {
-            f.debug_struct("RawTime")
-                .field("seconds", &self.seconds)
-                .finish()
+        #[cfg(feature = "human-duration")]
+        if f.alternate() {
+            return write!(f, "{}", human_duration::human_duration(&(*self).into()));
         }
+
+        f.debug_struct("RawTime")
+            .field("seconds", &self.seconds)
+            .finish()
     }
 }
 
