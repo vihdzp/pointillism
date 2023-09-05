@@ -1,3 +1,7 @@
+## Version 0.3.2
+
+Create an `Arpeggio` type, and other small improvements throughout.
+
 ## Version 0.3.1
 
 The `Mut` trait has been split in two, according to its actual uses of modifying a signal according

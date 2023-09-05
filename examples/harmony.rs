@@ -1,3 +1,5 @@
+//! Creepy chords.
+
 use pointillism::prelude::*;
 
 fn main() {

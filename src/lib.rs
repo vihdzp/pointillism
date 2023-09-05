@@ -102,13 +102,15 @@ pub fn sgn(x: f64) -> f64 {
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
-// Precision loss should never occur in practical circumstances.
 #[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
     mut song: F,
 ) -> Result<()> {
+    // Precision loss should never occur in practical circumstances.
     let length = length.frames() as u64;
 
     // The size is either 1 or 2.

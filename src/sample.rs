@@ -4,7 +4,6 @@
 //! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
 //! [`Adsr`](crate::effects::adsr::Adsr).
 
-use hound::WavWriter;
 use rand::{distributions::Standard, prelude::Distribution, Rng};
 use std::{
     fmt::Debug,
@@ -67,7 +66,18 @@ impl SampleLike for f64 {
 }
 
 /// A trait for array-like types that store a compile-time amount of data contiguously.
-pub trait ArrayLike:
+///
+/// This trait serves two purposes:
+///
+/// - Provide simple convenience functions for the [`Sample`] types.
+/// - Allow functions on [`Samples`](Sample) to return an array type of the corresponding size,
+///   which can be generically manipulated.
+///
+/// ## Safety
+///
+/// Implementors of the trait must guarantee that the type has the same size and alignment as
+/// `[Self::Item; Self::SIZE]`.
+pub unsafe trait ArrayLike:
     AsRef<[Self::Item]>
     + AsMut<[Self::Item]>
     + Index<usize, Output = Self::Item>
@@ -165,12 +175,26 @@ pub trait ArrayLike:
     }
 
     /// Initializes an array filled with the specified value.
+    ///
+    /// This could easily be made to take in a `Clone` value instead, if the need arose.
     #[must_use]
     fn from_val(val: Self::Item) -> Self
     where
         Self::Item: Copy,
     {
         Self::from_fn(|_| val)
+    }
+
+    /// A default implementation for the [`AsRef`] trait.
+    fn _as_ref(&self) -> &[Self::Item] {
+        // Safety: this works due to the safety guarantees on the trait.
+        unsafe { std::slice::from_raw_parts((self as *const Self).cast(), Self::SIZE) }
+    }
+
+    /// A default implementation for the [`AsMut`] trait.
+    fn _as_mut(&mut self) -> &mut [Self::Item] {
+        // Safety: this works due to the safety guarantees on the trait.
+        unsafe { std::slice::from_raw_parts_mut((self as *mut Self).cast(), Self::SIZE) }
     }
 }
 
@@ -251,7 +275,7 @@ pub trait Audio: Sample {
     /// This should only return an error in case of an IO error.
     fn write<W: std::io::Write + std::io::Seek>(
         &self,
-        writer: &mut WavWriter<W>,
+        writer: &mut hound::WavWriter<W>,
     ) -> hound::Result<()> {
         for index in 0..Self::SIZE {
             // In practice, truncation should never occur.
@@ -267,7 +291,8 @@ impl SampleLike for Mono {
     const ZERO: Self = Self(0.0);
 }
 
-impl ArrayLike for Mono {
+/// Safety: The type is tagged as `#[repr(C)]`.
+unsafe impl ArrayLike for Mono {
     const SIZE: usize = 1;
 
     type Item = f64;
@@ -294,7 +319,8 @@ impl SampleLike for Stereo {
     const ZERO: Self = Self(0.0, 0.0);
 }
 
-impl ArrayLike for Stereo {
+/// Safety: The type is tagged as `#[repr(C)]`.
+unsafe impl ArrayLike for Stereo {
     const SIZE: usize = 2;
 
     type Item = f64;
@@ -321,7 +347,8 @@ impl SampleLike for Env {
     const ZERO: Self = Self(0.0);
 }
 
-impl ArrayLike for Env {
+/// Safety: The type is tagged as `#[repr(C)]`.
+unsafe impl ArrayLike for Env {
     const SIZE: usize = 2;
 
     type Item = f64;
@@ -343,7 +370,8 @@ impl ArrayLike for Env {
 
 impl Sample for Env {}
 
-impl<T, const N: usize> ArrayLike for [T; N] {
+/// Safety: `[T; N]` has the same layout as itself.
+unsafe impl<T, const N: usize> ArrayLike for [T; N] {
     const SIZE: usize = N;
 
     type Item = T;
@@ -363,7 +391,7 @@ impl<T, const N: usize> ArrayLike for [T; N] {
     }
 }
 
-/// Implements traits `Add`, `Sub`.
+/// Implements traits [`Add`], [`Sub`].
 macro_rules! impl_op {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op for $ty {
@@ -375,7 +403,7 @@ macro_rules! impl_op {
     };
 }
 
-/// Implements traits `AddAssign`, `SubAssign`.
+/// Implements traits [`AddAssign`], [`SubAssign`].
 macro_rules! impl_op_assign {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op for $ty {
@@ -386,7 +414,7 @@ macro_rules! impl_op_assign {
     };
 }
 
-/// Implements traits `Mul<f64>`, `Div<f64>`.
+/// Implements traits [`Mul<f64>`](Mul), [`Div<f64>`](Div).
 macro_rules! impl_op_f64 {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op<f64> for $ty {
@@ -398,7 +426,7 @@ macro_rules! impl_op_f64 {
     };
 }
 
-/// Implements traits `MulAssign<f64>`, `DivAssign<f64>`.
+/// Implements traits [`MulAssign<f64>`](MulAssign), [`DivAssign<f64>`](DivAssign).
 macro_rules! impl_op_assign_f64 {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op<f64> for $ty {
@@ -409,7 +437,7 @@ macro_rules! impl_op_assign_f64 {
     };
 }
 
-/// Implements trait `Neg`.
+/// Implements trait [`Neg`].
 macro_rules! impl_neg {
     ($ty: ty) => {
         impl Neg for $ty {
@@ -421,7 +449,7 @@ macro_rules! impl_neg {
     };
 }
 
-/// Implements trait `Sum`.
+/// Implements trait [`Sum`].
 macro_rules! impl_sum {
     ($ty: ty) => {
         impl Sum for $ty {
@@ -432,7 +460,7 @@ macro_rules! impl_sum {
     };
 }
 
-/// Implements trait `Index`.
+/// Implements trait [`Index`].
 macro_rules! impl_index {
     ($ty: ty) => {
         impl Index<usize> for $ty {
@@ -451,40 +479,21 @@ macro_rules! impl_index {
     };
 }
 
-impl AsRef<[f64]> for Mono {
-    fn as_ref(&self) -> &[f64] {
-        std::slice::from_ref(&self.0)
-    }
-}
+/// Implements traits [`AsRef<\[f64\]>`](AsRef) and [`AsMut<\[f64\]>`](AsMut).
+macro_rules! impl_as {
+    ($ty: ty) => {
+        impl AsRef<[f64]> for $ty {
+            fn as_ref(&self) -> &[f64] {
+                self._as_ref()
+            }
+        }
 
-impl AsRef<[f64]> for Env {
-    fn as_ref(&self) -> &[f64] {
-        std::slice::from_ref(&self.0)
-    }
-}
-
-impl AsRef<[f64]> for Stereo {
-    fn as_ref(&self) -> &[f64] {
-        unsafe { std::slice::from_raw_parts(std::ptr::addr_of!(self.0), 2) }
-    }
-}
-
-impl AsMut<[f64]> for Mono {
-    fn as_mut(&mut self) -> &mut [f64] {
-        std::slice::from_mut(&mut self.0)
-    }
-}
-
-impl AsMut<[f64]> for Env {
-    fn as_mut(&mut self) -> &mut [f64] {
-        std::slice::from_mut(&mut self.0)
-    }
-}
-
-impl AsMut<[f64]> for Stereo {
-    fn as_mut(&mut self) -> &mut [f64] {
-        unsafe { std::slice::from_raw_parts_mut(std::ptr::addr_of_mut!(self.0), 2) }
-    }
+        impl AsMut<[f64]> for $ty {
+            fn as_mut(&mut self) -> &mut [f64] {
+                self._as_mut()
+            }
+        }
+    };
 }
 
 /// Implements `Distribution<Self>` for `Standard`.
@@ -510,6 +519,7 @@ macro_rules! impl_all {
             impl_sum!($ty);
             impl_index!($ty);
             impl_rand!($ty);
+            impl_as!($ty);
         )*
     };
 }
