@@ -17,8 +17,8 @@ const YR_SECS: f64 = 365.0 * DAY_SECS;
 
 /// An amount of time in **seconds**.
 ///
-/// Most methods will require a [`Time`] instead, which is dependent on your sample rate. See
-/// [`Time::from_raw`].
+/// Most methods will require a [`Time`](super::Time) instead, which is dependent on your sample
+/// rate. See [`Time::from_raw`](super::Time::from_raw).
 #[derive(
     Clone,
     Copy,

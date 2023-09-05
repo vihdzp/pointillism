@@ -145,22 +145,26 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
 /// ```
 /// # use pointillism::prelude::*;
 /// // The original signals.
-/// let mut signal = LoopGen::new(Saw, Freq::A3);
-/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::new(3.0));
+/// let mut signal = LoopGen::new(Saw, Freq::from_raw_default(RawFreq::A3));
+/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::from_hz_default(3.0));
 ///
-/// pointillism::create("examples/routing.wav", 5.0 * RawTime::SEC, |_| {
-///     // Thanks to `Ref`, we're able to re-use these signals.
-///     let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
-///     let sgn2 = Tremolo::new(Ref::new(&signal), Ref::new(&trem_env));
-///     let stereo = StereoMix::new(sgn1, sgn2);
+/// pointillism::create(
+///     "examples/routing.wav", 
+///     Time::from_sec_default(5.0), SampleRate::default(), 
+///     |_| {
+///         // Thanks to `Ref`, we're able to re-use these signals.
+///         let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
+///         let sgn2 = Tremolo::new(Ref::new(&signal), Ref::new(&trem_env));
+///         let stereo = StereoMix::new(sgn1, sgn2);
 ///
-///     // However, we must manually advance them.
-///     let res = stereo.get();
-///     signal.advance();
-///     trem_env.advance();
-///     res
-///   })
-///   .unwrap();
+///         // However, we must manually advance them.
+///         let res = stereo.get();
+///         signal.advance();
+///         trem_env.advance();
+///         res
+///     }
+/// )
+/// .unwrap();
 /// ```
 pub struct Ref<'a, S: Signal>(pub &'a S);
 

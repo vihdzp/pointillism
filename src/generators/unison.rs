@@ -379,18 +379,20 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 /// const LEN: RawTime = RawTime::new(5.0);
 ///
 /// fn main() {
+///     let len = Time::from_raw_default(LEN);
+/// 
 ///     // Plays a number of notes, and detunes them up to an octave.
 ///     let mut unison = DetuneSgn::<Mono, _, _>::new_detune(
 ///         Saw,
-///         Freq::A3,
+///         Freq::from_raw_default(RawFreq::A3),
 ///         NUM,
-///         OnceGen::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), LEN),
+///         OnceGen::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), len),
 ///     );
 ///
 ///     // If you play a large amount of curves and remove this, you'll get some wacky interference.
 ///     unison.sgn_mut().randomize_phases();
 ///
-///     pointillism::create("examples/detune.wav", 2.0 * LEN, |_| {
+///     pointillism::create("examples/detune.wav", 2u8 * len, SampleRate::default(), |_| {
 ///         // We pan every curve according to how much its detuned.
 ///         let sgn: Stereo = (0..NUM)
 ///             .into_iter()

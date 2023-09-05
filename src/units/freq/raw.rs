@@ -151,10 +151,10 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = Freq::A4.bend(0.6);
+    /// let freq = RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi_with(Freq::A4), Note::AS4);
+    /// assert_eq!(freq.round_midi_with(RawFreq::A4), Note::AS4);
     /// ```
     #[must_use]
     pub fn round_midi_with(self, a4: Self) -> Note {
@@ -175,7 +175,7 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = Freq::A4.bend(0.6);
+    /// let freq = RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
     /// assert_eq!(freq.round_midi(), Note::AS4);
