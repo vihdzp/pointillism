@@ -14,12 +14,12 @@ If you want to see `pointillism` in action and what it's capable of, run the exa
 The way in which `pointillism` outputs audio is by writing sample by sample into a 32-bit floating
 point `.wav` file. Internal calculations use 64-bit floating points.
 
-For convenience, the `Signal` trait is provided. Types implementing this trait generate sample data
-frame by frame. If the type also implements `SignalMut`, it can be advanced or retriggered.
+For convenience, the [`Signal`] trait is provided. Types implementing this trait generate sample
+data frame by frame. If the type also implements [`SignalMut`], it can be advanced or retriggered.
 
-Signals may be composed to create more complex signals, using for instance the `MapSgn` and `MutSgn`
-structs. Moreover, you can implement the `Signal` and `SignalMut` traits for your own structs,
-giving you vast control over the samples you're producing.
+Signals may be composed to create more complex signals, using for instance the [`MapSgn`] and
+[`MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits for your own
+structs, giving you vast control over the samples you're producing.
 
 We categorize signals into two broad families. Signals that generate audio on their own are called
 *generators*. Their names are suffixed by `Gen`. Signals that modify the output from another signal
@@ -52,7 +52,7 @@ The following versions of `pointillism` exist:
 
 - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
 - 0.2.0 - 0.2.10: more stable versions, but still subject to drastic change.
-- 0.3.0 - 0.3.2: stable versions, tracked by a changelog.
+- 0.3.0 - 0.3.3: stable versions, tracked by a changelog.
 
 ### Goals
 

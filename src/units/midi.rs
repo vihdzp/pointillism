@@ -1,4 +1,4 @@
-//! Defines the type [`Note`] and its basic methods.
+//! Defines the type for a MIDI [`Note`], and its basic methods.
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -10,7 +10,7 @@ use std::{
 ///
 /// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
 /// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`Freq`](crate::freq::Freq) into [`Note`] and viceversa don't run out of range.
+/// convert [`Freq`](crate::prelude::Freq) into [`Note`] and viceversa don't run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Note {
     /// The MIDI note index.

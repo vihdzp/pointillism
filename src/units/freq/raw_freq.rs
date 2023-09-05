@@ -12,7 +12,7 @@ use std::{
     str::FromStr,
 };
 
-/// Represents a frequency in **Hertz**.
+/// Represents a frequency in **hertz**.
 ///
 /// Most methods will require a [`Freq`] instead, which is dependent on your sample rate. See
 /// [`Freq::from_raw`].
@@ -20,7 +20,7 @@ use std::{
 /// Not to be confused with [`Frequency`](crate::signal::Frequency).
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub struct RawFreq {
-    /// The frequency in Hertz.
+    /// The frequency in hertz.
     pub hz: f64,
 }
 
@@ -69,7 +69,7 @@ impl RawFreq {
         Self { hz }
     }
 
-    /// The frequency in Hertz.
+    /// The frequency in hertz.
     #[must_use]
     pub const fn hz(&self) -> f64 {
         self.hz

@@ -2,11 +2,13 @@
 
 use pointillism::prelude::*;
 
-// Quarter notes at 160 BPM.
+/// Quarter notes at 160 BPM.
 const NOTE_TIME: Time = Time::new(3.0 / 32.0);
-
-// The length of each arpeggio "phrase".
+/// The length of each arpeggio "phrase".
 const LENGTH: Time = Time::new(6.0);
+
+/// Sample rate of song.
+const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
     // The notes played in the arpeggio.

@@ -1,4 +1,4 @@
-//! We initialize constants for [`Freq`] and [`Note`]. For instance, [`Freq::A4`] = 440 Hz.
+//! We initialize constants for [`RawFreq`] and [`Note`]. For instance, [`RawFreq::A4`] = 440 Hz.
 //!
 //! Each name is made out of a pitch letter, followed by an optional `S` or `B` for sharps and
 //! flats, followed by the octave number. We use `N` for a negative sign.
@@ -6,8 +6,8 @@
 //! Enharmonic notes are given their individual constant names, for good measure.
 //!
 //! We only implement the notes from octaves -1 to 10, as anything lower is unsupported as a
-//! [`Note`], and anything higher is too high-pitched to be practical. This range well-covers
-//! the human hearing range.
+//! [`Note`], and anything higher is too high-pitched to be practical. This range well-covers the
+//! human hearing range.
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
