@@ -35,7 +35,7 @@
 //! }
 //! ```
 
-use crate::{sample::Sample, units::RawFreq};
+use crate::{sample::Sample, units::Freq};
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
@@ -105,10 +105,10 @@ pub trait SignalMut: Signal {
 /// Not to be confused with [`Freq`].
 pub trait Frequency: SignalMut {
     /// The "main" frequency of the signal.
-    fn freq(&self) -> RawFreq;
+    fn freq(&self) -> Freq;
 
     /// Returns a mutable reference to the "main" frequency of the signal.
-    fn freq_mut(&mut self) -> &mut RawFreq;
+    fn freq_mut(&mut self) -> &mut Freq;
 }
 
 /// A trait for a signal with a "base" signal that can be modified. This is often a generator in a

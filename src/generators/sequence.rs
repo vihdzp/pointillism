@@ -348,7 +348,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
 #[derive(Clone, Debug)]
 pub struct Arp {
     /// The notes to play, in order.
-    pub notes: Vec<RawFreq>,
+    pub notes: Vec<Freq>,
 
     /// The index of the note currently playing.
     pub index: usize,
@@ -357,13 +357,13 @@ pub struct Arp {
 impl Arp {
     /// Initializes a new arpeggio with the given notes.
     #[must_use]
-    pub const fn new(notes: Vec<RawFreq>) -> Self {
+    pub const fn new(notes: Vec<Freq>) -> Self {
         Self { notes, index: 0 }
     }
 
     /// The currently played note.
     #[must_use]
-    pub fn current(&self) -> RawFreq {
+    pub fn current(&self) -> Freq {
         self.notes[self.index]
     }
 
@@ -389,7 +389,7 @@ impl Arp {
     /// Replaces the current arpeggio by a new one.
     ///
     /// We use an iterator in order to avoid duplicate allocations.
-    pub fn set_arp<I: IntoIterator<Item = RawFreq>>(&mut self, notes: I) {
+    pub fn set_arp<I: IntoIterator<Item = Freq>>(&mut self, notes: I) {
         self.notes.clear();
         self.notes.extend(notes);
         self.index = 0;
@@ -416,7 +416,7 @@ impl<S: Frequency> Arpeggio<S> {
     ///
     /// This method is entirely safe. However, panics can occur in other methods if an empty `times`
     /// array is passed.
-    pub const fn new_arp_unchecked(times: Vec<Time>, sgn: S, notes: Vec<RawFreq>) -> Self {
+    pub const fn new_arp_unchecked(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new_unchecked(times, sgn, Arp::new(notes))
     }
 
@@ -428,7 +428,7 @@ impl<S: Frequency> Arpeggio<S> {
     /// ## Panics
     ///
     /// his method panics if the times vector is empty.
-    pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<RawFreq>) -> Self {
+    pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
     }
 

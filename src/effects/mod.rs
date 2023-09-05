@@ -135,11 +135,11 @@ impl<S: Frequency, F: Map<Input = S::Sample>> Frequency for MapSgn<S, F>
 where
     F::Output: Sample,
 {
-    fn freq(&self) -> RawFreq {
+    fn freq(&self) -> Freq {
         self.sgn().freq()
     }
 
-    fn freq_mut(&mut self) -> &mut RawFreq {
+    fn freq_mut(&mut self) -> &mut Freq {
         self.sgn_mut().freq_mut()
     }
 }
@@ -284,11 +284,11 @@ impl<S: SignalMut, E: SignalMut<Sample = Env>, F: MutEnv<S>> SignalMut for MutSg
 }
 
 impl<S: Frequency, E: SignalMut<Sample = Env>, F: MutEnv<S>> Frequency for MutSgn<S, E, F> {
-    fn freq(&self) -> RawFreq {
+    fn freq(&self) -> Freq {
         self.sgn().freq()
     }
 
-    fn freq_mut(&mut self) -> &mut RawFreq {
+    fn freq_mut(&mut self) -> &mut Freq {
         self.sgn_mut().freq_mut()
     }
 }
@@ -402,11 +402,11 @@ impl<S: SignalMut, E: Stop<Sample = Env>, F: MutEnv<S>> SignalMut for ModSgn<S, 
 }
 
 impl<S: Frequency, E: Stop<Sample = Env>, F: MutEnv<S>> Frequency for ModSgn<S, E, F> {
-    fn freq(&self) -> RawFreq {
+    fn freq(&self) -> Freq {
         self.inner.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut RawFreq {
+    fn freq_mut(&mut self) -> &mut Freq {
         self.inner.freq_mut()
     }
 }

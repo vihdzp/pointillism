@@ -1,14 +1,10 @@
-//! Defines structures pertaining to frequency, of sounds and other oscillators.
+//! Defines the type [`RawFreq`].
 //!
-//! The types defined in this file are the following:
-//!
-//! - [`RawFreq`]: a frequency in Hertz
-//! - [`Freq`]: a frequency in inverse samples
-//! - [`Interval`]: the ratio between two frequencies
-//!
-//! Arithmetic and conversions between these types is defined in a sensible manner.
+//! This type measures frequency in the natural unit of
+//! [hertz](https://en.wikipedia.org/wiki/Hertz). However, in order to use actually use it for most
+//! things, you'll need to convert it into [`Freq`], which is measured in inverse samples.
 
-use crate::prelude::*;
+use crate::{prelude::*, units::A4_MIDI};
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -16,10 +12,7 @@ use std::{
     str::FromStr,
 };
 
-/// This magic number `69.0` corresponds to the MIDI index of A4.
-const A4_MIDI: f64 = Note::A4.note as f64;
-
-/// Represents a frequency in hertz.
+/// Represents a frequency in **Hertz**.
 ///
 /// Most methods will require a [`Freq`] instead, which is dependent on your sample rate. See
 /// [`Freq::from_raw`].
@@ -88,49 +81,35 @@ impl RawFreq {
         Time::new(1.0 / self.hz())
     }
 
-    /// Initializes a frequency a certain amount of `notes` in a given `edo` above or below a `base`
-    /// pitch (usually [`A4`](Freq::A4)).
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// # use pointillism::prelude::*;
-    /// # use assert_approx_eq::assert_approx_eq;
-    /// // C5 is 3 semitones above A4.
-    /// let C5 = Freq::new_edo_note(Freq::A4, 12, 3.0);
-    /// assert_approx_eq!(C5.hz, Freq::C5.hz);
-    /// ```
-    #[must_use]
-    pub fn new_edo_note(base: RawFreq, edo: u16, note: f64) -> Self {
-        Interval::edo_note(edo, note) * base
-    }
-
-    /// Initializes a frequency a certain amount of `notes` in 12-EDO above or below a `base` pitch
-    /// (usually [`A4`](Freq::A4)).
-    ///
-    /// See also [`Freq::new_edo_note`].
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// # use pointillism::prelude::*;
-    /// # use assert_approx_eq::assert_approx_eq;
-    /// // C5 is 3 semitones above A4.
-    /// let C5 = Freq::new_note(Freq::A4, 3.0);
-    /// assert_approx_eq!(C5.hz, Freq::C5.hz);
-    /// ```
-    #[must_use]
-    pub fn new_note(base: RawFreq, note: f64) -> Self {
-        Self::new_edo_note(base, 12, note)
-    }
-
     /// Bends a note by a number of notes in a given `edo`.
+    ///
+    /// You can use this to generate an scale in some EDO, based on some note.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// # use pointillism::prelude::*;
+    /// # use assert_approx_eq::assert_approx_eq;
+    /// // C5 is 3 semitones above A4.
+    /// let c5 = RawFreq::A4.bend_edo(12, 3.0);
+    /// assert_approx_eq!(c5.hz, RawFreq::C5.hz);
+    /// ```
     #[must_use]
     pub fn bend_edo(self, edo: u16, bend: f64) -> Self {
         Interval::edo_note(edo, bend) * self
     }
 
     /// Bends a note by a number of notes in 12-EDO.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// # use pointillism::prelude::*;
+    /// # use assert_approx_eq::assert_approx_eq;
+    /// // C5 is 3 semitones above A4.
+    /// let c5 = RawFreq::A4.bend(3.0);
+    /// assert_approx_eq!(c5.hz, RawFreq::C5.hz);
+    /// ```
     #[must_use]
     pub fn bend(self, bend: f64) -> Self {
         self.bend_edo(12, bend)
@@ -141,13 +120,13 @@ impl RawFreq {
     /// This allows the user to specify the `A4` tuning. Use [`Self::new_midi`] for the default of
     /// 440 Hz.
     #[must_use]
-    pub fn new_midi_with(a4: RawFreq, note: Note) -> Self {
-        Self::new_edo_note(a4, 12, f64::from(note.note) - A4_MIDI)
+    pub fn new_midi_with(a4: Self, note: Note) -> Self {
+        a4.bend(f64::from(note.note) - A4_MIDI)
     }
 
     /// Initializes a frequency from a MIDI note.
     ///
-    /// See [`Self::new_midi_with`] in order to specify the `A4` tuning.
+    /// This assumes A4 = 440 Hz. See [`Self::new_midi_with`] in order to specify the `A4` tuning.
     #[must_use]
     pub fn new_midi(note: Note) -> Self {
         Self::new_midi_with(RawFreq::A4, note)
@@ -155,7 +134,7 @@ impl RawFreq {
 
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
-    fn round_midi_aux(self, a4: RawFreq) -> f64 {
+    fn round_midi_aux(self, a4: Self) -> f64 {
         (self.hz() / a4.hz()).log2() * 12.0 + A4_MIDI
     }
 
@@ -178,7 +157,7 @@ impl RawFreq {
     /// assert_eq!(freq.round_midi_with(Freq::A4), Note::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi_with(self, a4: RawFreq) -> Note {
+    pub fn round_midi_with(self, a4: Self) -> Note {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
         Note::new((self.round_midi_aux(a4).round()) as i16)
@@ -216,15 +195,15 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = Freq::A4.bend(0.6);
-    /// let (note, semitones) = freq.midi_semitones_with(Freq::A4);
+    /// let freq = RawFreq::A4.bend(0.6);
+    /// let (note, semitones) = freq.midi_semitones_with(RawFreq::A4);
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
     /// assert_eq!(note, Note::AS4);
     /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
-    pub fn midi_semitones_with(self, a4: RawFreq) -> (Note, f64) {
+    pub fn midi_semitones_with(self, a4: Self) -> (Note, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
@@ -243,7 +222,7 @@ impl RawFreq {
     /// # use pointillism::prelude::*;
     /// # use assert_approx_eq::assert_approx_eq;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = Freq::A4.bend(0.6);
+    /// let freq = RawFreq::A4.bend(0.6);
     /// let (note, semitones) = freq.midi_semitones();
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
@@ -263,6 +242,7 @@ impl From<Note> for RawFreq {
     }
 }
 
+/// Initializes a [`RawFreq`] from a note name.
 impl FromStr for RawFreq {
     type Err = crate::units::midi::NameError;
 
@@ -274,7 +254,15 @@ impl FromStr for RawFreq {
 impl Mul<f64> for RawFreq {
     type Output = Self;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self {
+        Self::new(self.hz * rhs)
+    }
+}
+
+impl Mul<RawFreq> for f64 {
+    type Output = RawFreq;
+
+    fn mul(self, rhs: RawFreq) -> RawFreq {
         rhs * self
     }
 }
@@ -338,7 +326,7 @@ impl DivAssign<Interval> for RawFreq {
 impl Div for RawFreq {
     type Output = Interval;
 
-    fn div(self, rhs: RawFreq) -> Interval {
+    fn div(self, rhs: Self) -> Interval {
         Interval::new(self.hz / rhs.hz)
     }
 }

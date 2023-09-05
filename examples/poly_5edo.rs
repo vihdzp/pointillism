@@ -9,9 +9,10 @@ use rand::Rng;
 fn main() {
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(350.0);
-
     // Length of each note.
     const NOTE_LEN: Time = Time::new(5.0);
+
+    let base = Freq::from_raw_default(BASE);
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
@@ -31,7 +32,7 @@ fn main() {
     // Initializes a new `Polyphony` object, plays a single note.
     let mut poly = Polyphony::new();
     let mut index = 0;
-    poly.add(index, osc(BASE));
+    poly.add(index, osc(base));
 
     // The song loop.
     let poly_loop = Loop::new(
@@ -47,11 +48,7 @@ fn main() {
             // and adding a new one.
             poly.add(
                 index,
-                osc(RawFreq::new_edo_note(
-                    BASE,
-                    5,
-                    rand::thread_rng().gen_range(0..=7) as f64,
-                )),
+                osc(base.bend_edo(5, rand::thread_rng().gen_range(0..=7) as f64)),
             );
         }),
     );

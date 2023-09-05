@@ -130,13 +130,6 @@ impl Display for Time {
     }
 }
 
-impl Mul<RawFreq> for f64 {
-    type Output = RawFreq;
-
-    fn mul(self, rhs: RawFreq) -> RawFreq {
-        RawFreq::new(self * rhs.hz)
-    }
-}
 
 impl Add for Time {
     type Output = Self;

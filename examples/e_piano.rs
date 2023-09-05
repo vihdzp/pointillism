@@ -28,7 +28,7 @@ impl EPiano {
     }
 
     /// Create a new electric piano with the given frequency.
-    fn new(freq: RawFreq) -> Self {
+    fn new(freq: Freq) -> Self {
         let mut epiano = Self::default();
         epiano.rand_phases();
 
@@ -73,7 +73,7 @@ impl SignalMut for EPiano {
 }
 
 /// An electric piano with a slight tremolo effect applied.
-fn trem_piano(freq: RawFreq, vib_freq: RawFreq) -> impl Stop<Sample = Mono> {
+fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
     // The volume follows a rescaled sine wave curve.
     let env = LoopGen::new(Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
 
@@ -89,11 +89,13 @@ fn trem_piano(freq: RawFreq, vib_freq: RawFreq) -> impl Stop<Sample = Mono> {
 }
 
 fn main() {
+    let c3 = Freq::from_raw_default(RawFreq::C3);
+
     // One piano for each note.
     let (mut p1, mut p2, mut p3) = (
-        trem_piano(RawFreq::C3, RawFreq::new(4.0)),
-        trem_piano(5.0 / 4.0 * RawFreq::C3, RawFreq::new(5.0)),
-        trem_piano(3.0 / 2.0 * RawFreq::C3, RawFreq::new(6.0)),
+        trem_piano(c3, Freq::from_hz_default(4.0)),
+        trem_piano(5.0 / 4.0 * c3, Freq::from_hz_default(5.0)),
+        trem_piano(3.0 / 2.0 * c3, Freq::from_hz_default(6.0)),
     );
 
     let mut stop_notes = false;

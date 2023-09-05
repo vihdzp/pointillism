@@ -3,7 +3,7 @@
 use pointillism::prelude::*;
 
 fn main() {
-    let base = RawFreq::A3;
+    let base = Freq::from_raw_default(RawFreq::A3);
     let sgn = |freq| {
         AdsrEnvelope::new(
             LoopGen::<Stereo, _>::new(Tri, freq),

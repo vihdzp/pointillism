@@ -7,24 +7,24 @@ use pointillism::prelude::*;
 fn main() {
     // Number of oscillators.
     const NUM_OSC: u8 = 5;
-
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(400.0);
-
     // Time to complete a cycle.
     const TIME: Time = Time::new(10.0);
+
+    let base = Freq::from_raw_default(BASE);
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
         MutSgn::new(
             // A triangle wave with a placeholder frequency.
-            LoopGen::new(Tri, BASE),
+            LoopGen::new(Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
-            LoopGen::new_phase(Sin, (NUM_OSC as f64 * TIME).freq(), phase),
+            LoopGen::new_phase(Sin, Freq::from_raw_default((NUM_OSC as f64 * TIME).freq()), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             FnWrapper::new(|sgn: &mut LoopGen<_, _>, val: Env| {
-                *sgn.freq_mut() = BASE * (val.0 / 2.0 + 1.0);
+                *sgn.freq_mut() = base * (val.0 / 2.0 + 1.0);
             }),
         )
     };

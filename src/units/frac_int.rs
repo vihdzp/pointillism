@@ -92,6 +92,7 @@ impl std::fmt::Display for FracInt {
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::FracInt;
 

@@ -103,7 +103,7 @@ where
     map: C,
 
     /// The base frequency.
-    base: RawFreq,
+    base: Freq,
 
     /// The values and intervals from the base frequency for each curve.
     val_inters: Vec<ValInter>,
@@ -117,7 +117,7 @@ where
     ///
     /// This will play multiple copies of a curve at the specified frequency multipliers, with the
     /// given initial phases.
-    pub const fn new_curve_phases(map: C, base: RawFreq, val_inters: Vec<ValInter>) -> Self {
+    pub const fn new_curve_phases(map: C, base: Freq, val_inters: Vec<ValInter>) -> Self {
         Self {
             map,
             base,
@@ -129,11 +129,7 @@ where
     ///
     /// This will play multiple copies of a curve at the specified intervals from the base
     /// frequency.
-    pub fn new_curve<I: IntoIterator<Item = Interval>>(
-        map: C,
-        base: RawFreq,
-        intervals: I,
-    ) -> Self {
+    pub fn new_curve<I: IntoIterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
         Self {
             map,
             base,
@@ -149,7 +145,7 @@ where
     ///
     /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
     /// pitched.
-    pub fn detune_curve(map: C, base: RawFreq, detune: Interval, num: u8) -> Self {
+    pub fn detune_curve(map: C, base: Freq, detune: Interval, num: u8) -> Self {
         Self::new_curve(map, base, DetuneIter::new(detune, num))
     }
 
@@ -250,11 +246,11 @@ impl<C: Map<Input = Val>> Frequency for UnisonCurve<C>
 where
     C::Output: Sample,
 {
-    fn freq(&self) -> RawFreq {
+    fn freq(&self) -> Freq {
         self.base
     }
 
-    fn freq_mut(&mut self) -> &mut RawFreq {
+    fn freq_mut(&mut self) -> &mut Freq {
         &mut self.base
     }
 }
@@ -272,7 +268,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     /// given initial phases.
     pub fn new_phases<I: IntoIterator<Item = f64>>(
         map: C,
-        base: RawFreq,
+        base: Freq,
         val_freqs: Vec<ValInter>,
     ) -> Self {
         Self::new_curve_phases(CurvePlayer::new(map), base, val_freqs)
@@ -282,7 +278,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     ///
     /// This will play multiple copies of a curve at the specified intervals from the base
     /// frequency.
-    pub fn new<I: IntoIterator<Item = Interval>>(map: C, base: RawFreq, intervals: I) -> Self {
+    pub fn new<I: IntoIterator<Item = Interval>>(map: C, base: Freq, intervals: I) -> Self {
         Self::new_curve(CurvePlayer::new(map), base, intervals)
     }
 
@@ -291,7 +287,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     ///
     /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
     /// pitched.
-    pub fn detune(map: C, base: RawFreq, detune: Interval, num: u8) -> Self {
+    pub fn detune(map: C, base: Freq, detune: Interval, num: u8) -> Self {
         Self::detune_curve(CurvePlayer::new(map), base, detune, num)
     }
 }
@@ -342,7 +338,7 @@ where
     C::Output: Sample,
 {
     /// Initializes a [`DetuneCurveSgn`].
-    pub fn new_detune_curve(map: C, base: RawFreq, num: u8, env: E) -> Self {
+    pub fn new_detune_curve(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new(
             UnisonCurve::new_curve(
                 map,
@@ -357,7 +353,7 @@ where
 
 impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> DetuneSgn<S, C, E> {
     /// Initializes a [`DetuneSgn`].
-    pub fn new_detune(map: C, base: RawFreq, num: u8, env: E) -> Self {
+    pub fn new_detune(map: C, base: Freq, num: u8, env: E) -> Self {
         Self::new_detune_curve(CurvePlayer::new(map), base, num, env)
     }
 }

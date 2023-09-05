@@ -36,6 +36,9 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
 }
 
 fn binaural() -> impl SignalMut<Sample = Stereo> {
+    let base = Freq::from_raw_default(BASE);
+    let vib_freq = Freq::from_raw_default(VIB_FREQ);
+
     // A sine wave.
     let wave = |freq| LoopGen::new(Sin, freq);
 
@@ -44,17 +47,17 @@ fn binaural() -> impl SignalMut<Sample = Stereo> {
         Vibrato::new(
             wave(freq),
             freq,
-            PwMapSgn::new_pw(LoopGen::new(Sin, VIB_FREQ), Linear::rescale_sgn(0.99, 1.01)),
+            PwMapSgn::new_pw(LoopGen::new(Sin, vib_freq), Linear::rescale_sgn(0.99, 1.01)),
         )
     };
 
     // Binaural beats.
-    StereoMix::new(wave(BASE * 0.985), vib(BASE))
+    StereoMix::new(wave(base * 0.985), vib(base))
 }
 
 fn melody() -> impl SignalMut<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
-    let mut freq = 2.0 * RawFreq::A4;
+    let mut freq = 2.0 * Freq::from_raw_default(RawFreq::A4);
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
     let wave = |freq| LoopGen::new(SawTri::tri(), freq);

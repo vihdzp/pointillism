@@ -12,16 +12,13 @@ use rand::Rng;
 fn main() {
     // Frequency of base note.
     const BASE: RawFreq = RawFreq::new(400.0);
-
     // Length of each note.
     const NOTE_LEN: Time = Time::new(3.0);
-
     // Length of released note.
     const RELEASE_LEN: Time = Time::new(45.0);
 
     // Length of song in notes.
     const NOTE_COUNT_LEN: u16 = 200;
-
     // Number of notes actually played (accounting for fade-out).
     const NOTE_COUNT: u16 = 185;
 
@@ -53,8 +50,10 @@ fn main() {
         )
     };
 
+    // Base frequency.
+    let base = Freq::from_raw_default(BASE);
     // Frequency of note being played.
-    let mut freq = BASE;
+    let mut freq = base;
 
     // Possible values to multiply a frequency by.
     let mults = [
@@ -84,9 +83,9 @@ fn main() {
             freq *= mults[rand::thread_rng().gen_range(0..mults.len())];
 
             // Clamps the frequency between two octaves.
-            if freq >= 2.0 * BASE {
+            if freq >= 2.0 * base {
                 freq /= 2.0;
-            } else if freq <= BASE / 2.0 {
+            } else if freq <= base / 2.0 {
                 freq *= 2.0;
             }
 
