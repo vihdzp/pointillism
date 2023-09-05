@@ -17,7 +17,6 @@ pub use crate::{
         vol::*,
         *,
     },
-    freq::{midi::MidiNote, *},
     generators::{
         poly::Polyphony,
         sequence::*,
@@ -29,6 +28,10 @@ pub use crate::{
     sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,
-    time::*,
+    units::{
+        freq::{Freq, Interval},
+        midi::MidiNote,
+        time::{Time, Timer},
+    },
     SAMPLE_RATE, SAMPLE_RATE_F64,
 };

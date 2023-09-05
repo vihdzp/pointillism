@@ -51,13 +51,12 @@
 
 pub mod curves;
 pub mod effects;
-pub mod freq;
 pub mod generators;
 pub mod map;
 pub mod prelude;
 pub mod sample;
 pub mod signal;
-pub mod time;
+pub mod units;
 
 use prelude::*;
 

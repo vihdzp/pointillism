@@ -35,7 +35,7 @@
 //! }
 //! ```
 
-use crate::{freq::Freq, sample::Sample};
+use crate::{sample::Sample, units::freq::Freq};
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///

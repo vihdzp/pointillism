@@ -12,11 +12,8 @@
 //! specify your own equal division of the octave. If you want something even more general, you can
 //! always input the raw numbers yourself.
 
-pub mod boilerplate;
-pub mod midi;
-
-use crate::time::Time;
-use midi::{MidiNote, NameError, A4_MIDI};
+use super::midi::{MidiNote, NameError, A4_MIDI};
+use super::time::Time;
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},

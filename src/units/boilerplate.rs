@@ -11,7 +11,10 @@
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-use super::{midi::MidiNote, Freq, Interval};
+use super::{
+    freq::{Freq, Interval},
+    midi::MidiNote,
+};
 
 impl Interval {
     /// Unison interval `1/1`.

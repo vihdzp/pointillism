@@ -1,6 +1,6 @@
 //! Defines [`Time`] and its basic methods.
 
-use crate::{freq::Freq, SAMPLE_RATE_F64};
+use crate::{units::freq::Freq, SAMPLE_RATE_F64};
 
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -21,7 +21,7 @@ const DAY_SECS: f64 = 24.0 * HR_SECS;
 /// Number of seconds in a year (365 days).
 const YR_SECS: f64 = 365.0 * DAY_SECS;
 
-/// Represents an amount of time.
+/// Accurately represents an amount of time.
 #[derive(Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Time {
     /// Number of frames.
@@ -31,19 +31,14 @@ pub struct Time {
 impl Time {
     /// Zero time.
     pub const ZERO: Self = Self::new(0.0);
-
     /// A second.
     pub const SEC: Self = Self::new(1.0);
-
     /// A minute.
     pub const MIN: Self = Self::new(MIN_SECS);
-
     /// An hour.
     pub const HR: Self = Self::new(HR_SECS);
-
     /// A day.
     pub const DAY: Self = Self::new(DAY_SECS);
-
     /// A year.
     pub const YR: Self = Self::new(YR_SECS);
 

@@ -1,3 +1,16 @@
+## Version 0.3.3
+
+The types `Time` and `Freq` have been refactored.
+
+A "raw" version of both types has been added, which records these quantities in natural units `s`
+and `s⁻¹` respectively.
+
+These raw types can be converted into `Time` and `Freq`, which are now in units `samples` and
+`samples⁻¹` instead. This change achieves two things:
+
+- Advancing time by one sample no longer loses precision.
+- Different sample rates are now easily supported.
+
 ## Version 0.3.2
 
 Create an `Arpeggio` type, and other small improvements throughout.
