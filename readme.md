@@ -52,7 +52,7 @@ The following versions of `pointillism` exist:
 
 - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
 - 0.2.0 - 0.2.10: more stable versions, but still subject to drastic change.
-- 0.3.0 - 0.3.1: stable versions, tracked by a changelog.
+- 0.3.0 - 0.3.2: stable versions, tracked by a changelog.
 
 ### Goals
 
