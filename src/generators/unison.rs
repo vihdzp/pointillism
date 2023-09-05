@@ -380,7 +380,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 ///
 /// fn main() {
 ///     let len = Time::from_raw_default(LEN);
-/// 
+///
 ///     // Plays a number of notes, and detunes them up to an octave.
 ///     let mut unison = DetuneSgn::<Mono, _, _>::new_detune(
 ///         Saw,

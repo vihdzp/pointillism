@@ -142,15 +142,17 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
 /// In this simple example, we apply two different effects to a simple saw wave, and play them in
 /// both ears.
 ///
+/// This creates a weird pulsing effect.
+///
 /// ```
 /// # use pointillism::prelude::*;
 /// // The original signals.
 /// let mut signal = LoopGen::new(Saw, Freq::from_raw_default(RawFreq::A3));
-/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::from_hz_default(3.0));
+/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::from_hz_default(1.5));
 ///
 /// pointillism::create(
-///     "examples/routing.wav", 
-///     Time::from_sec_default(5.0), SampleRate::default(), 
+///     "examples/routing.wav",
+///     Time::from_sec_default(5.0), SampleRate::default(),
 ///     |_| {
 ///         // Thanks to `Ref`, we're able to re-use these signals.
 ///         let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
