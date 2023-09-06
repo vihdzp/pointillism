@@ -1,12 +1,14 @@
 //! Testing out polyphonic signals.
 //!
-//! We play various random 5-EDO notes in succession, and apply heavy distortion
-//! to the output for fun effects.
+//! We play various random 5-EDO notes in succession, and apply heavy distortion to the output for
+//! fun effects.
 
 use pointillism::prelude::*;
 use rand::Rng;
 
 /// Project sample rate.
+///
+/// Lower sample rates make for an even scrunchier sound.
 const SAMPLE_RATE: SampleRate = SampleRate::TELEPHONE;
 
 fn main() {

@@ -1,9 +1,7 @@
-//! Source code for
-//! [viiii – Primavera C](https://viiii.bandcamp.com/track/primavera-c).
+//! Source code for the [viiii – Primavera C](https://viiii.bandcamp.com/track/primavera-c) backing
+//! track.
 //!
 //! Post-processing: ≈ 1kHz lowpass, field recording noise.
-
-// Todo: comment and clean up code.
 
 use pointillism::prelude::*;
 
@@ -59,7 +57,11 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     let mut freq = 2.0 * Freq::from_raw_default(RawFreq::A4);
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
+    // Our waves are saw-triangle morphs.
     let wave = |freq| LoopGen::new(SawTri::tri(), freq);
+
+    // Their shape is abruptly turned from a saw into a triangle, which results in a rudimentary
+    // "pluck" sound.
     let shape = move |freq| {
         MutSgn::new(
             wave(freq),
@@ -69,6 +71,8 @@ fn melody() -> impl SignalMut<Sample = Mono> {
             }),
         )
     };
+
+    // Make each note fade out.
     let trem = move |freq| {
         StopTremolo::new(
             shape(freq),
@@ -79,6 +83,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     let poly = Polyphony::new();
     let mut index = 0;
 
+    // Play a new note every four seconds.
     Loop::new(
         vec![Time::from_sec_default(4.0)],
         poly,

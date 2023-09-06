@@ -1,4 +1,7 @@
-//! Creepy chords.
+//! We play various chords in succession, using the [`Polyphony`] struct.
+//!
+//! This requires us to keep track of how many notes have been played at any moment. Maybe in the
+//! future we'll make some special functionality for this.
 
 use pointillism::prelude::*;
 
@@ -6,6 +9,10 @@ use pointillism::prelude::*;
 const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
+    /// Length of each note.
+    const NOTE_LEN: RawTime = RawTime::new(7.0);
+    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
+
     let base = Freq::from_raw(RawFreq::A3, SAMPLE_RATE);
     let sgn = |freq| {
         AdsrEnvelope::new(
@@ -34,7 +41,7 @@ fn main() {
 
     let mut idx = 0;
     let mut seq = Sequence::new(
-        vec![Time::from_sec(10.0, SAMPLE_RATE); chords.len() + 1],
+        vec![note_len; chords.len() + 1],
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>| {
             if idx != chords.len() {
@@ -56,7 +63,7 @@ fn main() {
 
     pointillism::create(
         "examples/harmony.wav",
-        Time::from_sec(10.0, SAMPLE_RATE) * chords.len() as f64 + Time::from_sec(3.0, SAMPLE_RATE),
+        note_len * chords.len() as f64 + Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
         |_| seq.next() / 6.0,
     )

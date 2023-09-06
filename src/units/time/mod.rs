@@ -97,9 +97,9 @@ impl Time {
     }
 
     /// Advances the time by one sample.
-    /// 
+    ///
     /// Thanks to our backing [`FracInt`], this is an **exact operation**. In particular, a song
-    /// lasts exactly as long as we say it does. 
+    /// lasts exactly as long as we say it does.
     pub fn advance(&mut self) {
         *self += Self::SAMPLE;
     }
