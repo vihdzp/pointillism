@@ -29,18 +29,15 @@ fn mod_advance(len: usize, index: &mut usize) {
 pub struct Sequence<S: SignalMut, F: Mut<S>> {
     /// A list of time intervals between an event and the next.
     times: Vec<Time>,
-
-    /// A signal being modified.
-    sgn: S,
-
-    /// The function modifying the signal.
-    func: F,
-
+    /// Time since last event.
+    since: Time,
     /// The current event being read.
     index: usize,
 
-    /// Time since last event.
-    since: Time,
+    /// A signal being modified.
+    sgn: S,
+    /// The function modifying the signal.
+    func: F,
 }
 
 impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
@@ -48,16 +45,36 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
         Self {
             times,
+            since: Time::ZERO,
+            index: 0,
             sgn,
             func,
-            index: 0,
-            since: Time::ZERO,
         }
     }
 
     /// Returns a reference to the list of time intervals between events.
     pub fn times(&self) -> &[Time] {
         &self.times
+    }
+
+    /// Time since last event.
+    pub const fn since(&self) -> Time {
+        self.since
+    }
+
+    /// The current event index.
+    pub const fn index(&self) -> usize {
+        self.index
+    }
+
+    /// The number of events.
+    pub fn len(&self) -> usize {
+        self.times().len()
+    }
+
+    /// Whether there are no events in the sequence.
+    pub fn is_empty(&self) -> bool {
+        self.times().is_empty()
     }
 
     /// Returns the time for the current event.
@@ -88,26 +105,6 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Modifies the signal according to the function.
     fn modify(&mut self) {
         self.func.modify(&mut self.sgn);
-    }
-
-    /// The current event index.
-    pub const fn index(&self) -> usize {
-        self.index
-    }
-
-    /// Time since last event.
-    pub const fn since(&self) -> Time {
-        self.since
-    }
-
-    /// The number of events.
-    pub fn len(&self) -> usize {
-        self.times().len()
-    }
-
-    /// Whether there are no events in the sequence.
-    pub fn is_empty(&self) -> bool {
-        self.times().is_empty()
     }
 
     /// Skips to an event with a given index and applies it, returns whether it was successful.
@@ -234,6 +231,31 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
         self.seq.times()
     }
 
+    /// Time since last event.
+    pub const fn since(&self) -> Time {
+        self.seq.since
+    }
+
+    /// The current event index.
+    ///
+    /// This index should, as a runtime invariant, always be less than the length of the loop,
+    /// unless the loop is empty.
+    pub const fn index(&self) -> usize {
+        self.seq.index
+    }
+
+    /// The number of events in the loop.
+    pub fn len(&self) -> usize {
+        self.seq.times.len()
+    }
+
+    /// Whether there are no events in the loop.
+    ///
+    /// Note that such a loop might cause other methods to panic.
+    pub fn is_empty(&self) -> bool {
+        self.seq.times.is_empty()
+    }
+
     /// Returns the time for the current event.
     ///
     /// ## Panics
@@ -266,31 +288,6 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// Modifies the signal according to the function.
     fn modify(&mut self) {
         self.seq.modify();
-    }
-
-    /// The current event index.
-    ///
-    /// This index should, as a runtime invariant, always be less than the length of the loop,
-    /// unless the loop is empty.
-    pub const fn index(&self) -> usize {
-        self.seq.index
-    }
-
-    /// Time since last event.
-    pub const fn since(&self) -> Time {
-        self.seq.since
-    }
-
-    /// The number of events in the loop.
-    pub fn len(&self) -> usize {
-        self.seq.times.len()
-    }
-
-    /// Whether there are no events in the loop.
-    ///
-    /// Note that such a loop might cause other methods to panic.
-    pub fn is_empty(&self) -> bool {
-        self.seq.times.is_empty()
     }
 
     /// Skips to an event with a given index and applies it.

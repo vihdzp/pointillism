@@ -1,4 +1,4 @@
-//! Integration with `cpal`.
+//! Integration with [`cpal`].
 
 use cpal::{traits::DeviceTrait, StreamConfig};
 
