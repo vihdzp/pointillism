@@ -15,7 +15,7 @@ fn main() {
     let release = 2u8 * q;
 
     // Twinkle twinkle little star...
-    let notes = vec![
+    let notes = [
         Note::new(Time::ZERO, q, RawFreq::C3),
         Note::new(q, q, RawFreq::C3),
         Note::new(2u8 * q, q, RawFreq::G3),
@@ -31,16 +31,18 @@ fn main() {
         Note::new(13u8 * q, q, RawFreq::D3),
         Note::new(14u8 * q, 2u8 * q, RawFreq::C3),
         Note::new(14u8 * q, 2u8 * q, RawFreq::G3),
-    ];
+    ]
+    .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)))
+    .to_vec();
 
     // We randomly bend each note a little, just for fun.
     const BEND: f64 = 3.0;
     let rand_bend = || rand::thread_rng().gen::<f64>() / BEND - 0.5 / BEND;
 
     // Each note is a triangle wave, with a simple ADSR envelope, playing the corresponding note.
-    let func = |raw| {
+    let func = |freq: Freq| {
         AdsrEnvelope::new_adsr(
-            LoopGen::<Mono, _>::new(Tri, Freq::from_raw(raw, SAMPLE_RATE).bend(rand_bend())),
+            LoopGen::<Mono, _>::new(Tri, freq.bend(rand_bend())),
             Time::from_sec(0.1, SAMPLE_RATE),
             Time::from_sec(0.2, SAMPLE_RATE),
             Vol::HALF,

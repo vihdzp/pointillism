@@ -14,9 +14,9 @@ fn main() {
     let length = Time::from_raw(LENGTH, SAMPLE_RATE);
 
     // The notes played in the arpeggio.
-    let notes: Vec<_> = [RawFreq::C4, RawFreq::E4, RawFreq::G4, RawFreq::A4]
+    let notes = [RawFreq::C4, RawFreq::E4, RawFreq::G4, RawFreq::A4]
         .map(|raw| Freq::from_raw(raw, SAMPLE_RATE))
-        .into();
+        .to_vec();
 
     // Initializes the arpeggio.
     let mut arp = Arpeggio::new_arp(

@@ -426,6 +426,11 @@ impl<D: Clone> Note<D> {
         self.length + self.start
     }
 
+    /// Maps the data of the note through the function.
+    pub fn map_data<E: Clone, F: FnOnce(D) -> E>(self, func: F) -> Note<E> {
+        Note::new(self.start, self.length, func(self.data))
+    }
+
     /// Returns the two note events associated with the note, bundled with their start time.
     #[rustfmt::skip]
     pub fn events<K: Eq + Hash + Clone>(&self, key: K) -> [(Time, NoteEvent<K, D>); 2] {
