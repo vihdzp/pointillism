@@ -26,6 +26,7 @@ fn main() {
         )
     };
 
+    // Weird melody.
     #[rustfmt::skip]
     let chords = [
         [1.0, 6.0 / 5.0, 7.0 / 5.0],
@@ -37,29 +38,32 @@ fn main() {
         [21.0 / 20.0, (7.0 / 5.0) * 21.0 / 20.0, 13.0 / 10.0],
     ];
 
-    let poly = Polyphony::new();
+    // Initialize the first chord.
+    let mut poly = Polyphony::new();
+    for (i, &c) in chords[0].iter().enumerate() {
+        poly.add(i, sgn(c * base));
+    }
 
-    let mut idx = 0;
+    let mut idx = 1;
     let mut seq = Sequence::new(
-        vec![note_len; chords.len() + 1],
+        vec![note_len; chords.len()],
         poly,
         FnWrapper::new(|poly: &mut Polyphony<_, _>| {
+            // Add next notes.
             if idx != chords.len() {
-                for (i, c) in chords[idx].iter().enumerate() {
-                    poly.add(3 * idx + i, sgn(base * *c));
+                for (i, &c) in chords[idx].iter().enumerate() {
+                    poly.add(3 * idx + i, sgn(c * base));
                 }
             }
 
-            if idx != 0 {
-                for i in 0..3 {
-                    poly.stop(&(3 * (idx - 1) + i));
-                }
+            // Stop previous notes.
+            for i in 0..3 {
+                poly.stop(&(3 * (idx - 1) + i));
             }
 
             idx += 1;
         }),
     );
-    seq.skip_to_next();
 
     pointillism::create(
         "examples/harmony.wav",

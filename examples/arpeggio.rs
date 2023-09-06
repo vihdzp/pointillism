@@ -26,7 +26,7 @@ fn main() {
     );
 
     // `C0` is a dummy value that gets replaced here.
-    arp.skip_to_next();
+    arp.skip();
 
     let mut timer = Timer::new(Time::from_raw(LENGTH, SAMPLE_RATE));
 

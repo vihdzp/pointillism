@@ -107,26 +107,18 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
         self.func.modify(&mut self.sgn);
     }
 
-    /// Skips to an event with a given index and applies it, returns whether it was successful.
+    /// Skips to the next event and applies it, returns whether it was successful.
     ///
-    /// Note that the function modifying the signal will only be called once.
-    pub fn skip_to(&mut self, index: usize) -> bool {
-        self.index = index;
-        let res = index < self.len();
+    /// This can be used right after initializing a [`Sequence`] so that the first event is applied
+    /// immediately.
+    pub fn skip(&mut self) -> bool {
+        let res = self.index < self.len();
         if res {
             self.since = Time::ZERO;
             self.modify();
             self.index += 1;
         }
         res
-    }
-
-    /// Skips to the next event and applies it, returns whether it was successful.
-    ///
-    /// This can be used right after initializing a [`Sequence`] so that the first event is applied
-    /// immediately.
-    pub fn skip_to_next(&mut self) -> bool {
-        self.skip_to(self.index)
     }
 
     /// Attempts to read a single event, returns whether it was successful.
@@ -290,20 +282,6 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
         self.seq.modify();
     }
 
-    /// Skips to an event with a given index and applies it.
-    ///
-    /// Note that the function modifying the signal will only be called once. If this function keeps
-    /// track of some index, for instance, it won't be updated correctly.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if the loop is empty.
-    pub fn skip_to(&mut self, index: usize) {
-        self.seq.since = Time::ZERO;
-        self.modify();
-        self.seq.index = (index + 1) % self.len();
-    }
-
     /// Skips to the next event and applies it, returns whether it was successful.
     ///
     /// This can be used right after initializing a [`Loop`] so that the first event is applied
@@ -312,7 +290,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// Panics if the loop is empty.
-    pub fn skip_to_next(&mut self) {
+    pub fn skip(&mut self) {
         self.seq.since = Time::ZERO;
         self.modify();
         mod_advance(self.len(), &mut self.seq.index);
@@ -378,11 +356,6 @@ impl Arp {
         self.notes.is_empty()
     }
 
-    /// Advances to the next note in the arpeggio.
-    pub fn advance(&mut self) {
-        mod_advance(self.len(), &mut self.index);
-    }
-
     /// Replaces the current arpeggio by a new one.
     ///
     /// We use an iterator in order to avoid duplicate allocations.
@@ -396,7 +369,7 @@ impl Arp {
 impl<S: Frequency> Mut<S> for Arp {
     fn modify(&mut self, sgn: &mut S) {
         *sgn.freq_mut() = self.current();
-        self.advance();
+        mod_advance(self.len(), &mut self.index);
     }
 }
 
@@ -424,7 +397,7 @@ impl<S: Frequency> Arpeggio<S> {
     ///
     /// ## Panics
     ///
-    /// his method panics if the times vector is empty.
+    /// This method panics if the `times` vector is empty.
     pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
     }
