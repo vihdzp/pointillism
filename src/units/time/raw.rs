@@ -22,6 +22,7 @@ const YR_SECS: f64 = 365.0 * DAY_SECS;
 #[derive(
     Clone,
     Copy,
+    Debug,
     Default,
     PartialEq,
     PartialOrd,
@@ -93,7 +94,7 @@ impl RawTime {
     }
 }
 
-impl std::fmt::Debug for RawTime {
+impl std::fmt::Display for RawTime {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         #[cfg(feature = "human-duration")]
         if f.alternate() {
@@ -104,15 +105,7 @@ impl std::fmt::Debug for RawTime {
             );
         }
 
-        f.debug_struct("RawTime")
-            .field("seconds", &self.seconds)
-            .finish()
-    }
-}
-
-impl std::fmt::Display for RawTime {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} s", self.seconds())
+        write!(f, "{}s", self.seconds())
     }
 }
 

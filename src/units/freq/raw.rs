@@ -18,7 +18,7 @@ use std::{
 /// [`Freq::from_raw`].
 ///
 /// Not to be confused with [`Frequency`](crate::signal::Frequency).
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct RawFreq {
     /// The frequency in hertz.
     pub hz: f64,
@@ -39,24 +39,17 @@ impl Default for RawFreq {
 }
 
 /// The alternate formatting mode results in `"{note} {cents}c"`.
-impl Debug for RawFreq {
+impl Display for RawFreq {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         if f.alternate() {
             let (note, semitones) = self.midi_semitones();
+            let cents = semitones * 100.0;
 
-            // Truncation should be impossible.
-            #[allow(clippy::cast_possible_truncation)]
-            let cents = (semitones * 100.0) as i16;
-            write!(f, "{note} {cents:+}c")
+            // Precision defaults to 0.
+            write!(f, "{note} {cents:+.*}c", f.precision().unwrap_or_default())
         } else {
-            f.debug_struct("Freq").field("hz", &self.hz).finish()
+            write!(f, "{} Hz", self.hz())
         }
-    }
-}
-
-impl Display for RawFreq {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} Hz", self.hz())
     }
 }
 

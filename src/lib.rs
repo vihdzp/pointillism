@@ -7,8 +7,6 @@
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
-// This seems to be a `cpal` thing, not much to do about it.
-#![allow(clippy::multiple_crate_versions)]
 
 pub mod curves;
 pub mod effects;

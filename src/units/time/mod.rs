@@ -192,10 +192,16 @@ impl Timer {
 mod test {
     use super::*;
 
+    /// Test time printing.
     #[test]
-    fn yr_secs() {
+    fn print_yr() {
+        assert_eq!(format!("{}", RawTime::YR), "31536000s");
+
+        let pretty = format!("{:#}", RawTime::YR);
         if cfg!(feature = "human-duration") {
-            assert_eq!(format!("{:#?}", RawTime::YR), "1y 0mon 0d 0h 0m 0s 0ms");
+            assert_eq!(pretty, "1y 0mon 0d 0h 0m 0s 0ms");
+        } else {
+            assert_eq!(pretty, "31536000s")
         }
     }
 }

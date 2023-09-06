@@ -272,11 +272,14 @@ impl Div for Freq {
 mod test {
     use super::*;
 
+    /// Test that pretty-printing a note works.
     #[test]
     fn print_a4() {
-        assert_eq!(format!("{:#?}", RawFreq::A4), "A4 +0c");
+        assert_eq!(format!("{:#}", RawFreq::A4.bend(0.4)), "A4 +40c");
+        assert_eq!(format!("{:#.2}", RawFreq::A4.bend(0.4)), "A4 +40.00c");
     }
 
+    /// Test parsing a note.
     #[test]
     fn parse_a4() {
         let a4: RawFreq = "A4".parse().unwrap();
