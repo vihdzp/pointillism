@@ -125,6 +125,11 @@ impl FracInt {
     pub fn frac_f64(self) -> f64 {
         f64::from(self.frac_int()) / POW_TWO_F64
     }
+
+    /// Rounds to the nearest integer down.
+    pub fn floor(self) -> Self {
+        Self::new_raw(self.0 & !((1 << 16) - 1))
+    }
 }
 
 /// Implements [`From`] for integer types.

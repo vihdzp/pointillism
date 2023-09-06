@@ -109,6 +109,13 @@ impl Time {
     pub fn advance(&mut self) {
         *self += Self::SAMPLE;
     }
+
+    /// Rounds to the nearest sample down.
+    /// 
+    /// This can be useful if you want to force something into a neat length.
+    pub fn floor(self)->Self{
+        Self::new(self.samples.floor())
+    }
 }
 
 impl std::fmt::Display for Time {

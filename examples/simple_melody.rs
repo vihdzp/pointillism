@@ -8,7 +8,7 @@ const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
     // A quarter note.
-    let q = Time::from_sec(0.5, SAMPLE_RATE);
+    let q = Time::from_sec(0.5, SAMPLE_RATE).floor();
     // The loop length.
     let length = 16u8 * q;
     // Release time for each note.
@@ -66,7 +66,7 @@ fn main() {
                 // Play as usual.
                 melody.next()
             } else {
-                // Stop the loop, just play the inner signal instead.
+                // Stop the loop, just play the inner fading signal instead.
                 melody.sgn_mut().next()
             }
         },
