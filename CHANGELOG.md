@@ -1,3 +1,7 @@
+## Version 0.3.6
+
+Added MIDI support via the `midly` crate.
+
 ## Version 0.3.5
 
 Added `MelodySeq` and `MelodyLoop` type aliases, which allow building and playing a melody as if in
