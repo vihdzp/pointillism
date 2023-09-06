@@ -2,29 +2,27 @@
 
 use crate::prelude::*;
 
-/// Returns the integer and fractional part of a float.
-fn int_frac(val: f64) -> (usize, f64) {
-    // No truncation should occur under normal circumstances.
-    // Moreover, `val` should always be nonnegative.
+/// Returns the integer and fractional part of a positive float.
+fn int_frac(value: f64) -> (usize, Val) {
+    // No truncation should occur under normal circumstances. Moreover, `val` should always be
+    // nonnegative.
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    (val.floor() as usize, val.fract())
+    (value.floor() as usize, Val::fract(value))
 }
 
 /// Linearly interpolates two samples `x0` and `x1`.
-///
-/// The variable `t` should range between `0` and `1`.
-pub fn linear<S: SampleLike>(x0: S, x1: S, t: f64) -> S {
+pub fn linear<S: SampleLike>(x0: S, x1: S, t: Val) -> S {
+    let t = t.inner();
     x0 * (1.0 - t) + x1 * t
 }
 
 /// Interpolates cubically between `x1` and `x2`. Makes use of the previous sample `x0` and the next
 /// sample `x3`.
 ///
-/// The variable `t` should range between `0` and `1`.
-///
 /// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
+pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
+    let t = t.inner();
     let a0 = x3 - x2 - x0 + x1;
     let a1 = x0 - x1 - a0;
     let a2 = x2 - x0;
@@ -33,13 +31,12 @@ pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
     ((a0 * t + a1) * t + a2) * t + a3
 }
 
-/// Applies Hermite interpolation between `x1` and `x2`. Makes use of the
-/// previous sample `x0` and the next sample `x3`.
-///
-/// The variable `t` should range between `0` and `1`.
+/// Applies Hermite interpolation between `x1` and `x2`. Makes use of the previous sample `x0` and
+/// the next sample `x3`.
 ///
 /// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
+pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
+    let t = t.inner();
     let diff = x1 - x2;
     let c1 = x2 - x0;
     let c3 = x3 - x0 + diff * 3.0;
@@ -68,16 +65,14 @@ pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: f64) -> S {
 /// anything larger, it might be more computationally efficient to make larger buffers. That way, we
 /// can write from the signal "in one go", instead of having to constantly read values and shift
 /// them.
-pub trait Interpolate: Map<Input = f64, Output = Self::Sample> + Sized {
+pub trait Interpolate: Map<Input = Val, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
     type Sample: Sample;
 
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
-
     /// The size of the buffer.
     const SIZE: usize;
-
     /// An empty buffer.
     const EMPTY: Self;
 
@@ -113,10 +108,10 @@ impl<S: Sample> Drop<S> {
 }
 
 impl<S: Sample> Map for Drop<S> {
-    type Input = f64;
+    type Input = Val;
     type Output = S;
 
-    fn eval(&self, _: f64) -> S {
+    fn eval(&self, _: Val) -> S {
         self.0
     }
 }
@@ -150,7 +145,6 @@ impl<S: Sample> Interpolate for Drop<S> {
 pub struct Linear<S: Sample> {
     /// The current sample.
     pub cur: S,
-
     /// The next sample.
     pub next: S,
 }
@@ -163,10 +157,10 @@ impl<S: Sample> Linear<S> {
 }
 
 impl<S: Sample> Map for Linear<S> {
-    type Input = f64;
+    type Input = Val;
     type Output = S;
 
-    fn eval(&self, t: f64) -> S {
+    fn eval(&self, t: Val) -> S {
         linear(self.cur, self.next, t)
     }
 }
@@ -239,10 +233,9 @@ fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usi
 
 /// A buffer for cubic [interpolation](Interpolate).
 ///
-/// Cubic interpolation uses the cubic
-/// [Lagrange polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous,
-/// current, next, and next next samples. This will often yield good results, along with [`Hermite`]
-/// interpolation.
+/// Cubic interpolation uses the cubic [Lagrange
+/// polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous, current, next,
+/// and next next samples. This will often yield good results, along with [`Hermite`] interpolation.
 pub struct Cubic<S: Sample>(pub [S; 4]);
 
 impl<S: Sample> Cubic<S> {
@@ -253,10 +246,10 @@ impl<S: Sample> Cubic<S> {
 }
 
 impl<S: Sample> Map for Cubic<S> {
-    type Input = f64;
+    type Input = Val;
     type Output = S;
 
-    fn eval(&self, t: f64) -> S {
+    fn eval(&self, t: Val) -> S {
         cubic(self.0[0], self.0[1], self.0[2], self.0[3], t)
     }
 }
@@ -279,10 +272,10 @@ impl<S: Sample> Interpolate for Cubic<S> {
 
 /// A buffer for (cubic) Hermite [interpolation](Interpolate).
 ///
-/// Hermite interpolation uses a
-/// [Catmull-Rom spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the
-/// cubic Hermite spline) for interpolation. This will often yield good results, along with
-/// [`Cubic`] interpolation.
+/// Hermite interpolation uses a [Catmull-Rom
+/// spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the cubic Hermite
+/// spline) for interpolation. This will often yield good results, along with [`Cubic`]
+/// interpolation.
 pub struct Hermite<S: Sample>(pub [S; 4]);
 
 impl<S: Sample> Hermite<S> {
@@ -293,10 +286,10 @@ impl<S: Sample> Hermite<S> {
 }
 
 impl<S: Sample> Map for Hermite<S> {
-    type Input = f64;
+    type Input = Val;
     type Output = S;
 
-    fn eval(&self, t: f64) -> S {
+    fn eval(&self, t: Val) -> S {
         hermite(self.0[0], self.0[1], self.0[2], self.0[3], t)
     }
 }
@@ -331,7 +324,7 @@ pub struct Stretch<S: SignalMut, I: Interpolate<Sample = S::Sample>> {
     inter: I,
 
     /// The fractional position between this sample and the next.
-    val: f64,
+    val: Val,
 }
 
 impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
@@ -345,7 +338,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
             inter: I::init(&mut sgn),
             sgn,
             factor,
-            val: 0.0,
+            val: Val::ZERO,
         }
     }
 
@@ -371,7 +364,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
     }
 
     /// The fractional position between the current and next samples.
-    pub const fn val(&self) -> f64 {
+    pub const fn val(&self) -> Val {
         self.val
     }
 }
@@ -426,7 +419,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> 
 
 impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, I> {
     fn advance(&mut self) {
-        let (count, new_val) = int_frac(self.val + self.factor);
+        let (count, new_val) = int_frac(self.val.inner() + self.factor);
         self.inter.load_many(&mut self.sgn, count);
         self.val = new_val;
     }

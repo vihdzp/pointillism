@@ -34,7 +34,7 @@ impl Mul<RawFreq> for RawTime {
     type Output = f64;
 
     fn mul(self, rhs: RawFreq) -> f64 {
-        self.seconds() * rhs.hz()
+        self.seconds * rhs.hz
     }
 }
 
@@ -66,7 +66,7 @@ impl RawTime {
     /// Converts time into frequency.
     #[must_use]
     pub fn raw_freq(self) -> RawFreq {
-        RawFreq::new(1.0 / self.seconds())
+        RawFreq::new(1.0 / self.seconds)
     }
 }
 
@@ -74,7 +74,7 @@ impl RawFreq {
     /// Converts frequency into time.
     #[must_use]
     pub fn raw_time(self) -> RawTime {
-        RawTime::new(1.0 / self.hz())
+        RawTime::new(1.0 / self.hz)
     }
 }
 
@@ -98,7 +98,7 @@ impl Mul<RawTime> for SampleRate {
     type Output = Time;
 
     fn mul(self, rhs: RawTime) -> Time {
-        Time::new(FracInt::from_f64(f64::from(self.0) * rhs.seconds()))
+        Time::new(FracInt::from_f64(f64::from(self.0) * rhs.seconds))
     }
 }
 
@@ -138,6 +138,6 @@ impl Div<SampleRate> for RawFreq {
     type Output = Freq;
 
     fn div(self, rhs: SampleRate) -> Freq {
-        Freq::new(self.hz() / f64::from(rhs))
+        Freq::new(self.hz / f64::from(rhs))
     }
 }

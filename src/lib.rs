@@ -6,6 +6,7 @@
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
+// `pointillism` is really meant to be used through its prelude.
 #![allow(clippy::module_name_repetitions)]
 
 pub mod curves;
@@ -65,9 +66,6 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     mut song: F,
 ) -> hound::Result<()> {
     let length = length.samples.int();
-
-    // The size is either 1 or 2.
-    #[allow(clippy::cast_possible_truncation)]
     let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
 
     let mut time = Time::ZERO;

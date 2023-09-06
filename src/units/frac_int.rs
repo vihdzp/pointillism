@@ -36,7 +36,8 @@ impl FracInt {
     pub const ZERO: Self = Self::new(0);
     /// The number one.
     pub const ONE: Self = Self::new(1);
-
+    /// The smallest positive number that can be stored by this type.
+    pub const EPS: Self = Self(1);
     /// The maximum number that can be stored by this type.
     pub const MAX: Self = Self::new(u64::MAX);
 
@@ -215,10 +216,12 @@ impl Div for FracInt {
 mod test {
     use super::FracInt;
 
+    /// Test displaying some [`FracInt`] values.
     #[test]
     fn display() {
         assert_eq!(format!("{}", FracInt::new(0)), "0");
         assert_eq!(format!("{}", FracInt::new(1)), "1");
         assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375");
+        assert_eq!(format!("{}", FracInt::EPS), "0.0000152587890625")
     }
 }

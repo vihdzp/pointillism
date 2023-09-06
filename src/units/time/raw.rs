@@ -15,10 +15,16 @@ const DAY_SECS: f64 = 24.0 * HR_SECS;
 /// Number of seconds in a year (365 days).
 const YR_SECS: f64 = 365.0 * DAY_SECS;
 
-/// An amount of time in **seconds**.
+/// An amount of time in **seconds**. Must be positive.
 ///
 /// Most methods will require a [`Time`](super::Time) instead, which is dependent on your sample
 /// rate. See [`Time::from_raw`](super::Time::from_raw).
+///
+/// ## Type invariant checking
+///
+/// It's impractical to constantly check that times are positive, and there's not really any simple
+/// ways to mess this up, so we don't check the invariant. That's not to say things won't go wrong
+/// if the invariant is broken!
 #[derive(
     Clone,
     Copy,
@@ -35,12 +41,12 @@ const YR_SECS: f64 = 365.0 * DAY_SECS;
     derive_more::Sum,
 )]
 pub struct RawTime {
-    /// Number of frames.
+    /// Number of seconds.
     pub seconds: f64,
 }
 
 impl RawTime {
-    /// Zero time.
+    /// No time.
     pub const ZERO: Self = Self::new(0.0);
     /// A second.
     pub const SEC: Self = Self::new(1.0);
@@ -69,16 +75,10 @@ impl RawTime {
         Self::new(MIN_SECS / bpm)
     }
 
-    /// The time in seconds.
-    #[must_use]
-    pub const fn seconds(&self) -> f64 {
-        self.seconds
-    }
-
     /// The time in milliseconds.
     #[must_use]
     pub fn milliseconds(&self) -> f64 {
-        1e3 * self.seconds()
+        1e3 * self.seconds
     }
 
     /// Converts a [`Duration`] into [`RawTime`].
@@ -90,7 +90,7 @@ impl RawTime {
     /// Converts a [`RawTime`] into a [`Duration`].
     #[must_use]
     pub fn into_duration(self) -> Duration {
-        Duration::from_secs_f64(self.seconds())
+        Duration::from_secs_f64(self.seconds)
     }
 }
 
@@ -105,7 +105,7 @@ impl std::fmt::Display for RawTime {
             );
         }
 
-        write!(f, "{}s", self.seconds())
+        write!(f, "{}s", self.seconds)
     }
 }
 

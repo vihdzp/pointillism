@@ -25,6 +25,12 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 ///
 /// Note that in order to convert between a [`RawFreq`] in hertz and this type, you must know the
 /// [`SampleRate`].
+///
+/// ## Type invariant checking
+///
+/// It's impractical to constantly check that frequencies are positive, and there's not really any
+/// simple ways to mess this up, so we don't check the invariant. That's not to say things won't go
+/// wrong if the invariant is broken!
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in inverse samples.
@@ -188,6 +194,17 @@ impl Default for Freq {
     }
 }
 
+impl std::fmt::Display for Freq {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{:.*} samples^-1",
+            f.precision().unwrap_or_default(),
+            self.samples,
+        )
+    }
+}
+
 impl Mul<f64> for Freq {
     type Output = Self;
 
@@ -284,5 +301,11 @@ mod test {
     fn parse_a4() {
         let a4: RawFreq = "A4".parse().unwrap();
         assert_approx_eq::assert_approx_eq!(a4.hz, RawFreq::A4.hz);
+    }
+
+    /// Tests [`Freq`] printing.
+    #[test]
+    fn print_freq() {
+        assert_eq!(format!("{:.6}", Freq::default()), "0.009977 samples^-1")
     }
 }

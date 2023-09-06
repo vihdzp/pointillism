@@ -28,7 +28,6 @@ use crate::{
 pub trait Map {
     /// Input type for the map.
     type Input;
-
     /// Output type for the map.
     type Output;
 
@@ -197,7 +196,6 @@ impl<X, Y: Clone> Map for Const<X, Y> {
 pub struct Comp<F: Map, G: Map<Input = F::Output>> {
     /// The inner function.
     pub inner: F,
-
     /// The outer function.
     pub outer: G,
 }

@@ -2,7 +2,7 @@
 //!
 //! ## Supported WAV formats
 //!
-//! The [`hound`] library, and pointillism by extension, support only WAV files in the following
+//! The [`hound`] library, and `pointillism` by extension, support only WAV files in the following
 //! formats:
 //!    
 //! - 8-bit integer
@@ -11,12 +11,12 @@
 //! - 32-bit integer
 //! - 32-bit float
 
-use std::{alloc, fmt::Display, io, path::Path};
+use std::path::Path;
 
 use crate::{prelude::*, sample::WavSample};
 
 /// A reader for a WAV file.
-pub type WavFileReader = hound::WavReader<io::BufReader<std::fs::File>>;
+pub type WavFileReader = hound::WavReader<std::io::BufReader<std::fs::File>>;
 
 /// A sample buffer.
 #[derive(Clone, Debug, Default)]
@@ -76,26 +76,6 @@ impl<S: Sample> Buffer<S> {
     /// Gets a mutable reference to a sample at a given index.
     pub fn get_mut(&mut self, index: usize) -> Option<&mut S> {
         self.data.get_mut(index)
-    }
-
-    /// Gets a sample at a given index, wrapping around.
-    ///
-    /// ## Panics
-    ///
-    /// This method will panic on empty buffers.
-    #[must_use]
-    pub fn get_loop(&self, index: usize) -> S {
-        self[index.rem_euclid(self.len())]
-    }
-
-    /// Gets a reference to a sample at a given index, wrapping around.
-    ///
-    /// ## Panics
-    ///
-    /// This method will panic on empty buffers.
-    pub fn get_loop_mut(&mut self, index: usize) -> &mut S {
-        let len = self.len();
-        &mut self[index.rem_euclid(len)]
     }
 
     /// Returns the sample corresponding to peak amplitude on all channels.
@@ -205,7 +185,7 @@ impl From<hound::Error> for Error {
     }
 }
 
-impl Display for Error {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             &Self::ChannelMismatch { expected_mono } => {
@@ -253,14 +233,14 @@ impl Buffer<Mono> {
             return std::ptr::null_mut();
         }
 
-        let layout = alloc::Layout::array::<Mono>(length).unwrap();
+        let layout = std::alloc::Layout::array::<Mono>(length).unwrap();
 
         // Safety: the layout is nonempty, the alignment is set explicitly.
         #[allow(clippy::cast_ptr_alignment)]
-        let ptr = unsafe { alloc::alloc(layout) }.cast::<Mono>();
+        let ptr = unsafe { std::alloc::alloc(layout) }.cast::<Mono>();
 
         if ptr.is_null() {
-            alloc::handle_alloc_error(layout)
+            std::alloc::handle_alloc_error(layout)
         } else {
             ptr
         }
@@ -327,6 +307,7 @@ impl Buffer<Mono> {
         if ptr.is_null() {
             Buffer::new()
         } else {
+            debug_assert_ne!(length, 0);
             Buffer::from_data(unsafe { Vec::from_raw_parts(ptr, length, length) })
         }
     }
@@ -396,6 +377,9 @@ impl Buffer<Stereo> {
         if ptr.is_null() {
             Buffer::new()
         } else {
+            debug_assert_eq!(length % 2, 0);
+            debug_assert_ne!(length, 0);
+
             Buffer::from_data(unsafe {
                 Vec::from_raw_parts(ptr.cast::<Stereo>(), length / 2, length / 2)
             })
@@ -419,9 +403,6 @@ impl Buffer<Stereo> {
         let length = reader.len() as usize;
         let ptr = Buffer::get_ptr(length);
 
-        // This should be guaranteed by the `WavReader::open` function itself.
-        debug_assert_eq!(length % 2, 0);
-
         // Safety: the memory area has the correct length.
         unsafe {
             Buffer::write_ptr_gen::<S>(reader, ptr)?;
@@ -444,9 +425,6 @@ impl Buffer<Stereo> {
         let reader = init_reader(path.as_ref(), false)?;
         let length = reader.len() as usize;
         let ptr = Buffer::get_ptr(length);
-
-        // This should be guaranteed by the `WavReader::open` function itself.
-        debug_assert_eq!(length % 2, 0);
 
         // Safety: the memory area has the correct length.
         unsafe {
@@ -558,13 +536,16 @@ impl<S: Sample> Signal for LoopBufGen<S> {
     type Sample = S;
 
     fn get(&self) -> S {
-        self.buffer().get_loop(self.index)
+        self.buffer()[self.index]
     }
 }
 
 impl<S: Sample> SignalMut for LoopBufGen<S> {
     fn advance(&mut self) {
         self.index += 1;
+        if self.index == self.buffer().len() {
+            self.index = 0;
+        }
     }
 
     fn retrigger(&mut self) {

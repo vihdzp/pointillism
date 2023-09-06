@@ -17,13 +17,17 @@ pub mod poly;
 pub mod sequence;
 pub mod unison;
 
-/// A value between `0.0` and `1.0` showing how far along a curve we are.
+/// A floating point value, guaranteed to be between `0.0` and `1.0`.
 ///
-/// The methods of this type abstract away some basic logic used in other structs such as
-/// [`LoopCurveGen`] and [`OnceCurveGen`].
+/// This has two main uses throughout the code:
 ///
-/// This is also the input type for a map. This gives us a guarantee that the values are in this
-/// specific range.
+/// - It's used as the input type for the maps that define [curves](crate::curves).
+/// - It's used as the input type for [`Interpolation`](crate::prelude::Interpolate) maps.
+///
+/// ## Type invariant checking
+///
+/// Since this is a type in which a lot of arithmetic is expected, we only check the invariant in
+/// debug mode. You should make sure that the range is valid regardless!
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
 pub struct Val(f64);
 
@@ -35,54 +39,40 @@ impl Val {
 
     /// Initializes a [`Val`].
     ///
-    /// The inner value must be between `0.0` and `1.0`.
-    ///
     /// ## Panics
     ///
-    /// Panics if the passed value isn't between `0.0` and `1.0`.
+    /// In debug mode, panics if the passed value isn't between `0.0` and `1.0`.
     #[must_use]
-    pub fn new(val: f64) -> Self {
-        assert!((0.0..=1.0).contains(&val));
-        Self(val)
-    }
-
-    /// Initializes a [`Val`] without checking the range conditions.
-    ///
-    /// ## Safety
-    ///
-    /// This method is safe. However, it may lead to panicking and other unexpected behavior.
-    #[must_use]
-    pub const fn new_unchecked(val: f64) -> Self {
-        Self(val)
+    pub fn new(value: f64) -> Self {
+        debug_assert!((0.0..=1.0).contains(&value));
+        Self(value)
     }
 
     /// Returns the inner value.
     #[must_use]
-    pub const fn val(&self) -> f64 {
+    pub const fn inner(&self) -> f64 {
         self.0
     }
 
-    /// Resets the value to `0.0`.
-    pub fn retrigger(&mut self) {
-        self.0 = 0.0;
-    }
-
-    /// Whether the value is equal to `1.0`.
-    #[must_use]
-    pub fn is_done(&self) -> bool {
-        // We avoid clippy complaints by using `>=`.
-        self.0 >= 1.0
-    }
-
-    /// Sets the value to `1.0`.
-    pub fn stop(&mut self) {
-        self.0 = 1.0;
+    /// Converts a positive value into a [`Val`] by taking its fractional part.
+    ///
+    /// ## Panics
+    ///
+    /// Panics in debug mode if the `value` isn't positive (including `+0.0`).
+    pub fn fract(value: f64) -> Self {
+        debug_assert!(value.is_sign_positive());
+        Self(value.fract())
     }
 
     /// Advances the inner value in order to play a wave with the specified frequency.
     pub fn advance_freq(&mut self, freq: Freq) {
-        self.0 += freq.samples();
-        self.0 %= 1.0;
+        *self = Self::fract(self.inner() + freq.samples());
+    }
+}
+
+impl From<Val> for f64 {
+    fn from(value: Val) -> Self {
+        value.inner()
     }
 }
 
@@ -130,7 +120,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Map for CurvePlayer<S, C> {
     }
 }
 
-/// Plays a sample curve for a specifi.
+/// Plays a sample curve for a specified [`Time`].
 ///
 /// Initialize with [`Self::new_curve`].
 ///
@@ -229,7 +219,7 @@ where
     C::Output: Sample,
 {
     fn is_done(&self) -> bool {
-        self.val().is_done()
+        self.elapsed == self.time
     }
 }
 
@@ -367,7 +357,7 @@ where
     }
 
     fn retrigger(&mut self) {
-        self.val.retrigger();
+        self.val = Val::ZERO;
     }
 }
 

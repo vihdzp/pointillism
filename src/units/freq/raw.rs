@@ -12,12 +12,18 @@ use std::{
     str::FromStr,
 };
 
-/// Represents a frequency in **hertz**.
+/// Represents a frequency in **hertz**. Must be positive.
 ///
 /// Most methods will require a [`Freq`] instead, which is dependent on your sample rate. See
 /// [`Freq::from_raw`].
 ///
 /// Not to be confused with [`Frequency`](crate::signal::Frequency).
+///
+/// ## Type invariant checking
+///
+/// It's impractical to constantly check that frequencies are positive, and there's not really any
+/// simple ways to mess this up, so we don't check the invariant. That's not to say things won't go
+/// wrong if the invariant is broken!
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct RawFreq {
     /// The frequency in hertz.
@@ -48,7 +54,7 @@ impl Display for RawFreq {
             // Precision defaults to 0.
             write!(f, "{note} {cents:+.*}c", f.precision().unwrap_or_default())
         } else {
-            write!(f, "{} Hz", self.hz())
+            write!(f, "{} Hz", self.hz)
         }
     }
 }
@@ -62,16 +68,10 @@ impl RawFreq {
         Self { hz }
     }
 
-    /// The frequency in hertz.
-    #[must_use]
-    pub const fn hz(&self) -> f64 {
-        self.hz
-    }
-
     /// The period, which equals the reciprocal of the frequency.
     #[must_use]
     pub fn period(&self) -> RawTime {
-        RawTime::new(1.0 / self.hz())
+        RawTime::new(1.0 / self.hz)
     }
 
     /// Bends a note by a number of notes in a given `edo`.
@@ -128,7 +128,7 @@ impl RawFreq {
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
     fn round_midi_aux(self, a4: Self) -> f64 {
-        (self.hz() / a4.hz()).log2() * 12.0 + A4_MIDI
+        (self.hz / a4.hz).log2() * 12.0 + A4_MIDI
     }
 
     /// Rounds this frequency to the nearest MIDI note.

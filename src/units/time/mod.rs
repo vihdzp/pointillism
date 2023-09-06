@@ -94,7 +94,12 @@ impl Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{} samples", self.samples)
+        write!(
+            f,
+            "{:.*} samples",
+            f.precision().unwrap_or_default(),
+            self.samples
+        )
     }
 }
 
@@ -192,9 +197,9 @@ impl Timer {
 mod test {
     use super::*;
 
-    /// Test time printing.
+    /// Test [`RawTime`] printing.
     #[test]
-    fn print_yr() {
+    fn print_raw() {
         assert_eq!(format!("{}", RawTime::YR), "31536000s");
 
         let pretty = format!("{:#}", RawTime::YR);
@@ -203,5 +208,14 @@ mod test {
         } else {
             assert_eq!(pretty, "31536000s")
         }
+    }
+
+    /// Test [`Time`] printing.
+    #[test]
+    fn print_time() {
+        assert_eq!(
+            format!("{:.2}", Time::from_sec_default(1.0)),
+            "44100.00 samples"
+        );
     }
 }

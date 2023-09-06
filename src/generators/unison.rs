@@ -6,28 +6,6 @@ use rand::{thread_rng, Rng};
 
 use crate::prelude::*;
 
-/// A bundled [`Val`] for a curve, and an [`Interval`].
-///
-/// These two are needed in order to play curves in unison. By bundling data like this, we save on
-/// allocations. More importantly, we guarantee that there aren't mismatches between the number of
-/// these values.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct ValInter {
-    /// How far along some curve we are.
-    pub val: Val,
-
-    /// An interval.
-    pub interval: Interval,
-}
-
-impl ValInter {
-    /// Initializes a new [`ValInter`].
-    #[must_use]
-    pub const fn new(val: Val, interval: Interval) -> Self {
-        Self { val, interval }
-    }
-}
-
 /// An iterator that returns the detuning intervals for a given detune amount.
 pub struct DetuneIter {
     /// The interval between two successive outputs.
@@ -106,7 +84,11 @@ where
     base: Freq,
 
     /// The values and intervals from the base frequency for each curve.
-    val_inters: Vec<ValInter>,
+    ///
+    /// These two are needed in order to play curves in unison. By bundling data like this, we save
+    /// on allocations. More importantly, we guarantee that there aren't mismatches between the
+    /// number of these values.
+    val_inters: Vec<(Val, Interval)>,
 }
 
 impl<C: Map<Input = Val>> UnisonCurve<C>
@@ -117,7 +99,7 @@ where
     ///
     /// This will play multiple copies of a curve at the specified frequency multipliers, with the
     /// given initial phases.
-    pub const fn new_curve_phases(map: C, base: Freq, val_inters: Vec<ValInter>) -> Self {
+    pub const fn new_curve_phases(map: C, base: Freq, val_inters: Vec<(Val, Interval)>) -> Self {
         Self {
             map,
             base,
@@ -133,10 +115,7 @@ where
         Self {
             map,
             base,
-            val_inters: intervals
-                .into_iter()
-                .map(|x| ValInter::new(Val::ZERO, x))
-                .collect(),
+            val_inters: intervals.into_iter().map(|x| (Val::ZERO, x)).collect(),
         }
     }
 
@@ -171,27 +150,27 @@ where
 
     /// Returns an iterator over the intervals for the different curves.
     pub fn intervals(&self) -> impl Iterator<Item = Interval> + '_ {
-        self.val_inters.iter().map(|vf| vf.interval)
+        self.val_inters.iter().map(|&(_, interval)| interval)
     }
 
     /// Returns an iterator over the mutable references to the intervals for the different curves.
     pub fn intervals_mut(&mut self) -> impl Iterator<Item = &mut Interval> {
-        self.val_inters.iter_mut().map(|vf| &mut vf.interval)
+        self.val_inters.iter_mut().map(|(_, interval)| interval)
     }
 
     /// Returns an iterator over the values for the different curves.
     pub fn val(&self) -> impl Iterator<Item = Val> + '_ {
-        self.val_inters.iter().map(|vf| vf.val)
+        self.val_inters.iter().map(|&(val, _)| val)
     }
 
     /// Returns an iterator over the mutable references to the values for the different curves.
     pub fn val_mut(&mut self) -> impl Iterator<Item = &mut Val> {
-        self.val_inters.iter_mut().map(|vf| &mut vf.val)
+        self.val_inters.iter_mut().map(|(val, _)| val)
     }
 
     /// Returns the current output from a given curve.
     pub fn get_at(&self, index: u8) -> C::Output {
-        self.map().eval(self.val_inters[index as usize].val)
+        self.map().eval(self.val_inters[index as usize].0)
     }
 
     /// Randomizes the phases.
@@ -213,7 +192,7 @@ where
     fn get(&self) -> C::Output {
         self.val_inters
             .iter()
-            .map(|vf| self.map().eval(vf.val))
+            .map(|&(val, _)| self.map().eval(val))
             .sum()
     }
 }
@@ -223,14 +202,14 @@ where
     C::Output: Sample,
 {
     fn advance(&mut self) {
-        for vf in &mut self.val_inters {
-            vf.val.advance_freq(self.base * vf.interval);
+        for (val, interval) in &mut self.val_inters {
+            val.advance_freq(*interval * self.base);
         }
     }
 
     fn retrigger(&mut self) {
         for vf in &mut self.val_inters {
-            vf.val.retrigger();
+            vf.0 = Val::ZERO;
         }
     }
 }
@@ -269,9 +248,9 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     pub fn new_phases<I: IntoIterator<Item = f64>>(
         map: C,
         base: Freq,
-        val_freqs: Vec<ValInter>,
+        val_inters: Vec<(Val, Interval)>,
     ) -> Self {
-        Self::new_curve_phases(CurvePlayer::new(map), base, val_freqs)
+        Self::new_curve_phases(CurvePlayer::new(map), base, val_inters)
     }
 
     /// Initializes a new [`Unison`].

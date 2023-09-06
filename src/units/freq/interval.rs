@@ -1,9 +1,14 @@
 //! Implements the [`Interval`] type.
 
 /// Represents an interval, or a ratio between notes.
+/// 
+/// This is functionally identical to a single `f64`, but it implements some helper methods and
+/// constants tailored for musical intervals.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Interval {
     /// The ratio in question.
+    ///
+    /// This should be positive!
     pub ratio: f64,
 }
 

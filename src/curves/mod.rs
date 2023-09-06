@@ -1,26 +1,27 @@
 //! Declares basic curves that may be to generate audio via [`OnceGen`](crate::prelude::OnceGen) or
 //! [`LoopGen`](crate::prelude::LoopGen).
 //!
-//! For convenience, we provide four variants of a saw wave: [`Saw`], [`InvSaw`], [`PosSaw`],
-//! [`PosInvSaw`]. These vary on whether they take values from `-1.0` to `1.0` or from `0.0` to
-//! `1.0`, and whether they go from left to right or right to left.
+//! All of the provided curves, by default, take values from `-1.0` to `1.0`. They can be rescaled
+//! via the [`Comp::pos`], [`Comp::sgn`], and [`Comp::neg`] methods.
 //!
-//! All other of the provided curves, by default, take values from `-1.0` to `1.0`. They can be
-//! rescaled via the [`Comp::pos`], [`Comp::sgn`], and [`Comp::neg`] methods.
+//! The exception to this rule are saw waves. Due to their prevalence, we provide four variants:
+//! [`Saw`], [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take values from
+//! `-1.0` to `1.0` or from `0.0` to `1.0`, and whether they go from left to right or right to left.
 //!
 //! ## Terminology
 //!
 //! We distinguish between two kinds of curves. The most basic curves like [`Sin`], [`SawTri`],
-//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing
-//! [`Map<Input = f64, Output = f64>`](Map).
+//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing [`Map`]
+//! where the input is [`Val`] both the input and output are `f64`.
 //!
-//! On the other hand, **sample curves**, are types implementing [`Map<Input = f64>`](Map)` where
-//! Output: Sample`. One can create a sample curve from a plain curve by using
-//! [`CurvePlayer`](crate::prelude::CurvePlayer).
+//! On the other hand, **sample curves**, are types implementing [`Map`] where the input is [`Val`]
+//! and the output is a [`Sample`](crate::prelude::Sample). One can create a sample curve from a
+//! plain curve by using [`CurvePlayer`](crate::prelude::CurvePlayer).
+
+pub mod interpolate;
 
 #[cfg(feature = "hound")]
 pub mod buffer;
-pub mod interpolate;
 
 use crate::{
     map::{Comp, Map},
@@ -160,7 +161,7 @@ impl Map for Saw {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        crate::sgn(x.val())
+        crate::sgn(x.inner())
     }
 }
 
@@ -181,7 +182,7 @@ impl Map for InvSaw {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        -crate::sgn(x.val())
+        -crate::sgn(x.inner())
     }
 }
 
@@ -202,7 +203,7 @@ impl Map for PosSaw {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        x.val()
+        x.inner()
     }
 }
 
@@ -223,7 +224,7 @@ impl Map for PosInvSaw {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        1.0 - x.val()
+        1.0 - x.inner()
     }
 }
 
@@ -238,7 +239,7 @@ impl Map for Sin {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        (x.val() * std::f64::consts::TAU).sin()
+        (x.inner() * std::f64::consts::TAU).sin()
     }
 }
 
@@ -261,7 +262,7 @@ impl Map for Cos {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        (x.val() * std::f64::consts::TAU).cos()
+        (x.inner() * std::f64::consts::TAU).cos()
     }
 }
 
@@ -294,7 +295,7 @@ impl Map for Sq {
     type Output = f64;
 
     fn eval(&self, x: Self::Input) -> Self::Output {
-        pulse(x.val(), 0.5)
+        pulse(x.inner(), 0.5)
     }
 }
 
@@ -334,7 +335,7 @@ impl Map for Pulse {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        pulse(x.val(), self.shape)
+        pulse(x.inner(), self.shape)
     }
 }
 
@@ -349,12 +350,12 @@ pub fn saw_tri(x: f64, shape: f64) -> f64 {
         if shape.abs() < EPS {
             1.0
         } else {
-            interpolate::linear(-1.0, 1.0, x / shape)
+            interpolate::linear(-1.0, 1.0, Val::new(x / shape))
         }
     } else if (1.0 - shape).abs() < EPS {
         1.0
     } else {
-        interpolate::linear(-1.0, 1.0, (1.0 - x) / (1.0 - shape))
+        interpolate::linear(-1.0, 1.0, Val::new((1.0 - x) / (1.0 - shape)))
     }
 }
 
@@ -377,7 +378,7 @@ impl Map for Tri {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        saw_tri(x.val(), 0.5)
+        saw_tri(x.inner(), 0.5)
     }
 }
 
@@ -442,6 +443,6 @@ impl Map for SawTri {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        saw_tri(x.val(), self.shape)
+        saw_tri(x.inner(), self.shape)
     }
 }
