@@ -283,6 +283,7 @@ pub trait Audio: Sample {
     /// ## Errors
     ///
     /// This should only return an error in case of an IO error.
+    #[cfg(feature = "hound")]
     fn write<W: std::io::Write + std::io::Seek>(
         &self,
         writer: &mut hound::WavWriter<W>,
@@ -539,7 +540,17 @@ impl_all!(Mono, Stereo, Env);
 /// A numeric type that can store a raw sample from a WAV file.
 ///
 /// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f32`.
+#[cfg(feature = "hound")]
 pub trait WavSample: hound::Sample {
+    /// Re-scales and converts the sample into `Mono`.
+    fn into_mono(self) -> Mono;
+}
+
+/// A numeric type that can store a raw sample from a WAV file.
+///
+/// The list of types that implement this trait is: `i8`, `i16`, `i32`, `f32`.
+#[cfg(not(feature = "hound"))]
+pub trait WavSample {
     /// Re-scales and converts the sample into `Mono`.
     fn into_mono(self) -> Mono;
 }

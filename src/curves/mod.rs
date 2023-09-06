@@ -18,6 +18,7 @@
 //! Output: Sample`. One can create a sample curve from a plain curve by using
 //! [`CurvePlayer`](crate::prelude::CurvePlayer).
 
+#[cfg(feature = "hound")]
 pub mod buffer;
 pub mod interpolate;
 

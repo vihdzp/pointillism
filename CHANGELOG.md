@@ -1,3 +1,7 @@
+## Version 0.3.4
+
+Added `cpal` support, behind the `cpal` feature. Also turned `hound` support into a feature.
+
 ## Version 0.3.3
 
 The types `Time` and `Freq` have been refactored.

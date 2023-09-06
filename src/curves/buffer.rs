@@ -13,12 +13,10 @@
 
 use std::{alloc, fmt::Display, io, path::Path};
 
-use hound::{SampleFormat, WavReader};
-
 use crate::{prelude::*, sample::WavSample};
 
 /// A reader for a WAV file.
-pub type WavFileReader = WavReader<io::BufReader<std::fs::File>>;
+pub type WavFileReader = hound::WavReader<io::BufReader<std::fs::File>>;
 
 /// A sample buffer.
 #[derive(Clone, Debug, Default)]
@@ -232,7 +230,7 @@ impl std::error::Error for Error {}
 ///
 /// Will error in case of an IO error, or if there is a mismatch in the number of channels.
 fn init_reader(path: &Path, expected_mono: bool) -> Result<WavFileReader, Error> {
-    let reader = WavReader::open(path)?;
+    let reader = hound::WavReader::open(path)?;
     if (reader.spec().channels == 1) != expected_mono {
         return Err(Error::ChannelMismatch { expected_mono });
     }
@@ -308,8 +306,8 @@ impl Buffer<Mono> {
     /// docs](self) for a list.
     unsafe fn write_ptr(reader: WavFileReader, ptr: *mut Mono) -> hound::Result<()> {
         match reader.spec().sample_format {
-            SampleFormat::Float => Self::write_ptr_gen::<f32>(reader, ptr),
-            SampleFormat::Int => match reader.spec().bits_per_sample {
+            hound::SampleFormat::Float => Self::write_ptr_gen::<f32>(reader, ptr),
+            hound::SampleFormat::Int => match reader.spec().bits_per_sample {
                 8 => Self::write_ptr_gen::<i8>(reader, ptr),
                 16 => Self::write_ptr_gen::<i16>(reader, ptr),
                 24 | 32 => Self::write_ptr_gen::<i32>(reader, ptr),

@@ -4,11 +4,17 @@ use cpal::{traits::DeviceTrait, StreamConfig};
 
 use crate::prelude::*;
 
-/// A type alias for [`cpal`] errors.
-type CpalError = Result<<cpal::Device as DeviceTrait>::Stream, cpal::BuildStreamError>;
+/// A type alias for the return type of these functions.
+pub type CpalResult = Result<<cpal::Device as DeviceTrait>::Stream, cpal::BuildStreamError>;
 
 impl From<SampleRate> for cpal::SampleRate {
     fn from(value: SampleRate) -> Self {
+        Self(value.0)
+    }
+}
+
+impl From<cpal::SampleRate> for SampleRate {
+    fn from(value: cpal::SampleRate) -> Self {
         Self(value.0)
     }
 }
@@ -23,12 +29,12 @@ pub fn build_output_stream<
     E: FnMut(cpal::StreamError) + Send + 'static,
 >(
     device: &cpal::Device,
+    timeout: Option<std::time::Duration>,
     sample_rate: SampleRate,
     buffer_size: cpal::BufferSize,
     error_callback: E,
-    timeout: Option<std::time::Duration>,
     mut song: F,
-) -> CpalError {
+) -> CpalResult {
     let channels = A::size_u8();
     let mut time = Time::ZERO;
 
@@ -68,21 +74,21 @@ pub fn build_output_stream_from_sgn<
     E: FnMut(cpal::StreamError) + Send + 'static,
 >(
     device: &cpal::Device,
+    timeout: Option<std::time::Duration>,
     sample_rate: SampleRate,
     buffer_size: cpal::BufferSize,
     error_callback: E,
-    timeout: Option<std::time::Duration>,
     mut sgn: S,
-) -> CpalError
+) -> CpalResult
 where
     S::Sample: Audio,
 {
     build_output_stream(
         device,
+        timeout,
         sample_rate,
         buffer_size,
         error_callback,
-        timeout,
         move |_| sgn.next(),
     )
 }

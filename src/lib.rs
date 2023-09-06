@@ -22,19 +22,8 @@ pub mod units;
 #[cfg(feature = "cpal")]
 pub mod cpal;
 
+#[cfg(feature = "hound")]
 use prelude::*;
-
-use hound::{Result, SampleFormat, WavSpec, WavWriter};
-
-/// The specification for the output file.
-const fn spec(channels: u8, sample_rate: SampleRate) -> WavSpec {
-    WavSpec {
-        channels: channels as u16,
-        sample_rate: sample_rate.0,
-        bits_per_sample: 32,
-        sample_format: SampleFormat::Float,
-    }
-}
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[must_use]
@@ -48,6 +37,17 @@ pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
 
+/// The specification for the output file.
+#[cfg(feature = "hound")]
+const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
+    hound::WavSpec {
+        channels: channels as u16,
+        sample_rate: sample_rate.0,
+        bits_per_sample: 32,
+        sample_format: hound::SampleFormat::Float,
+    }
+}
+
 /// Creates a song with a given duration, writing down each sample as it comes. The duration of the
 /// file is exact to the sample.
 ///
@@ -59,17 +59,18 @@ pub fn sgn(x: f64) -> f64 {
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
+#[cfg(feature = "hound")]
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
     sample_rate: SampleRate,
     mut song: F,
-) -> Result<()> {
+) -> hound::Result<()> {
     let length = length.samples.int();
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]
-    let mut writer = WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
+    let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
 
     let mut time = Time::ZERO;
     for _ in 0..length {
@@ -88,12 +89,13 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
+#[cfg(feature = "hound")]
 pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
     filename: P,
     length: Time,
     sample_rate: SampleRate,
     mut sgn: S,
-) -> Result<()>
+) -> hound::Result<()>
 where
     S::Sample: Audio,
 {

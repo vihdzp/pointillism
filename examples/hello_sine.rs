@@ -1,4 +1,4 @@
-//! We play a single sine wave.
+//! The most basic example: we play a single sine wave.
 
 use pointillism::prelude::*;
 
@@ -15,5 +15,5 @@ fn main() {
     let sgn = LoopGen::<Mono, _>::new(Sin, freq);
 
     // Export to file.
-    pointillism::create_from_sgn("examples/hello_sine.wav", length, SampleRate::CD, sgn).unwrap();
+    pointillism::create_from_sgn("examples/hello_sine.wav", length, SAMPLE_RATE, sgn).unwrap();
 }

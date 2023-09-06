@@ -79,17 +79,15 @@ impl RawTime {
     pub fn milliseconds(&self) -> f64 {
         1e3 * self.seconds()
     }
-}
 
-impl From<std::time::Duration> for RawTime {
-    fn from(value: std::time::Duration) -> Self {
-        Self::new(value.as_secs_f64())
+    /// Converts a [`Duration`] into [`RawTime`].
+    pub fn from_duration(duration: Duration) -> Self {
+        Self::new(duration.as_secs_f64())
     }
-}
 
-impl From<RawTime> for Duration {
-    fn from(value: RawTime) -> Self {
-        Self::from_secs_f64(value.seconds())
+    /// Converts a [`RawTime`] into a [`Duration`].
+    pub fn into_duration(self) -> Duration {
+        Duration::from_secs_f64(self.seconds())
     }
 }
 
@@ -97,7 +95,11 @@ impl std::fmt::Debug for RawTime {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         #[cfg(feature = "human-duration")]
         if f.alternate() {
-            return write!(f, "{}", human_duration::human_duration(&(*self).into()));
+            return write!(
+                f,
+                "{}",
+                human_duration::human_duration(&(*self).into_duration())
+            );
         }
 
         f.debug_struct("RawTime")

@@ -5,6 +5,9 @@
 /// Various common sample rates are defined as constants. We've set [`SampleRate::CD`] as the type
 /// default, but we recognize that other standards exist, and have thus abstained from making many
 /// helper methods using this assumption.
+///
+/// This type is identical to the `cpal::SampleRate` type. If you're using the `cpal` feature, you
+/// can convert each of these to the other using `.into()`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SampleRate(pub u32);
 

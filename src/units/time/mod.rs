@@ -11,7 +11,9 @@ use super::{FracInt, SampleRate};
 
 /// A time, measured in **samples**.
 ///
-/// Since we use a backing [`FracInt`], multiplication and division by an integer is allowed.
+/// This is stored as our custom type [`FracInt`] and not as a float, as this allows us to entirely
+/// get rid of cumulative error when incrementing a time by a sample. In particular, [`Time`] can be
+/// multiplied or divided by an unsigned integer.
 ///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
 /// [`SampleRate`].
@@ -31,9 +33,6 @@ use super::{FracInt, SampleRate};
 )]
 pub struct Time {
     /// The number of samples.
-    ///
-    /// This is stored as our custom type [`FracInt`] and not as a float, as this allows us to
-    /// entirely get rid of cumulative error when incrementing a time by a sample.
     pub samples: FracInt,
 }
 

@@ -42,9 +42,11 @@ The project uses the following features:
 
 | Feature | Enables |
 |-|-|
-| `human-duration` | Pretty-printing for the `RawTime` type. |
+| `hound`* | An integration with [`hound`](https://docs.rs/hound/latest/hound/). Allows you to save songs as WAV files. |
+| `human-duration`* | Pretty-printing for the [`RawTime`] type. |
+| `cpal` | An integration with [`cpal`](https://docs.rs/cpal/latest/cpal/). Allows you to play songs in a dedicated thread. |
 
-(todo: `cpal` integration)
+* Features marked with an asterisk are enabled by default.
 
 ## Versions
 
