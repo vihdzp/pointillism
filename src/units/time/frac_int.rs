@@ -127,6 +127,7 @@ impl FracInt {
     }
 
     /// Rounds to the nearest integer down.
+    #[must_use]
     pub fn floor(self) -> Self {
         Self::new_raw(self.0 & !((1 << 16) - 1))
     }

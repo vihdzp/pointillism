@@ -111,9 +111,10 @@ impl Time {
     }
 
     /// Rounds to the nearest sample down.
-    /// 
+    ///
     /// This can be useful if you want to force something into a neat length.
-    pub fn floor(self)->Self{
+    #[must_use]
+    pub fn floor(self) -> Self {
         Self::new(self.samples.floor())
     }
 }
