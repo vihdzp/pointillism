@@ -1,3 +1,5 @@
+//! Loads and plays a MIDI file.
+
 #[cfg(feature = "midly")]
 fn main() {
     use pointillism::prelude::*;
@@ -15,19 +17,19 @@ fn main() {
         AdsrEnvelope::new_adsr(
             LoopGen::<Stereo, _>::new(Tri, Freq::from_raw_default(raw)),
             Time::from_sec_default(0.05),
-            Time::from_sec_default(3.0),
+            Time::from_sec_default(2.5),
             Vol::ZERO,
-            Time::from_sec_default(0.5),
+            Time::from_sec_default(0.3),
         )
     };
 
     // https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1778
     let smf = midly::parse(include_bytes!("clair_de_lune.mid")).unwrap();
     let melody =
-        MelodySeq::from_midi(smf.1, tick_time, FnWrapper::new(func), |x| x as u16).unwrap();
+        MelodySeq::from_midi(smf.1, tick_time, FnWrapper::new(func), |idx| idx as u8).unwrap();
 
     pointillism::create_from_sgn(
-        "output/test.wav",
+        "output/clair_de_lune.wav",
         length * tick_time,
         SampleRate::default(),
         Volume::new(melody, Vol::new(0.2)),

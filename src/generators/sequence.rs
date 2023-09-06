@@ -751,6 +751,15 @@ fn midi_times_events<'a, K: Eq + Hash + Clone, G: FnMut(usize) -> K>(
             let event = event?;
             since_last += event.delta.as_int();
 
+            // Stops the specified key.
+            let mut stop = |key: u7| {
+                events.push(NoteEvent::Stop {
+                    key: idx_cast(latest[key.as_int() as usize]),
+                });
+                times.push(since_last * tick_time);
+                since_last = 0;
+            };
+
             // We only read MIDI events.
             if let midly::TrackEventKind::Midi {
                 channel: _,
@@ -760,19 +769,17 @@ fn midi_times_events<'a, K: Eq + Hash + Clone, G: FnMut(usize) -> K>(
                 match message {
                     // Note on event.
                     midly::MidiMessage::NoteOn { key, vel } => {
-                        let old_key = idx_cast(latest[key.as_int() as usize]);
-                        let new_key = idx_cast(idx);
+                        stop(key);
 
                         // A note-on with velocity 0 turns the note off.
-                        if vel == u7::new(0) {
-                            // Stops previous note.
-                            events.push(NoteEvent::Stop { key: old_key });
-                        } else {
+                        if vel != u7::new(0) {
                             // Add new note.
                             events.push(NoteEvent::Add {
-                                key: new_key,
+                                key: idx_cast(idx),
                                 data: MidiNoteData::new(track, key, vel),
                             });
+                            times.push(Time::ZERO);
+
                             latest[key.as_int() as usize] = idx;
                             idx += 1;
                         }
@@ -780,18 +787,12 @@ fn midi_times_events<'a, K: Eq + Hash + Clone, G: FnMut(usize) -> K>(
 
                     // Note off event.
                     midly::MidiMessage::NoteOff { key, vel: _ } => {
-                        let old_key = idx_cast(latest[key.as_int() as usize]);
-                        events.push(NoteEvent::Stop { key: old_key })
+                        stop(key);
                     }
 
                     // Ignore anything else.
-                    _ => {
-                        continue;
-                    }
+                    _ => {}
                 }
-
-                times.push(since_last * tick_time);
-                since_last = 0;
             }
         }
     }
