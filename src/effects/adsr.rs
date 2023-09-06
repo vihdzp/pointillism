@@ -62,8 +62,8 @@ pub struct Adsr {
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub const fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
-        Self {
+    pub fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+        let mut adsr = Self {
             attack,
             decay,
             sustain,
@@ -73,7 +73,11 @@ impl Adsr {
 
             // Is properly initialized in `stop`.
             sustain_val: Vol::ZERO,
-        }
+        };
+
+        // Skip any stages with zero time.
+        adsr.set_stage();
+        adsr
     }
 
     /// Current stage of the envelope.
@@ -81,12 +85,33 @@ impl Adsr {
     pub fn stage(&self) -> Stage {
         self.stage
     }
+
+    /// Sets our stage to the correct one, based on the elapsed time.
+    ///
+    /// This should work even if some phases take zero time.
+    fn set_stage(&mut self) {
+        if self.stage == Stage::Attack && self.phase_time >= self.attack {
+            self.stage = Stage::Decay;
+            self.phase_time -= self.attack;
+        }
+
+        if self.stage == Stage::Decay && self.phase_time >= self.decay {
+            self.stage = Stage::Sustain;
+            self.phase_time -= self.decay;
+        }
+
+        if self.stage == Stage::Release && self.phase_time >= self.release {
+            self.stage = Stage::Done;
+        }
+    }
 }
 
 impl Signal for Adsr {
     type Sample = Env;
 
     fn get(&self) -> Env {
+        // Division by zero should not be possible, as phases with length zero are immediately
+        // skipped.
         Env(match self.stage() {
             Stage::Attack => self.phase_time / self.attack,
             Stage::Decay => 1.0 + (self.sustain.gain - 1.0) * (self.phase_time / self.decay),
@@ -100,30 +125,7 @@ impl Signal for Adsr {
 impl SignalMut for Adsr {
     fn advance(&mut self) {
         self.phase_time.advance();
-
-        match self.stage() {
-            Stage::Attack => {
-                if self.phase_time > self.attack {
-                    self.stage = Stage::Decay;
-                    self.phase_time -= self.attack;
-                }
-            }
-
-            Stage::Decay => {
-                if self.phase_time > self.decay {
-                    self.stage = Stage::Sustain;
-                    self.phase_time -= self.decay;
-                }
-            }
-
-            Stage::Release => {
-                if self.phase_time > self.release {
-                    self.stage = Stage::Done;
-                }
-            }
-
-            Stage::Sustain | Stage::Done => {}
-        }
+        self.set_stage();
     }
 
     fn retrigger(&mut self) {

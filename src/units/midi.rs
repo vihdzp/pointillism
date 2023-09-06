@@ -32,6 +32,13 @@ impl Default for MidiNote {
     }
 }
 
+#[cfg(feature = "midly")]
+impl From<midly::num::u7> for MidiNote {
+    fn from(value: midly::num::u7) -> Self {
+        Self::new(i16::from(value.as_int()))
+    }
+}
+
 /// Converts a letter to a numeric note, from 0 to 11.
 ///
 /// Returns `None` if anything other than a letter `A` - `G` is passed.

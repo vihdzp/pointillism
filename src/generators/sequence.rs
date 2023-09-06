@@ -15,6 +15,9 @@
 //! by changing its frequency in periodic intervals. [`MelodySeq`] and [`MelodyLoop`] both
 //! functionally serve as piano rolls for a polyphonic signal.
 
+#[cfg(feature = "midly")]
+use midly::num::u7;
+
 use crate::prelude::*;
 use std::hash::Hash;
 
@@ -450,6 +453,27 @@ impl<D: Clone> Note<D> {
     }
 }
 
+/// The data pertaining to a MIDI note.
+#[derive(Clone, Copy, Debug)]
+#[cfg(feature = "midly")]
+pub struct MidiNoteData {
+    /// The track number this note comes from.
+    pub track: u16,
+
+    /// The MIDI note being played.
+    pub key: u7,
+    /// The velocity of the note.
+    pub vel: u7,
+}
+
+#[cfg(feature = "midly")]
+impl MidiNoteData {
+    /// Initializes a new [`MidiNoteData`].
+    pub const fn new(track: u16, key: u7, vel: u7) -> Self {
+        Self { track, key, vel }
+    }
+}
+
 /// A "note reader" function that reads through different note events in order.
 ///
 /// This is used to implement [`MelodySeq`] and [`MelodyLoop`].
@@ -483,6 +507,9 @@ where
     /// every `Add` event should go before the corresponding `Stop` event. In a loop, it's ok to
     /// have them backwards, if you have a note that starts in one iteration and ends in the next.
     ///
+    /// You should try not to reuse indexes. If you add a note with a certain index while another is
+    /// already playing, it will immediately overwrite it, resulting in clicking.
+    ///
     /// Moreover, if you're going to use this in a loop, the list of notes should be nonempty.
     #[must_use]
     pub const fn new(events: Vec<NoteEvent<K, D>>, func: F) -> Self {
@@ -499,13 +526,13 @@ where
         &self.events[self.index]
     }
 
-    /// The length of the arpeggio.
+    /// The length of the note reader.
     #[must_use]
     pub fn len(&self) -> usize {
         self.events.len()
     }
 
-    /// Whether the arpeggio has no notes.
+    /// Whether the note reader has no notes.
     ///
     /// Note that this will generally result in other methods panicking, and thus should be avoided.
     #[must_use]
@@ -695,5 +722,141 @@ where
         events.push(NoteEvent::Skip);
 
         Self::new_melody(times, events, func)
+    }
+}
+
+/// Builds the times and the events for a MIDI file.
+#[cfg(feature = "midly")]
+fn midi_times_events<'a, K: Eq + Hash + Clone, G: FnMut(usize) -> K>(
+    track_iter: midly::TrackIter<'a>,
+    tick_time: Time,
+    mut idx_cast: G,
+) -> midly::Result<(Vec<Time>, Vec<NoteEvent<K, MidiNoteData>>)> {
+    let mut times = Vec::new();
+    let mut events = Vec::new();
+
+    // A simple but fast hash table that assigns every key an index for the latest played note.
+    let mut latest;
+    let mut idx = 0;
+
+    // Go over every track.
+    for (track, event_iter) in track_iter.enumerate() {
+        latest = vec![usize::MAX; 128];
+
+        let track = track as u16;
+        let event_iter = event_iter?;
+        let mut since_last = 0;
+
+        for event in event_iter {
+            let event = event?;
+            since_last += event.delta.as_int();
+
+            // We only read MIDI events.
+            if let midly::TrackEventKind::Midi {
+                channel: _,
+                message,
+            } = event.kind
+            {
+                match message {
+                    // Note on event.
+                    midly::MidiMessage::NoteOn { key, vel } => {
+                        let old_key = idx_cast(latest[key.as_int() as usize]);
+                        let new_key = idx_cast(idx);
+
+                        // A note-on with velocity 0 turns the note off.
+                        if vel == u7::new(0) {
+                            // Stops previous note.
+                            events.push(NoteEvent::Stop { key: old_key });
+                        } else {
+                            // Add new note.
+                            events.push(NoteEvent::Add {
+                                key: new_key,
+                                data: MidiNoteData::new(track, key, vel),
+                            });
+                            latest[key.as_int() as usize] = idx;
+                            idx += 1;
+                        }
+                    }
+
+                    // Note off event.
+                    midly::MidiMessage::NoteOff { key, vel: _ } => {
+                        let old_key = idx_cast(latest[key.as_int() as usize]);
+                        events.push(NoteEvent::Stop { key: old_key })
+                    }
+
+                    // Ignore anything else.
+                    _ => {
+                        continue;
+                    }
+                }
+
+                times.push(since_last * tick_time);
+                since_last = 0;
+            }
+        }
+    }
+
+    Ok((times, events))
+}
+
+#[cfg(feature = "midly")]
+impl<K: Eq + Hash + Clone, F: Map<Input = MidiNoteData>> MelodySeq<K, MidiNoteData, F>
+where
+    F::Output: Frequency + Stop + Done,
+{
+    /// Initializes a [`MelodySeq`] from the following data:
+    ///
+    /// - An iterator over all the MIDI tracks.
+    /// - A measure of the MIDI tick time.
+    /// - A function that builds signals from the note data.
+    /// - A function that casts the note indices into their keys.
+    ///
+    /// Note that MIDI files with changing BPM are unsupported. All events other than note on / note
+    /// off are ignored.
+    pub fn from_midi<'a, G: FnMut(usize) -> K>(
+        track_iter: midly::TrackIter<'a>,
+        tick_time: Time,
+        func: F,
+        idx_cast: G,
+    ) -> midly::Result<Self> {
+        midi_times_events(track_iter, tick_time, idx_cast)
+            .map(|(times, events)| Self::new_melody(times, events, func))
+    }
+}
+
+#[cfg(feature = "midly")]
+impl<K: Eq + Hash + Clone, F: Map<Input = MidiNoteData>> MelodyLoop<K, MidiNoteData, F>
+where
+    F::Output: Frequency + Stop + Done,
+{
+    /// Initializes a [`MelodyLoop`] from the following data:
+    ///
+    /// - An iterator over all the MIDI tracks.
+    /// - The length of the loop.
+    /// - A measure of the MIDI tick time.
+    /// - A function that builds signals from the note data.
+    /// - A function that casts the note indices into their keys.
+    ///
+    /// Note that MIDI files with changing BPM are unsupported. All events other than note on / note
+    /// off are ignored.
+    ///
+    /// ## Panics
+    ///
+    /// This method panics if the `notes` vector is empty, if the length is zero, or if some note
+    /// starts later than the loop ends.
+    pub fn from_midi<'a, G: FnMut(usize) -> K>(
+        track_iter: midly::TrackIter<'a>,
+        length: Time,
+        tick_time: Time,
+        func: F,
+        idx_cast: G,
+    ) -> midly::Result<Self> {
+        let (mut times, mut events) = midi_times_events(track_iter, tick_time, idx_cast)?;
+
+        // We add a dummy `Skip` event at the end, so the loop has the appropriate length.
+        times.push(length - *times.last().unwrap());
+        events.push(NoteEvent::Skip);
+
+        Ok(Self::new_melody(times, events, func))
     }
 }

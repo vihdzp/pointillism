@@ -14,9 +14,10 @@ cfg-if = "1.0"
 derive_more = "0.99"
 rand = "0.8"
 
-hound = { version = "3.5", optional = true }
 cpal = { version = "0.15", optional = true }
+hound = { version = "3.5", optional = true }
 human-duration = { version = "0.1.0", optional = true }
+midly = { version = "0.5", optional = true }
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
@@ -24,6 +25,7 @@ assert_approx_eq = "1.1.0"
 [features]
 default = ["human-duration", "hound"]
 cpal = ["dep:cpal"]
+midly = ["dep:midly"]
 
 # This only exists so GitHub actions doesn't fail.
 github-actions-hack = []
