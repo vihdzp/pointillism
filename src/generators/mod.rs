@@ -9,8 +9,6 @@
 
 use std::{fmt::Display, marker::PhantomData};
 
-use rand::{distributions::Standard, prelude::Distribution};
-
 pub use crate::prelude::*;
 
 pub mod poly;
@@ -84,7 +82,7 @@ impl Display for Val {
     }
 }
 
-impl Distribution<Val> for Standard {
+impl rand::prelude::Distribution<Val> for rand::distributions::Standard {
     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Val {
         Val(rng.gen())
     }

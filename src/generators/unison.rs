@@ -2,8 +2,6 @@
 //!
 //! This can be used in order to more efficiently play multiple copies of a base signal.
 
-use rand::{thread_rng, Rng};
-
 use crate::prelude::*;
 
 /// An iterator that returns the detuning intervals for a given detune amount.
@@ -178,7 +176,8 @@ where
     /// This can help if you're getting a lot of interference between the different curves.
     pub fn randomize_phases(&mut self) {
         for val in self.val_mut() {
-            *val = thread_rng().gen();
+            use rand::Rng;
+            *val = rand::thread_rng().gen();
         }
     }
 }

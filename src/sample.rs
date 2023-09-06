@@ -4,7 +4,6 @@
 //! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
 //! [`Adsr`](crate::effects::adsr::Adsr).
 
-use rand::{distributions::Standard, prelude::Distribution, Rng};
 use std::{
     fmt::Debug,
     iter::Sum,
@@ -247,7 +246,7 @@ pub trait Sample: SampleLike + ArrayLike<Item = f64> {
     /// Distribution<S>` everywhere. However, all three instances of [`Sample`] implement this trait
     /// individually.
     #[must_use]
-    fn rand_with<R: Rng + ?Sized>(rng: &mut R) -> Self {
+    fn rand_with<R: rand::Rng + ?Sized>(rng: &mut R) -> Self {
         Self::from_fn(|_| crate::sgn(rng.gen::<f64>()))
     }
 
@@ -510,8 +509,8 @@ macro_rules! impl_as {
 /// Implements `Distribution<Self>` for `Standard`.
 macro_rules! impl_rand {
     ($ty: ty) => {
-        impl Distribution<$ty> for Standard {
-            fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> $ty {
+        impl rand::prelude::Distribution<$ty> for rand::distributions::Standard {
+            fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> $ty {
                 <$ty>::rand_with(rng)
             }
         }
