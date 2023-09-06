@@ -29,6 +29,7 @@ const POW_TWO_F64: f64 = (1u32 << 16) as f64;
     derive_more::RemAssign,
     derive_more::Sum,
 )]
+#[rem(forward)]
 pub struct FracInt(pub u64);
 
 impl FracInt {

@@ -1,10 +1,10 @@
 //! Implements many effects one can use to modify signals.
 //!
-//! Effects are structures that wrap around [`Signals`](crate::prelude::Signal)
-//! and modify the samples they produce, be they envelope or audio data.
+//! Effects are structures that wrap around [`Signals`](crate::prelude::Signal) and modify the
+//! samples they produce, be they envelope or audio data.
 //!
-//! The module file implements the most basic structures for transforming a
-//! signal, including [`MapSgn`], [`MutSgn`], and [`ModSgn`].
+//! The module file implements the most basic structures for transforming a signal, including
+//! [`MapSgn`], [`MutSgn`], and [`ModSgn`].
 
 pub mod adsr;
 pub mod distortion;
@@ -61,7 +61,6 @@ where
 {
     /// The signal being mapped.
     sgn: S,
-
     /// The map being applied.
     map: F,
 }
@@ -214,10 +213,8 @@ impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
 pub struct MutSgn<S: Signal, E: Signal<Sample = Env>, F: MutEnv<S>> {
     /// The signal to modify.
     sgn: S,
-
     /// The envelope modifying the signal.
     env: E,
-
     /// The function to modify the signal.
     func: F,
 }

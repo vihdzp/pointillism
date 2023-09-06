@@ -29,7 +29,9 @@ pub use raw::RawTime;
     Copy,
     Debug,
     PartialEq,
+    Eq,
     PartialOrd,
+    Ord,
     derive_more::Add,
     derive_more::AddAssign,
     derive_more::Sub,
@@ -38,6 +40,7 @@ pub use raw::RawTime;
     derive_more::RemAssign,
     derive_more::Sum,
 )]
+#[rem(forward)]
 pub struct Time {
     /// The number of samples.
     pub samples: FracInt,

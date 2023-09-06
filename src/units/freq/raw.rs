@@ -113,7 +113,7 @@ impl RawFreq {
     /// This allows the user to specify the `A4` tuning. Use [`Self::new_midi`] for the default of
     /// 440 Hz.
     #[must_use]
-    pub fn new_midi_with(a4: Self, note: Note) -> Self {
+    pub fn new_midi_with(a4: Self, note: MidiNote) -> Self {
         a4.bend(f64::from(note.note) - A4_MIDI)
     }
 
@@ -121,7 +121,7 @@ impl RawFreq {
     ///
     /// This assumes A4 = 440 Hz. See [`Self::new_midi_with`] in order to specify the `A4` tuning.
     #[must_use]
-    pub fn new_midi(note: Note) -> Self {
+    pub fn new_midi(note: MidiNote) -> Self {
         Self::new_midi_with(RawFreq::A4, note)
     }
 
@@ -138,7 +138,7 @@ impl RawFreq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`Note`].
+    /// Panics if this frequency is outside of the range for a [`MidiNote`].
     ///
     /// ## Example
     /// ```
@@ -147,13 +147,13 @@ impl RawFreq {
     /// let freq = RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi_with(RawFreq::A4), Note::AS4);
+    /// assert_eq!(freq.round_midi_with(RawFreq::A4), MidiNote::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi_with(self, a4: Self) -> Note {
+    pub fn round_midi_with(self, a4: Self) -> MidiNote {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        Note::new((self.round_midi_aux(a4).round()) as i16)
+        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -162,7 +162,7 @@ impl RawFreq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`Note`].
+    /// Panics if this frequency is outside of the range for a [`MidiNote`].
     ///
     /// ## Example
     /// ```
@@ -171,10 +171,10 @@ impl RawFreq {
     /// let freq = RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi(), Note::AS4);
+    /// assert_eq!(freq.round_midi(), MidiNote::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi(self) -> Note {
+    pub fn round_midi(self) -> MidiNote {
         self.round_midi_with(RawFreq::A4)
     }
 
@@ -192,17 +192,17 @@ impl RawFreq {
     /// let (note, semitones) = freq.midi_semitones_with(RawFreq::A4);
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, Note::AS4);
+    /// assert_eq!(note, MidiNote::AS4);
     /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
-    pub fn midi_semitones_with(self, a4: Self) -> (Note, f64) {
+    pub fn midi_semitones_with(self, a4: Self) -> (MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        (Note::new(round as i16), note - round)
+        (MidiNote::new(round as i16), note - round)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -219,18 +219,18 @@ impl RawFreq {
     /// let (note, semitones) = freq.midi_semitones();
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, Note::AS4);
+    /// assert_eq!(note, MidiNote::AS4);
     /// assert_approx_eq!(semitones, -0.4);
     /// ```
     #[must_use]
-    pub fn midi_semitones(self) -> (Note, f64) {
+    pub fn midi_semitones(self) -> (MidiNote, f64) {
         self.midi_semitones_with(RawFreq::A4)
     }
 }
 
 /// We use A4 = 440 Hz.
-impl From<Note> for RawFreq {
-    fn from(note: Note) -> Self {
+impl From<MidiNote> for RawFreq {
+    fn from(note: MidiNote) -> Self {
         Self::new_midi(note)
     }
 }
@@ -240,7 +240,7 @@ impl FromStr for RawFreq {
     type Err = crate::units::midi::NameError;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        Note::from_str(name).map(RawFreq::from)
+        MidiNote::from_str(name).map(RawFreq::from)
     }
 }
 

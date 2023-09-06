@@ -15,7 +15,7 @@ mod raw;
 pub use {interval::Interval, raw::RawFreq};
 
 use crate::{
-    prelude::Note,
+    prelude::MidiNote,
     units::{SampleRate, A4_MIDI},
 };
 
@@ -119,7 +119,7 @@ impl Freq {
     ///
     /// The note for `A4`, which depends on both the tuning and the sample rate, must be specified.
     #[must_use]
-    pub fn new_midi(a4: Self, note: Note) -> Self {
+    pub fn new_midi(a4: Self, note: MidiNote) -> Self {
         a4.bend(f64::from(note.note) - A4_MIDI)
     }
 
@@ -141,10 +141,10 @@ impl Freq {
     ///
     /// For an example, see the functionally identical [`RawFreq::round_midi_with`].
     #[must_use]
-    pub fn round_midi(self, a4: Self) -> Note {
+    pub fn round_midi(self, a4: Self) -> MidiNote {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        Note::new((self.round_midi_aux(a4).round()) as i16)
+        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -156,13 +156,13 @@ impl Freq {
     ///
     /// For an example, see the functionally identical [`RawFreq::midi_semitones_with`].
     #[must_use]
-    pub fn midi_semitones(self, a4: Self) -> (Note, f64) {
+    pub fn midi_semitones(self, a4: Self) -> (MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        (Note::new(round as i16), note - round)
+        (MidiNote::new(round as i16), note - round)
     }
 }
 

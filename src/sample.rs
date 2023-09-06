@@ -424,13 +424,20 @@ macro_rules! impl_op_assign {
     };
 }
 
-/// Implements traits [`Mul<f64>`](Mul), [`Div<f64>`](Div).
+/// Implements traits [`Mul`] and [`Div`].
 macro_rules! impl_op_f64 {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op<f64> for $ty {
             type Output = Self;
-            fn $fn(self, rhs: f64) -> Self::Output {
+            fn $fn(self, rhs: f64) -> Self {
                 self.map(|x| std::ops::$op::$fn(x, rhs))
+            }
+        })*
+
+        $(impl $op<$ty> for f64 {
+            type Output = $ty;
+            fn $fn(self, rhs: $ty) -> $ty {
+                rhs * self
             }
         })*
     };

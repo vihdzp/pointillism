@@ -1,6 +1,9 @@
 ## Version 0.3.5
 
-Improved pretty-printing for time and frequency units.
+Added `MelodySeq` and `MelodyLoop` type aliases, which allow building and playing a melody as if in
+a piano roll.
+
+Also, improved pretty-printing for time and frequency units.
 
 ## Version 0.3.4
 

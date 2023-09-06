@@ -15,17 +15,18 @@ pub struct Vol {
 }
 
 impl Vol {
+    /// Silence.
+    pub const ZERO: Self = Self::new(0.0);
+    /// Full volume.
+    pub const FULL: Self = Self::new(1.0);
+    /// Half amplitude.
+    pub const HALF: Self = Self::new(0.5);
+
     /// Initializes a new volume variable.
     #[must_use]
     pub const fn new(gain: f64) -> Self {
         Self { gain }
     }
-
-    /// Silence.
-    pub const ZERO: Self = Self::new(0.0);
-
-    /// Full volume.
-    pub const FULL: Self = Self::new(1.0);
 
     /// Gain measured in decibels.
     #[must_use]

@@ -26,7 +26,7 @@ pub use sample_rate::SampleRate;
 pub use time::{FracInt, RawTime, Time, Timer};
 
 /// This magic number `69.0` corresponds to the MIDI index of A4.
-const A4_MIDI: f64 = midi::Note::A4.note as f64;
+const A4_MIDI: f64 = midi::MidiNote::A4.note as f64;
 
 impl Mul<RawFreq> for RawTime {
     type Output = f64;

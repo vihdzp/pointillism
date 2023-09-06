@@ -11,9 +11,9 @@
 //!
 //! This will hopefully be replaced with some macro code eventually.
 
-use super::{freq::RawFreq, midi::Note};
+use super::{freq::RawFreq, midi::MidiNote};
 
-impl Note {
+impl MidiNote {
     // OCTAVE -1
 
     /// The note B#-2.

@@ -30,5 +30,5 @@ pub use crate::{
     sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,
-    units::{midi::Note, Freq, Interval, RawFreq, RawTime, SampleRate, Time, Timer},
+    units::{midi::MidiNote, Freq, Interval, RawFreq, RawTime, SampleRate, Time, Timer},
 };

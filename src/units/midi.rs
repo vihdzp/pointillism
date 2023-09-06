@@ -12,12 +12,12 @@ use std::{
 /// specification, which only uses values from 0-127. The main reason is so that methods that
 /// convert [`RawFreq`](crate::prelude::RawFreq) into [`Note`] and viceversa don't run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Note {
+pub struct MidiNote {
     /// The MIDI note index.
     pub note: i16,
 }
 
-impl Note {
+impl MidiNote {
     /// Initializes a new [`Note`].
     #[must_use]
     pub const fn new(note: i16) -> Self {
@@ -26,7 +26,7 @@ impl Note {
 }
 
 /// We use `A4` as a default note.
-impl Default for Note {
+impl Default for MidiNote {
     fn default() -> Self {
         Self::A4
     }
@@ -108,7 +108,7 @@ impl Display for NameError {
 
 impl std::error::Error for NameError {}
 
-impl FromStr for Note {
+impl FromStr for MidiNote {
     type Err = NameError;
 
     fn from_str(name: &str) -> Result<Self, NameError> {
@@ -130,7 +130,7 @@ impl FromStr for Note {
                 };
 
                 note += 12 * (name[index..].parse::<i16>()? + 1);
-                Ok(Note::new(note))
+                Ok(MidiNote::new(note))
             } else {
                 Err(NameError::Letter(letter))
             }
@@ -140,7 +140,7 @@ impl FromStr for Note {
     }
 }
 
-impl Display for Note {
+impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         // Truncation is impossible.
         #[allow(clippy::cast_possible_truncation)]
