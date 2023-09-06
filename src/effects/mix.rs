@@ -151,7 +151,7 @@ impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
 /// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::from_hz_default(1.5));
 ///
 /// pointillism::create(
-///     "output/routing.wav",
+///     "examples/routing.wav",
 ///     Time::from_sec_default(5.0), SampleRate::default(),
 ///     |_| {
 ///         // Thanks to `Ref`, we're able to re-use these signals.

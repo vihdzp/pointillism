@@ -370,7 +370,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 ///     // If you play a large amount of curves and remove this, you'll get some wacky interference.
 ///     unison.sgn_mut().randomize_phases();
 ///
-///     pointillism::create("output/detune.wav", 2u8 * len, SampleRate::default(), |_| {
+///     pointillism::create("examples/detune.wav", 2u8 * len, SampleRate::default(), |_| {
 ///         // We pan every curve according to how much its detuned.
 ///         let sgn: Stereo = (0..NUM)
 ///             .into_iter()
