@@ -7,6 +7,8 @@
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
+// This seems to be a `cpal` thing, not much to do about it.
+#![allow(clippy::multiple_crate_versions)]
 
 pub mod curves;
 pub mod effects;
@@ -16,6 +18,9 @@ pub mod prelude;
 pub mod sample;
 pub mod signal;
 pub mod units;
+
+#[cfg(feature = "cpal")]
+pub mod cpal;
 
 use prelude::*;
 
@@ -54,9 +59,6 @@ pub fn sgn(x: f64) -> f64 {
 /// ## Errors
 ///
 /// This should only return an error in case of an IO error.
-#[allow(clippy::cast_precision_loss)]
-#[allow(clippy::cast_possible_truncation)]
-#[allow(clippy::cast_sign_loss)]
 pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
     filename: P,
     length: Time,
@@ -67,7 +69,7 @@ pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
 
     // The size is either 1 or 2.
     #[allow(clippy::cast_possible_truncation)]
-    let mut writer = WavWriter::create(filename, spec(A::SIZE as u8, sample_rate))?;
+    let mut writer = WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
 
     let mut time = Time::ZERO;
     for _ in 0..length {

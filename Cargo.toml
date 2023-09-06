@@ -12,13 +12,18 @@ version = "0.3.3"
 [dependencies]
 cfg-if = "1.0"
 derive_more = "0.99"
-hound = "3.5.0"
+hound = "3.5"
+rand = "0.8"
+
+cpal = { version = "0.15", optional = true }
 human-duration = { version = "0.1.0", optional = true }
-rand = "0.8.5"
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
 
 [features]
 default = ["human-duration"]
-github-actions-hack = [] # This only exists 
+cpal = ["dep:cpal"]
+
+# This only exists so GitHub actions doesn't fail.
+github-actions-hack = []

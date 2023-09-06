@@ -203,6 +203,16 @@ pub unsafe trait ArrayLike:
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
 /// envelopes such as in an LFO.
 pub trait Sample: SampleLike + ArrayLike<Item = f64> {
+    /// The size as a `u8`.
+    #[must_use]
+    fn size_u8() -> u8 {
+        // The size is either 1 or 2.
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            Self::SIZE as u8
+        }
+    }
+
     /// Gets the value from the first channel.
     fn fst(&self) -> f64 {
         self[0]
