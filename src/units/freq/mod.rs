@@ -38,6 +38,11 @@ pub struct Freq {
 }
 
 impl Freq {
+    /// Zero frequency.
+    ///
+    /// You can use this as a dummy value, or as the frequency of a static wave (why though?).
+    pub const ZERO: Self = Self::new(0.0);
+
     /// Initializes a frequency in **inverse samples**.
     ///
     /// If you want to use the more natural unit of hertz, see [`Self::from_raw`].
