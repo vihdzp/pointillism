@@ -59,6 +59,7 @@ impl Val {
     /// ## Panics
     ///
     /// Panics in debug mode if the `value` isn't positive (including `+0.0`).
+    #[must_use]
     pub fn fract(value: f64) -> Self {
         debug_assert!(value.is_sign_positive());
         Self(value.fract())

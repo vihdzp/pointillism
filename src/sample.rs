@@ -433,13 +433,18 @@ macro_rules! impl_op_f64 {
                 self.map(|x| std::ops::$op::$fn(x, rhs))
             }
         })*
+    };
+}
 
-        $(impl $op<$ty> for f64 {
+/// Implements [`Mul`] on the other side.
+macro_rules! impl_mul_left {
+    ($ty: ty) => {
+        impl Mul<$ty> for f64 {
             type Output = $ty;
-            fn $fn(self, rhs: $ty) -> $ty {
+            fn mul(self, rhs: $ty) -> $ty {
                 rhs * self
             }
-        })*
+        }
     };
 }
 
@@ -532,6 +537,7 @@ macro_rules! impl_all {
             impl_op_assign!($ty; AddAssign, add_assign, SubAssign, sub_assign);
             impl_op_f64!($ty; Mul, mul, Div, div);
             impl_op_assign_f64!($ty; MulAssign, mul_assign, DivAssign, div_assign);
+            impl_mul_left!($ty);
             impl_neg!($ty);
             impl_sum!($ty);
             impl_index!($ty);

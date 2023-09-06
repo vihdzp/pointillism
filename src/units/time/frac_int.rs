@@ -43,6 +43,7 @@ impl FracInt {
     pub const MAX: Self = Self::new_raw(u64::MAX);
 
     /// Initializes a [`FracInt`] from the raw backing `u64`.
+    #[must_use]
     pub const fn new_raw(bits: u64) -> Self {
         Self(bits)
     }
