@@ -1,4 +1,4 @@
-//! Testing out polyphonic signals.
+//! Testing out distortion.
 //!
 //! We play various random 5-EDO notes in succession, and apply heavy distortion to the output for
 //! fun effects.
@@ -61,6 +61,6 @@ fn main() {
 
     // This gives a really weird effect.
     let dist = PwMapSgn::cubic(poly_loop);
-    pointillism::create_from_sgn("examples/poly_5edo.wav", 10u8 * note_len, SAMPLE_RATE, dist)
+    pointillism::create_from_sgn("output/distortion.wav", 10u8 * note_len, SAMPLE_RATE, dist)
         .unwrap();
 }

@@ -1,7 +1,5 @@
-//! We play various chords in succession, using the [`Polyphony`] struct.
-//!
-//! This requires us to keep track of how many notes have been played at any moment. Maybe in the
-//! future we'll make some special functionality for this.
+//! We play various chords in succession, showing off somewhat more advanced use of the
+//! [`Polyphony`] struct.
 
 use pointillism::prelude::*;
 
@@ -66,7 +64,7 @@ fn main() {
     );
 
     pointillism::create(
-        "examples/harmony.wav",
+        "output/harmony.wav",
         note_len * chords.len() as f64 + Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
         |_| seq.next() / 6.0,

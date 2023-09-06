@@ -184,7 +184,7 @@ macro_rules! impl_mul_div_uint {
     )*};
 }
 
-impl_mul_div_uint!(u8, u16, u32, u64);
+impl_mul_div_uint!(u8, u16, u32, u64, usize);
 
 impl Mul<f64> for FracInt {
     type Output = Self;
@@ -233,7 +233,7 @@ macro_rules! impl_mul_div_other {
     )*};
 }
 
-impl_mul_div_other!(u8, u16, u32, u64, f64);
+impl_mul_div_other!(u8, u16, u32, u64, usize, f64);
 
 impl Div for FracInt {
     type Output = f64;

@@ -6,7 +6,7 @@ use pointillism::prelude::*;
 const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
-    const FILENAME: &str = "examples/buffer.wav";
+    const FILENAME: &str = "output/buffer.wav";
 
     // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
     pointillism::create_from_sgn(

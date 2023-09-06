@@ -172,7 +172,7 @@ macro_rules! impl_mul_div {
     )*};
 }
 
-impl_mul_div!(u8, u16, u32, u64, f64);
+impl_mul_div!(u8, u16, u32, u64, usize, f64);
 
 impl Div<Time> for Time {
     type Output = f64;

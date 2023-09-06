@@ -9,7 +9,7 @@ const SAMPLE_RATE: SampleRate = SampleRate::CD;
 
 fn main() {
     // Number of oscillators.
-    const NUM_OSC: u8 = 5;
+    const NUM_OSC: usize = 5;
     // Base frequency.
     const BASE: RawFreq = RawFreq::new(400.0);
     // RawTime to complete a cycle.
@@ -34,12 +34,10 @@ fn main() {
     };
 
     // Initialize oscillators with equally-spaced phases.
-    let mut oscillators = Vec::new();
-    for i in 0..NUM_OSC {
-        oscillators.push(osc(Val::new(i as f64 / NUM_OSC as f64)));
-    }
+    let mut oscillators: [_; NUM_OSC] =
+        std::array::from_fn(|i| osc(Val::new(i as f64 / NUM_OSC as f64)));
 
-    pointillism::create("examples/five_osc.wav", 2u8 * time, SAMPLE_RATE, |_| {
+    pointillism::create("output/fiveosc.wav", 2u8 * time, SAMPLE_RATE, |_| {
         oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
     })
     .unwrap();

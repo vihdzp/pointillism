@@ -55,7 +55,7 @@ fn main() {
 
     // We play the melody twice.
     pointillism::create(
-        "examples/simple_melody.wav",
+        "output/twinkle.wav",
         2u8 * length + release,
         SAMPLE_RATE,
         |time| {

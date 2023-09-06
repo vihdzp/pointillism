@@ -103,7 +103,7 @@ fn main() {
     );
 
     let mut timer = Timer::new(5.0 * sec);
-    pointillism::create("examples/e_piano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
+    pointillism::create("output/epiano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.
