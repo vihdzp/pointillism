@@ -107,8 +107,16 @@ impl FracInt {
     ///
     /// Since `f32` has more than the 16 needed mantissa digits, this conversion is exact.
     #[must_use]
-    pub fn frac(self) -> f32 {
+    pub fn frac_f32(self) -> f32 {
         f32::from(self.frac_int()) / POW_TWO_F32
+    }
+
+    /// The fractional part of this number.
+    ///
+    /// Since `f64` has more than the 16 needed mantissa digits, this conversion is exact.
+    #[must_use]
+    pub fn frac_f64(self) -> f64 {
+        f64::from(self.frac_int()) / POW_TWO_F64
     }
 }
 
@@ -127,7 +135,17 @@ impl_from_int!(u8, u16, u32);
 
 impl std::fmt::Display for FracInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let decimal = format!("{}", self.frac());
+        // We have to cast to `f64` to print all digits, for some reason.
+        let frac = self.frac_f64();
+
+        // Format the decimal digits.
+        let decimal = if let Some(precision) = f.precision() {
+            format!("{frac:.precision$}")
+        } else {
+            format!("{frac}")
+        };
+
+        // Truncate the leading `0` from the decimal.
         write!(f, "{}{}", self.int(), &decimal[1..])
     }
 }

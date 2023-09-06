@@ -2,7 +2,6 @@
 
 mod raw;
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 pub use raw::RawTime;
@@ -92,14 +91,15 @@ impl Time {
     }
 }
 
-impl Display for Time {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(
-            f,
-            "{:.*} samples",
-            f.precision().unwrap_or_default(),
-            self.samples
-        )
+impl std::fmt::Display for Time {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let samples = self.samples;
+
+        if let Some(precision) = f.precision() {
+            write!(f, "{samples:.precision$} samples")
+        } else {
+            write!(f, "{samples} samples")
+        }
     }
 }
 
@@ -213,9 +213,11 @@ mod test {
     /// Test [`Time`] printing.
     #[test]
     fn print_time() {
-        assert_eq!(
-            format!("{:.2}", Time::from_sec_default(1.0)),
-            "44100.00 samples"
-        );
+        let time = Time::from_sec_default(1.0 / 11.0);
+
+        // Exactly rounded to the nearest (1 / 2¹⁶)th of a sample.
+        assert_eq!(format!("{time}"), "4009.090911865234375 samples");
+        // Two decimal digits of precision.
+        assert_eq!(format!("{time:.2}"), "4009.09 samples");
     }
 }
