@@ -29,7 +29,7 @@ const POW_TWO_F64: f64 = (1u32 << 16) as f64;
     derive_more::RemAssign,
     derive_more::Sum,
 )]
-pub struct FracInt(u64);
+pub struct FracInt(pub u64);
 
 impl FracInt {
     /// The number zero.
@@ -37,16 +37,21 @@ impl FracInt {
     /// The number one.
     pub const ONE: Self = Self::new(1);
     /// The smallest positive number that can be stored by this type.
-    pub const EPS: Self = Self(1);
+    pub const EPS: Self = Self::new_raw(1);
     /// The maximum number that can be stored by this type.
-    pub const MAX: Self = Self::new(u64::MAX);
+    pub const MAX: Self = Self::new_raw(u64::MAX);
+
+    /// Initializes a [`FracInt`] from the raw backing `u64`.
+    pub const fn new_raw(bits: u64) -> Self {
+        Self(bits)
+    }
 
     /// Initializes a [`FracInt`] from the integer and fractional parts.
     ///
     /// The number `int` must be less than 2<sup>48</sup>.
     #[must_use]
     pub const fn from_parts(int: u64, frac: u16) -> Self {
-        Self((int << 16) + frac as u64)
+        Self::new_raw((int << 16) + frac as u64)
     }
 
     /// Converts a number `x` less than 2<sup>48</sup> into a [`FracInt`].

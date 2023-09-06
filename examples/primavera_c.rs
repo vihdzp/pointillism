@@ -32,6 +32,7 @@ fn fade(time: Time, length: Time, fade: Time) -> f64 {
     }
 }
 
+/// Binaural beat generator.
 fn binaural() -> impl SignalMut<Sample = Stereo> {
     let base = Freq::from_raw_default(BASE);
     let vib_freq = Freq::from_raw_default(VIB_FREQ);
@@ -52,6 +53,7 @@ fn binaural() -> impl SignalMut<Sample = Stereo> {
     StereoMix::new(wave(base * 0.985), vib(base))
 }
 
+/// The melody that starts two minutes in.
 fn melody() -> impl SignalMut<Sample = Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
     let mut freq = 2.0 * Freq::from_raw_default(RawFreq::A4);
@@ -63,7 +65,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
             wave(freq),
             OnceGen::new(PosSaw, Time::from_sec_default(5.0)),
             FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
-                sgn.curve_mut().shape = 1.0 - val.0.powf(0.2) / 2.0;
+                sgn.curve_mut().shape = Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
         )
     };

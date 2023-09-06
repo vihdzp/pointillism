@@ -2,20 +2,25 @@
 
 mod raw;
 
+use super::{FracInt, SampleRate};
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 pub use raw::RawTime;
 
-use super::{FracInt, SampleRate};
-
 /// A time, measured in **samples**.
-///
-/// This is stored as our custom type [`FracInt`] and not as a float, as this allows us to entirely
-/// get rid of cumulative error when incrementing a time by a sample. In particular, [`Time`] can be
-/// multiplied or divided by an unsigned integer.
 ///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
 /// [`SampleRate`].
+///
+/// ## Inner representation
+///
+/// We use our own custom type [`FracInt`] to measure time. This is a binary number with at most 48
+/// digits, plus 16 digits after the decimal point.
+///
+/// This gives us the best of both worlds regarding floating point and integer accuracy. We can add
+/// together a few [`Time`] variables with minimal loss of precision (as in e.g. an
+/// [`Adsr`](crate::prelude::Adsr)), but we can still keep exact track of an integral number of
+/// samples. Crucially, **incrementing time by one sample causes no loss of precision**.
 #[derive(
     Clone,
     Copy,
@@ -40,6 +45,12 @@ impl Time {
     pub const ZERO: Self = Self::new(FracInt::ZERO);
     /// One sample.
     pub const SAMPLE: Self = Self::new(FracInt::ONE);
+
+    /// The greatest amount of time supported by this type.
+    ///
+    /// At a sample rate of 44.1 kHz, this equals roughly 136 years, and should be well outside of
+    /// any practical concerns.
+    pub const MAX: Self = Self::new(FracInt::MAX);
 
     /// Initializes a time in **samples**.
     ///
@@ -86,6 +97,9 @@ impl Time {
     }
 
     /// Advances the time by one sample.
+    /// 
+    /// Thanks to our backing [`FracInt`], this is an **exact operation**. In particular, a song
+    /// lasts exactly as long as we say it does. 
     pub fn advance(&mut self) {
         *self += Self::SAMPLE;
     }
@@ -219,5 +233,11 @@ mod test {
         assert_eq!(format!("{time}"), "4009.090911865234375 samples");
         // Two decimal digits of precision.
         assert_eq!(format!("{time:.2}"), "4009.09 samples");
+
+        // The largest value that can be stored.
+        assert_eq!(
+            format!("{}", Time::MAX),
+            "281474976710655.9999847412109375 samples"
+        )
     }
 }

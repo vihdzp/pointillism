@@ -34,6 +34,8 @@ pub struct Val(f64);
 impl Val {
     /// The zero value.
     pub const ZERO: Self = Val(0.0);
+    /// One half.
+    pub const HALF: Self = Val(0.5);
     /// The one value.
     pub const ONE: Self = Val(1.0);
 

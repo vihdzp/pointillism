@@ -339,7 +339,7 @@ impl<S: SignalMut> ArEnvelope<S> {
     pub fn new_ar(sgn: S, attack: Time, release: Time) -> Self {
         let time = attack + release;
         let shape = attack / time;
-        Self::new(sgn, OnceGen::new(SawTri::new(shape), time))
+        Self::new(sgn, OnceGen::new(SawTri::new(Val::new(shape)), time))
     }
 }
 

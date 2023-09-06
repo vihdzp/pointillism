@@ -1,3 +1,7 @@
+## Version 0.3.5
+
+Improved pretty-printing for time and frequency units.
+
 ## Version 0.3.4
 
 Added `cpal` support, enabled through the `cpal` feature. Also turned `hound` support into a

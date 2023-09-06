@@ -342,17 +342,19 @@ impl Map for Pulse {
 /// Interpolates linearly between `-1.0` and `1.0` for `x ≤ shape`, and between `1.0` and `-1.0` for
 /// `x ≥ shape`.
 #[must_use]
-pub fn saw_tri(x: f64, shape: f64) -> f64 {
+pub fn saw_tri(x: f64, shape: Val) -> f64 {
     /// We must do some size checks to avoid division by 0.
     const EPS: f64 = 1e-7;
 
+    let shape = shape.inner();
+
     if x < shape {
-        if shape.abs() < EPS {
+        if shape < EPS {
             1.0
         } else {
             interpolate::linear(-1.0, 1.0, Val::new(x / shape))
         }
-    } else if (1.0 - shape).abs() < EPS {
+    } else if 1.0 - shape < EPS {
         1.0
     } else {
         interpolate::linear(-1.0, 1.0, Val::new((1.0 - x) / (1.0 - shape)))
@@ -378,7 +380,7 @@ impl Map for Tri {
     type Output = f64;
 
     fn eval(&self, x: Val) -> f64 {
-        saw_tri(x.inner(), 0.5)
+        saw_tri(x.inner(), Val::HALF)
     }
 }
 
@@ -397,13 +399,13 @@ impl Map for Tri {
 #[derive(Clone, Copy, Debug)]
 pub struct SawTri {
     /// Position of the peak of the wave.
-    pub shape: f64,
+    pub shape: Val,
 }
 
 impl SawTri {
     /// A saw-triangle curve.
     #[must_use]
-    pub const fn new(shape: f64) -> Self {
+    pub const fn new(shape: Val) -> Self {
         Self { shape }
     }
 
@@ -412,7 +414,7 @@ impl SawTri {
     /// Unless you want to merge between other triangle waves, consider using [`Saw`] instead.
     #[must_use]
     pub const fn saw() -> Self {
-        Self::new(1.0)
+        Self::new(Val::ONE)
     }
 
     /// A triangle wave.
@@ -420,7 +422,7 @@ impl SawTri {
     /// Unless you want to merge between other triangle waves, consider using [`Tri`] instead.
     #[must_use]
     pub const fn tri() -> Self {
-        Self::new(0.5)
+        Self::new(Val::HALF)
     }
 
     /// A (right to left) saw wave.
@@ -428,7 +430,7 @@ impl SawTri {
     /// Unless you want to merge between other triangle waves, consider using [`InvSaw`] instead.
     #[must_use]
     pub const fn inv_saw() -> Self {
-        Self::new(0.0)
+        Self::new(Val::ZERO)
     }
 }
 
