@@ -81,11 +81,13 @@ impl RawTime {
     }
 
     /// Converts a [`Duration`] into [`RawTime`].
+    #[must_use]
     pub fn from_duration(duration: Duration) -> Self {
         Self::new(duration.as_secs_f64())
     }
 
     /// Converts a [`RawTime`] into a [`Duration`].
+    #[must_use]
     pub fn into_duration(self) -> Duration {
         Duration::from_secs_f64(self.seconds())
     }

@@ -219,6 +219,6 @@ mod test {
     fn display() {
         assert_eq!(format!("{}", FracInt::new(0)), "0");
         assert_eq!(format!("{}", FracInt::new(1)), "1");
-        assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375")
+        assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375");
     }
 }
