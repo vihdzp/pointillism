@@ -1,10 +1,12 @@
 //! Implements the types for frequency: [`RawTime`] and [`Time`].
 
+mod frac_int;
 mod raw;
 
-use super::{FracInt, SampleRate};
+use super::SampleRate;
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
+pub use frac_int::FracInt;
 pub use raw::RawTime;
 
 /// A time, measured in **samples**.
