@@ -367,7 +367,7 @@ impl<S: Frequency> Arpeggio<S> {
     /// Initializes a new [`Arpeggio`].
     ///
     /// Note that the note being played by the signal won't be updated until the first time interval
-    /// transpires, unless you call [`Self::skip_to_next`].
+    /// transpires, unless you call [`Self::skip`].
     ///
     /// ## Panics
     ///

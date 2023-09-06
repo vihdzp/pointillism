@@ -135,7 +135,7 @@ impl Freq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`Note`].
+    /// Panics if this frequency is outside of the range for a [`MidiNote`].
     ///
     /// ## Example
     ///

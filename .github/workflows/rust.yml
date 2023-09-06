@@ -20,6 +20,8 @@ jobs:
       run: cargo build --verbose --features github-actions-hack
     - name: Build w/o features
       run: cargo build --verbose --no-default-features --features github-actions-hack
+    - name: Build documentation
+      run: cargo doc --examples --verbose --features github-actions-hack
     - name: Run tests
       run: cargo test --verbose --features github-actions-hack
     - name: Lint

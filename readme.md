@@ -42,10 +42,10 @@ The project uses the following features:
 
 | Feature | Enables |
 |-|-|
-| `hound`* | An integration with [`hound`](https://docs.rs/hound/latest/hound/). Allows you to save songs as WAV files. |
-| `cpal` | An integration with [`cpal`](https://docs.rs/cpal/latest/cpal/). Allows you to play songs in a dedicated thread. |
-| `midly` | An integration with [`midly`](https://docs.rs/midly/latest/midly/). Allows you to read and play back MIDI files. |
-| `human-duration`* | Pretty-printing for the [`RawTime`] type. |
+| [`hound`](https://docs.rs/hound/latest/hound/)* | Saving songs as WAV files. |
+| [`cpal`](https://docs.rs/cpal/latest/cpal/) | Playing songs in a dedicated thread. |
+| [`midly`](https://docs.rs/midly/latest/midly/) | Reading and playing back MIDI files. |
+| [`human-duration`](https://docs.rs/human-duration/latest/human_duration/)* | Pretty-printing for the [`RawTime`] type. |
 
 * Features marked with an asterisk are enabled by default.
 

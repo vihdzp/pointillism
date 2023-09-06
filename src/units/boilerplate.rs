@@ -1,4 +1,5 @@
-//! We initialize constants for [`RawFreq`] and [`Note`]. For instance, [`RawFreq::A4`] = 440 Hz.
+//! We initialize constants for [`RawFreq`] and [`MidiNote`]. For instance, [`RawFreq::A4`] = 440
+//! Hz.
 //!
 //! Each name is made out of a pitch letter, followed by an optional `S` or `B` for sharps and
 //! flats, followed by the octave number. We use `N` for a negative sign.

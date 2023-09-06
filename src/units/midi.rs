@@ -1,4 +1,4 @@
-//! Defines the type for a MIDI [`Note`], and its basic methods.
+//! Defines the type for a [`MidiNote`], and its basic methods.
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -10,7 +10,8 @@ use std::{
 ///
 /// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
 /// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`RawFreq`](crate::prelude::RawFreq) into [`Note`] and viceversa don't run out of range.
+/// convert [`RawFreq`](crate::prelude::RawFreq) into [`MidiNote`] and viceversa don't run out of
+/// range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MidiNote {
     /// The MIDI note index.
@@ -18,7 +19,7 @@ pub struct MidiNote {
 }
 
 impl MidiNote {
-    /// Initializes a new [`Note`].
+    /// Initializes a new [`MidiNote`].
     #[must_use]
     pub const fn new(note: i16) -> Self {
         Self { note }
@@ -82,7 +83,7 @@ pub const fn note_to_letter(note: u8) -> &'static str {
     }
 }
 
-/// An error in [`Note::from_str`].
+/// An error in [`MidiNote::from_str`].
 #[derive(Clone, Debug)]
 pub enum NameError {
     /// The string is not at least two characters long.
