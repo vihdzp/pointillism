@@ -4,14 +4,14 @@ A compositional library for musical composition.
 
 ## Examples
 
-If you want to see `pointillism` in action and what it's capable of, run the examples in the
+If you want to see pointillism in action and what it's capable of, run the examples in the
 `examples` folder.
 
 **Note:** Some examples may be loud, dissonant, and/or jarring. Hearing discretion is advised.
 
 ## Design
 
-The way in which `pointillism` outputs audio is by writing sample by sample into a 32-bit floating
+The way in which pointillism outputs audio is by writing sample by sample into a 32-bit floating
 point `.wav` file. Internal calculations use 64-bit floating points.
 
 For convenience, the [`Signal`] trait is provided. Types implementing this trait generate sample
@@ -50,7 +50,7 @@ The project uses the following features:
 
 ## Versions
 
-The following versions of `pointillism` exist:
+The following versions of pointillism exist:
 
 - 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
 - 0.2.0 - 0.2.10: more stable versions, but still subject to drastic change.
@@ -58,7 +58,7 @@ The following versions of `pointillism` exist:
 
 ### Goals
 
-Future goals of `pointillism` are:
+Future goals of pointillism are:
 
 - Filters (as soon as I learn what the word "biquad" means)
 - [Me](https://viiii.bandcamp.com) making a whole album with it :D
