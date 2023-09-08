@@ -5,7 +5,8 @@ A compositional library for musical composition.
 ## Examples
 
 If you want to see pointillism in action and what it's capable of, run the examples in the
-`examples` folder.
+`examples` folder. There's also many examples scattered throughout the source code, showing off
+different features.
 
 **Note:** Some examples may be loud, dissonant, and/or jarring. Hearing discretion is advised.
 

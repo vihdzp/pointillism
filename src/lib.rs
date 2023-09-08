@@ -1,12 +1,14 @@
 #![cfg_attr(not(feature = "github-actions-hack"), doc = include_str!("../README.md"))]
 #![cfg_attr(
     feature = "github-actions-hack",
-    doc = "This is a workaround for GitHub actions not finding the documentation file."
+    doc = "If you're seeing this, you (accidentally or otherwise) enabled the \
+    `github-actions-hack` feature. This is a workaround for GitHub actions not finding the \
+    documentation file. Sorry!"
 )]
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
-// `pointillism` is really meant to be used through its prelude.
+// pointillism is really meant to be used through its prelude.
 #![allow(clippy::module_name_repetitions)]
 
 pub mod curves;
@@ -22,7 +24,11 @@ pub mod units;
 pub mod cpal;
 
 #[cfg(feature = "hound")]
-pub use hound::*;
+pub use with_hound::*;
+
+// Needed so that the docs render properly.
+#[allow(unused_imports)]
+use crate::prelude::*;
 
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
@@ -50,10 +56,10 @@ pub fn sgn(x: f64) -> f64 {
 
 /// Methods that require [`hound`].
 #[cfg(feature = "hound")]
-mod hound {
-    use crate::prelude::{Audio, SampleRate, SignalMut, Time};
+mod with_hound {
+    use super::*;
 
-    /// The specification for the output file.
+    /// The [specification](hound::WavSpec) for the output file.
     #[must_use]
     pub const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
         hound::WavSpec {
@@ -64,11 +70,11 @@ mod hound {
         }
     }
 
-    /// Creates a song with a given duration, writing down each sample as it comes. The duration of the
-    /// file is exact to the sample.
+    /// Creates a song with a given duration, writing down each sample as it comes. The duration of
+    /// the file is exactly rounded down to the sample.
     ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
-    /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
+    /// returns [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
     ///
     /// See the `examples` folder for example creations.
     ///
@@ -95,8 +101,8 @@ mod hound {
 
     /// A convenience function to [`create`] a song from a given signal.
     ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
-    /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
+    /// returns [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
     ///
     /// ## Errors
     ///
