@@ -240,6 +240,18 @@ impl<A: Audio> Buffer<A> {
     pub const fn new() -> Self {
         Self::from_data(Vec::new())
     }
+
+    /// Converts `self` into a `BufRef`.
+    #[must_use]
+    pub fn buf_ref(&self) -> BufRef<A> {
+        BufRef::new(&self.data)
+    }
+
+    /// Converts `self` into a `BufMut`.
+    #[must_use]
+    pub fn buf_mut(&mut self) -> BufMut<A> {
+        BufMut::new(&mut self.data)
+    }
 }
 
 impl<A: Audio> FromIterator<A> for Buffer<A> {
