@@ -1,4 +1,4 @@
-//! Generative ambient music.
+//! A wall of generative ambient synth noise.
 //!
 //! Layering multiple notes like this leads to interesting emergent effects, such as constructive
 //! and destructive interference, and beating from the [septimal
@@ -83,18 +83,18 @@ fn main() {
             poly.stop(&index);
             index += 1;
 
-            // Changes the frequency randomly.
-            freq *= MULTS[rand::thread_rng().gen_range(0..MULTS.len())];
-
-            // Clamps the frequency between two octaves.
-            if freq >= 2.0 * base {
-                freq /= 2.0;
-            } else if freq <= base / 2.0 {
-                freq *= 2.0;
-            }
-
             // Plays a new note, as long as the song isn't about to end.
             if index < NOTE_COUNT {
+                // Changes the frequency randomly.
+                freq *= MULTS[rand::thread_rng().gen_range(0..MULTS.len())];
+
+                // Clamps the frequency between two octaves.
+                if freq >= 2.0 * base {
+                    freq /= 2.0;
+                } else if freq <= base / 2.0 {
+                    freq *= 2.0;
+                }
+
                 poly.add(index, osc(freq, rand::thread_rng().gen()));
             }
         }),

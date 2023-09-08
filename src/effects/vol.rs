@@ -36,7 +36,7 @@ impl Vol {
 
     /// Linearly converts MIDI velocity into gain.
     ///
-    /// This is not necessarly the best way to interpret MIDI velocity, but it is the simplest.
+    /// This is not necessarily the best way to interpret MIDI velocity, but it is the simplest.
     #[cfg(feature = "midly")]
     #[must_use]
     pub fn new_vel(vel: midly::num::u7) -> Self {

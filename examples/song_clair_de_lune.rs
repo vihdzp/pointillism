@@ -1,4 +1,8 @@
-//! Loads and plays a MIDI file.
+//! A cover of Claude Debussy's
+//! [https://en.wikipedia.org/wiki/Suite_bergamasque#3._Clair_de_lune](Clair de Lune).
+//!
+//! We load a [MIDI file](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1778), give it our
+//! own instrumentation, and export it.
 
 #[cfg(feature = "midly")]
 fn main() {
@@ -10,12 +14,12 @@ fn main() {
     // Soft triangle waves with a piano-like envelope.
     let main_release = Time::from_sec_default(0.3);
     let main_func = |data: MidiNoteData| {
-        // Add a bit of octave stretching just for fun.
-        let mut raw = RawFreq::new_midi((data.key - 1.into()).into());
-        raw.hz = raw.hz.powf(1.01);
+        // Add a bit of octave compression just for fun.
+        let mut raw = RawFreq::new_midi(data.key.into()).bend(0.5);
+        raw.hz = raw.hz.powf(0.995);
 
         AdsrEnvelope::new_adsr(
-            LoopGen::<Stereo, _>::new(Tri, Freq::from_raw_default(raw)),
+            LoopGen::<Stereo, _>::new(Morph::half(Sin, Tri), Freq::from_raw_default(raw)),
             Time::from_sec_default(0.05),
             Time::from_sec_default(2.5),
             Vol::ZERO,
@@ -39,7 +43,6 @@ fn main() {
         )
     };
 
-    // https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1778
     let mut tracks = midly::parse(include_bytes!("clair_de_lune.mid")).unwrap().1;
 
     // The first track is empty.

@@ -18,8 +18,8 @@
 //! and the output is a [`Sample`](crate::prelude::Sample). One can create a sample curve from a
 //! plain curve by using [`CurvePlayer`](crate::prelude::CurvePlayer).
 
-pub mod interpolate;
 pub mod buffer;
+pub mod interpolate;
 
 use crate::{
     map::{Comp, Map},
@@ -444,5 +444,49 @@ impl Map for SawTri {
 
     fn eval(&self, x: Val) -> f64 {
         saw_tri(x.inner(), self.shape)
+    }
+}
+
+/// Linearly morph between two curves.
+///
+/// Take note of [phase cancellation](https://en.wikipedia.org/wiki/Wave_interference)! Adding two
+/// waves won't always result in an "average" sound.
+pub struct Morph<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> {
+    /// The first curve.
+    pub fst: C,
+    /// The second curve.
+    pub snd: D,
+    /// The morph amount.
+    pub morph: Val,
+}
+
+impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Morph<C, D> {
+    /// Morphs between two curves.
+    pub const fn new(fst: C, snd: D, morph: Val) -> Self {
+        Self { fst, snd, morph }
+    }
+
+    /// A morph that starts at the first curve.
+    pub const fn fst(fst: C, snd: D) -> Self {
+        Self::new(fst, snd, Val::ZERO)
+    }
+
+    /// A morph that's halfway between both curves.
+    pub const fn half(fst: C, snd: D) -> Self {
+        Self::new(fst, snd, Val::HALF)
+    }
+
+    /// A morph that starts at the second curve.
+    pub const fn snd(fst: C, snd: D) -> Self {
+        Self::new(fst, snd, Val::ONE)
+    }
+}
+
+impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Map for Morph<C, D> {
+    type Input = Val;
+    type Output = f64;
+
+    fn eval(&self, x: Self::Input) -> Self::Output {
+        self::interpolate::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
     }
 }

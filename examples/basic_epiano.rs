@@ -1,7 +1,6 @@
 //! Creates a basic electric piano synth, plays a major chord.
 //!
-//! Adapted from
-//! <https://docs.rs/twang/latest/twang/index.html#a3-220-hz-minor-piano-example>.
+//! Adapted from <https://docs.rs/twang/latest/twang/index.html#a3-220-hz-minor-piano-example>.
 
 use pointillism::prelude::*;
 use rand::Rng;
@@ -14,8 +13,7 @@ const HARMONICS: [f64; 10] = [
     0.700, 0.243, 0.229, 0.095, 0.139, 0.087, 0.288, 0.199, 0.124, 0.090,
 ];
 
-/// A custom electric piano signal, created from a bunch of sine wave
-/// oscillators.
+/// A custom electric piano signal, created from a bunch of sine wave oscillators.
 #[derive(Default)]
 pub struct EPiano {
     /// Oscillators at the fundamental frequency, twice that, etc.
@@ -46,8 +44,7 @@ impl EPiano {
 impl Signal for EPiano {
     type Sample = Mono;
 
-    /// Adds up the values from the inner oscillators, rescaled by the harmonic
-    /// volumes.
+    /// Adds up the values from the inner oscillators, rescaled by the harmonic volumes.
     fn get(&self) -> Mono {
         self.oscs
             .iter()

@@ -3,6 +3,79 @@
 //! We define the [`MelodySeq`] and [`MelodyLoop`] structures, which play a [`Melody`] from start to
 //! finish, or in a loop. A [`Melody`] can be defined from an (unordered) list of [`Notes`](Note) in
 //! the obvious way.
+//!
+//! ## Example
+//!
+//! We load "Twinkle Twinkle Little Star" as a melody, and play it on a simple synth.
+//!
+//! ```
+//! // Project sample rate.
+//! const SAMPLE_RATE: SampleRate = SampleRate::CD;
+//!
+//! // A quarter note.
+//! let q = Time::from_sec(0.5, SAMPLE_RATE).floor();
+//! // The loop length.
+//! let length = 16u8 * q;
+//! // Release time for each note.
+//! let release = q;
+//!
+//! // The notes that make up the melody.
+//! let notes = [
+//!     Note::new(Time::ZERO, q, RawFreq::C3),     // Twin-
+//!     Note::new(q, q, RawFreq::C3),              // kle
+//!     Note::new(2u8 * q, q, RawFreq::G3),        // Twin-
+//!     Note::new(3u8 * q, q, RawFreq::G3),        // kle
+//!     Note::new(4u8 * q, q, RawFreq::A3),        // Li-
+//!     Note::new(5u8 * q, q, RawFreq::A3),        // ttle
+//!     Note::new(6u8 * q, 2u8 * q, RawFreq::G3),  // star,
+//!     Note::new(8u8 * q, q, RawFreq::F3),        // How
+//!     Note::new(9u8 * q, q, RawFreq::F3),        // I
+//!     Note::new(10u8 * q, q, RawFreq::E3),       // won-
+//!     Note::new(11u8 * q, q, RawFreq::E3),       // der
+//!     Note::new(12u8 * q, q, RawFreq::D3),       // what
+//!     Note::new(13u8 * q, q, RawFreq::D3),       // you
+//!     Note::new(14u8 * q, 2u8 * q, RawFreq::C3), // are.
+//!     Note::new(14u8 * q, 2u8 * q, RawFreq::G3),
+//! ]
+//! .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)));
+//!
+//! // Each note is a triangle wave, with a simple ADSR envelope, playing the corresponding note.
+//! let func = |freq: Freq| {
+//!     AdsrEnvelope::new_adsr(
+//!         LoopGen::<Mono, _>::new(Tri, freq),
+//!         Time::from_sec(0.1, SAMPLE_RATE),
+//!         q,
+//!         Vol::new(0.2),
+//!         release,
+//!     )
+//! };
+//!
+//! let melody = Melody::piano_roll(notes, |idx| idx as u8);
+//! let mut melody_loop = MelodyLoop::new_melody(melody, FnWrapper::new(func));
+//! let mut timer = Timer::new(2u8 * length);
+//!
+//! // We play the melody twice.
+//! pointillism::create(
+//!     "examples/twinkle.wav",
+//!     2u8 * length + release,
+//!     SAMPLE_RATE,
+//!     |time| {
+//!         // After the melody has been played twice, stop all voices.
+//!         if timer.tick(time) {
+//!             melody_loop.sgn_mut().stop_all();
+//!         }
+//!
+//!         0.5 * if time < 2u8 * length {
+//!             // Play as usual.
+//!             melody_loop.next()
+//!         } else {
+//!             // Stop the loop, just play the inner fading signal instead.
+//!             melody_loop.sgn_mut().next()
+//!         }
+//!     },
+//! )
+//! .expect("IO error!");
+//! ```
 
 use crate::prelude::*;
 use std::hash::Hash;
@@ -105,7 +178,8 @@ impl<D: Clone> Note<D> {
 /// - The key can be converted into a [`RawFreq`] using `RawFreq::new_midi(key.into())`, and this
 ///   can be then converted into [`Freq`] in the standard ways.
 /// - Velocity can be used to attenuate or otherwise modify the sound. This mapping is not specified
-///   in the MIDI specification, but an obvious choice is to use [`Vol::new_vel`].
+///   in the MIDI specification, and you can use whatever you want (or nothing at all), but an
+///   obvious choice is to use [`Vol::new_vel`].
 /// - The channel can optionally be used to switch between different instruments or sounds.
 #[derive(Clone, Copy, Debug)]
 #[cfg(feature = "midly")]
@@ -229,6 +303,7 @@ pub type MelodyLoop<K, D, F> = Loop<Polyphony<K, <F as Map>::Output>, NoteReader
 /// Alternatively, you can provide an (unordered) list of [`Notes`](Note) through
 /// [`Self::piano_roll`] or [`Self::piano_roll_loop`]. This is slower but resembles the
 /// functionality of a piano roll much more closely.
+#[derive(Clone, Debug)]
 pub struct Melody<K: Eq + Hash + Clone, D: Clone> {
     /// Times between successive note events.
     pub times: Vec<Time>,
@@ -301,8 +376,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
     /// - A function that casts the note indices into their keys.
     ///
     /// This is somewhat expensive to initialize, but is the easiest way to build a complex melody.
-    /// Alternatively, you can input the raw [`NoteEvents`](NoteEvent) by using
-    /// [`Self::new_melody`].
+    /// Alternatively, you can input the raw [`NoteEvents`](NoteEvent) by using [`Self::new`].
     ///
     /// Each note should be done before the loop returns to the note's start position, or it will
     /// get cut off by itself. Moreover, if the length of a non-trailing note is longer than the
@@ -362,7 +436,7 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     /// Builds a melody from a MIDI file.
     ///
     /// If used in a [`MelodyLoop`], the melody will immediately start from the beginning after the
-    /// very last note stops. If this isn't what you want, use [`Self::midi_loop`] instead.
+    /// very last note stops. If this isn't what you want, use [`Self::from_midi_loop`] instead.
     ///
     /// ## Errors
     ///

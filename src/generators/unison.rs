@@ -387,7 +387,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>> D
 ///         unison.advance();
 ///         sgn * SCALE
 ///     })
-///     .unwrap();
+///     .expect("IO error!");
 /// }
 /// ```
 pub struct UnisonRef<'a, C: Map<Input = Val>>

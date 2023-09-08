@@ -81,6 +81,28 @@ mod with_hound {
     /// ## Errors
     ///
     /// This should only return an error in case of an IO error.
+    ///
+    /// ## Example
+    /// 
+    /// We make the most basic song possible: a single sine wave.
+    ///
+    /// ```
+    /// # use pointillism::prelude::*;
+    /// // Project sample rate.
+    /// const SAMPLE_RATE: SampleRate = SampleRate::CD;
+    ///
+    /// // File duration.
+    /// let length = Time::from_sec(1.0, SAMPLE_RATE);
+    /// // Sine wave frequency.
+    /// let freq = Freq::from_hz(440.0, SAMPLE_RATE);
+    ///
+    /// // We create a mono signal that loops through a sine curve at the specified frequency.
+    /// let mut sgn = LoopGen::<Mono, _>::new(Sin, freq);
+    ///
+    /// // Export to file.
+    /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
+    ///     .expect("IO error");
+    /// ```
     pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
         filename: P,
         length: Time,
@@ -107,6 +129,10 @@ mod with_hound {
     /// ## Errors
     ///
     /// This should only return an error in case of an IO error.
+    /// 
+    /// ## Example
+    /// 
+    /// For an example, see [`create`].
     pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
         filename: P,
         length: Time,
