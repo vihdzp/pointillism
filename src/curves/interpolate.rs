@@ -1,15 +1,8 @@
-//! Implements functions for interpolating between samples
+//! Implements functions for interpolating between samples.
+//!
+//! The main trait defined in this file is [`Interpolate`]. See the docs there for more information.
 
 use crate::prelude::*;
-
-/// Returns the integer and fractional part of a positive float.
-fn int_frac(value: f64) -> (usize, Val) {
-    // No truncation should occur under normal circumstances. Moreover, `val` should always be
-    // nonnegative.
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    (value.floor() as usize, Val::fract(value))
-}
 
 /// Linearly interpolates two samples `x0` and `x1`.
 pub fn linear<S: SampleLike>(x0: S, x1: S, t: Val) -> S {
@@ -210,23 +203,25 @@ fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usi
 
         // The hope here is that the compiler can optimize away redundant writes.
         2 => {
-            load_gen(buf, sgn.next());
-            load_gen(buf, sgn.next());
+            for _ in 0..2 {
+                load_gen(buf, sgn.next());
+            }
         }
         3 => {
-            load_gen(buf, sgn.next());
-            load_gen(buf, sgn.next());
-            load_gen(buf, sgn.next());
+            for _ in 0..3 {
+                load_gen(buf, sgn.next());
+            }
         }
 
         count => {
             for _ in 0..(count - 4) {
                 sgn.advance();
             }
-            buf[0] = sgn.next();
-            buf[1] = sgn.next();
-            buf[2] = sgn.next();
-            buf[3] = sgn.next();
+
+            // `as_mut` is not needed, but stops `rust-analyzer` from (erroneously) complaining.
+            for i in 0..4 {
+                buf.as_mut()[i] = sgn.next();
+            }
         }
     }
 }
@@ -419,9 +414,17 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> 
 
 impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, I> {
     fn advance(&mut self) {
-        let (count, new_val) = int_frac(self.val.inner() + self.factor);
+        // The next position to read.
+        let pos = self.val.inner() + self.factor;
+
+        // The integer and fractional part of this position.
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let count = pos.floor() as usize;
+        let val = Val::fract(pos);
+
         self.inter.load_many(&mut self.sgn, count);
-        self.val = new_val;
+        self.val = val;
     }
 
     fn retrigger(&mut self) {

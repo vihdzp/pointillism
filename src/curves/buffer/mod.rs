@@ -222,6 +222,7 @@ impl<'a, A: Audio> BufMut<'a, A> {
     /// Converts `self` into a `BufRef`.
     ///
     /// Notes that this consumes the buffer, as mutable aliasing is prohibited.
+    #[must_use]
     pub const fn buf_ref(self) -> BufRef<'a, A> {
         BufRef::new(self.data)
     }

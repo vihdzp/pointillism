@@ -57,7 +57,7 @@ pub fn sgn(x: f64) -> f64 {
 /// Methods that require [`hound`].
 #[cfg(feature = "hound")]
 mod with_hound {
-    use super::*;
+    use crate::prelude::*;
 
     /// The [specification](hound::WavSpec) for the output file.
     #[must_use]
