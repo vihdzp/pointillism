@@ -404,13 +404,23 @@ impl<S: Frequency> Arpeggio<S> {
         Self::new(times, sgn, Arp::new(notes))
     }
 
-    /// Returns a reference to the arpeggiated notes.
+    /// Returns a reference to the [`Arp`].
     pub const fn arp(&self) -> &Arp {
         self.func()
     }
 
-    /// Returns a mutable reference to the arpeggiated notes.
+    /// Returns a mutable reference to the [`Arp`].
     pub fn arp_mut(&mut self) -> &mut Arp {
         self.func_mut()
+    }
+
+    /// Returns a reference to the notes.
+    pub fn notes(&self) -> &[Freq] {
+        &self.arp().notes
+    }
+
+    /// Returns a mutable reference to the notes.
+    pub fn notes_mut(&mut self) -> &mut [Freq] {
+        &mut self.arp_mut().notes
     }
 }

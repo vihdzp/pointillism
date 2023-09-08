@@ -9,6 +9,7 @@
 //! We load "Twinkle Twinkle Little Star" as a melody, and play it on a simple synth.
 //!
 //! ```
+//! # use pointillism::prelude::*;
 //! // Project sample rate.
 //! const SAMPLE_RATE: SampleRate = SampleRate::CD;
 //!

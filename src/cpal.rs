@@ -3,12 +3,14 @@
 //! You can use the methods in this file in order to play a song in real time.
 //!
 //! ## Example
-//! 
+//!
 //! This example is adapted from the [`cpal`] docs.
 //!
 //! ```
 //! # use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 //! # use pointillism::prelude::*;
+//! # // This example won't work on GitHub actions!
+//! # #[cfg(not(feature = "github-actions-hack"))] {
 //! // Set up the host and device.
 //! let host = cpal::default_host();
 //! let device = host
@@ -49,6 +51,7 @@
 //!
 //! // Make sure we don't exit before the file ends playing.
 //! std::thread::sleep(duration);
+//! # }
 //! ```
 
 use cpal::{traits::DeviceTrait, StreamConfig};

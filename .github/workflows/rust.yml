@@ -19,12 +19,12 @@ jobs:
 
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose -F github-actions
+      run: cargo build --verbose -F github-actions-all-features
     - name: Build w/o features
       run: cargo build --verbose --no-default-features -F github-actions-hack
     - name: Test documentation
-      run: cargo doc --examples --verbose -F github-actions
+      run: cargo doc --examples --verbose -F github-actions-all-features
     - name: Run tests
-      run: cargo test --verbose -F github-actions
+      run: cargo test --verbose -F github-actions-all-features
     - name: Lint
-      run: cargo clippy --examples --verbose -F github-actions
+      run: cargo clippy --examples --verbose -F github-actions-all-features

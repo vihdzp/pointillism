@@ -16,7 +16,7 @@
 //! We load a buffer from a file, and read it back slower.
 //!
 //! ```
-//! # use crate::prelude::*;
+//! # use pointillism::prelude::*;
 //! const FILENAME: &str = "examples/buffer.wav";
 //!
 //! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
@@ -24,7 +24,7 @@
 //!     FILENAME,
 //!     Time::from_raw_default(RawTime::SEC),
 //!     SampleRate::default(),
-//!     LoopGen::<Mono, Sin>::default(),
+//!     &mut LoopGen::<Mono, Sin>::default(),
 //! )
 //! .expect("IO error!");
 //!
@@ -36,8 +36,8 @@
 //! let time = buf_sgn.buffer().time();
 //!
 //! // We can change the interpolation method here.
-//! let sgn = Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-//! pointillism::create_from_sgn(FILENAME, time * FACTOR, SAMPLE_RATE, sgn).unwrap();
+//! let mut sgn = Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
+//! pointillism::create_from_sgn(FILENAME, time * FACTOR, SampleRate::default(), &mut sgn).unwrap();
 //! ```
 
 use crate::{prelude::*, sample::WavSample};

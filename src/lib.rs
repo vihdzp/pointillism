@@ -83,7 +83,7 @@ mod with_hound {
     /// This should only return an error in case of an IO error.
     ///
     /// ## Example
-    /// 
+    ///
     /// We make the most basic song possible: a single sine wave.
     ///
     /// ```
@@ -129,9 +129,9 @@ mod with_hound {
     /// ## Errors
     ///
     /// This should only return an error in case of an IO error.
-    /// 
+    ///
     /// ## Example
-    /// 
+    ///
     /// For an example, see [`create`].
     pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
         filename: P,
