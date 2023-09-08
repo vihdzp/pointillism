@@ -32,8 +32,7 @@ fn main() {
         Note::new(14u8 * q, 2u8 * q, RawFreq::C3),
         Note::new(14u8 * q, 2u8 * q, RawFreq::G3),
     ]
-    .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)))
-    .to_vec();
+    .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)));
 
     // We randomly bend each note a little, just for fun.
     const BEND: f64 = 3.0;
@@ -50,7 +49,8 @@ fn main() {
         )
     };
 
-    let mut melody = MelodyLoop::piano_roll(notes, length, FnWrapper::new(func), |idx| idx as u8);
+    let melody = Melody::piano_roll(notes, |idx| idx as u8);
+    let mut melody_loop = MelodyLoop::new_melody(melody, FnWrapper::new(func));
     let mut timer = Timer::new(2u8 * length);
 
     // We play the melody twice.
@@ -61,15 +61,15 @@ fn main() {
         |time| {
             // After the melody has been played twice, stop all voices.
             if timer.tick(time) {
-                melody.sgn_mut().stop_all();
+                melody_loop.sgn_mut().stop_all();
             }
 
             0.5 * if time < 2u8 * length {
                 // Play as usual.
-                melody.next()
+                melody_loop.next()
             } else {
                 // Stop the loop, just play the inner fading signal instead.
-                melody.sgn_mut().next()
+                melody_loop.sgn_mut().next()
             }
         },
     )

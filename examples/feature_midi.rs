@@ -51,10 +51,14 @@ fn main() {
     // There will not be more than 256 notes playing at once.
     let idx_cast = |idx: usize| idx as u8;
 
-    let mut main_melody =
-        MelodySeq::from_midi(main_track, tick_time, FnWrapper::new(main_func), idx_cast).unwrap();
-    let mut bass_melody =
-        MelodySeq::from_midi(bass_track, tick_time, FnWrapper::new(bass_func), idx_cast).unwrap();
+    let mut main_melody = MelodySeq::new_melody(
+        Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
+        FnWrapper::new(main_func),
+    );
+    let mut bass_melody = MelodySeq::new_melody(
+        Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
+        FnWrapper::new(bass_func),
+    );
 
     // Length of the file.
     let length =

@@ -276,9 +276,13 @@ impl<A: Audio> Buffer<A> {
     /// Creates a buffer from the output of a song.
     ///
     /// Compare to [`crate::create`].
+    ///
+    /// ## Panics
+    ///
+    /// Panics if a buffer of this size can't be created.
     pub fn create<F: FnMut(Time) -> A>(length: Time, mut song: F) -> Self {
         let length = length.samples.int();
-        let mut data = Vec::with_capacity(length as usize);
+        let mut data = Vec::with_capacity(usize::try_from(length).expect("buffer too large"));
 
         let mut time = Time::ZERO;
         for _ in 0..length {
@@ -292,6 +296,10 @@ impl<A: Audio> Buffer<A> {
     /// Creates a buffer from the output of a signal. The signal is not consumed.
     ///
     /// Compare to [`crate::create_from_sgn`].
+    ///
+    /// ## Panics
+    ///
+    /// Panics if a buffer of this size can't be created.
     pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: Time, sgn: &mut S) -> Self {
         Self::create(length, |_| sgn.next())
     }

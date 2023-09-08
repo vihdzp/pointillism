@@ -1,5 +1,5 @@
-//! Declares the [`Polyphony`] struct, which allows for multiple signals of the
-//! same type to play at the same time.
+//! Declares the [`Polyphony`] struct, which allows for multiple signals of the same type to play at
+//! the same time.
 
 use std::{collections::HashMap, hash::Hash};
 
@@ -8,7 +8,7 @@ use crate::prelude::*;
 /// A polyphonic signal.
 ///
 /// This stores multiple instances of a signal `S`, which can be added and stopped. Signals are
-/// internally removed as they are done, to save processing power.
+/// internally removed as they are [`Done`], to save processing power.
 ///
 /// We currently use a [`HashMap`] to store these signals, but this is subject to change. Likewise,
 /// the exact trait requirements on `K` may change in the future, although unsigned integers and the

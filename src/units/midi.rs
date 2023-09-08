@@ -33,6 +33,7 @@ impl Default for MidiNote {
     }
 }
 
+/// Converts a MIDI key value into a [`MidiNote`].
 #[cfg(feature = "midly")]
 impl From<midly::num::u7> for MidiNote {
     fn from(value: midly::num::u7) -> Self {

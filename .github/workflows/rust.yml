@@ -17,12 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose --features github-actions-hack
+      run: cargo build --verbose --all-features
     - name: Build w/o features
       run: cargo build --verbose --no-default-features --features github-actions-hack
-    - name: Build documentation
-      run: cargo doc --examples --verbose --features github-actions-hack
+    - name: Test documentation
+      run: cargo doc --examples --verbose --all-features
     - name: Run tests
-      run: cargo test --verbose --features github-actions-hack
+      run: cargo test --verbose --all-features
     - name: Lint
-      run: cargo clippy --examples --verbose --features github-actions-hack
+      run: cargo clippy --examples --verbose --all-features

@@ -34,6 +34,15 @@ impl Vol {
         Self::new(10f64.powf(db / 20.0))
     }
 
+    /// Linearly converts MIDI velocity into gain.
+    ///
+    /// This is not necessarly the best way to interpret MIDI velocity, but it is the simplest.
+    #[cfg(feature = "midly")]
+    #[must_use]
+    pub fn new_vel(vel: midly::num::u7) -> Self {
+        Self::new(f64::from(vel.as_int()) / 127.0)
+    }
+
     /// The gain in decibels.
     #[must_use]
     pub fn db(&self) -> f64 {

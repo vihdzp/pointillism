@@ -12,7 +12,7 @@ pub use raw::RawTime;
 /// A time, measured in **samples**.
 ///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
-/// [`SampleRate`].
+/// [`SampleRate`]. See [`Self::from_raw`].
 ///
 /// ## Inner representation
 ///

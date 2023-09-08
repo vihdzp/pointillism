@@ -24,7 +24,7 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 /// A frequency, measured in **inverse samples**.
 ///
 /// Note that in order to convert between a [`RawFreq`] in hertz and this type, you must know the
-/// [`SampleRate`].
+/// [`SampleRate`]. See [`Self::from_raw`].
 ///
 /// ## Type invariant checking
 ///
