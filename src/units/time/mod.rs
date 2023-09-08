@@ -20,7 +20,7 @@ pub use raw::RawTime;
 /// digits, plus 16 digits after the decimal point.
 ///
 /// This gives us the best of both worlds regarding floating point and integer accuracy. We can add
-/// together a few [`Time`] variables with minimal loss of precision (as in an
+/// together a few [`Time`] variables with minimal loss of accuracy (as in an
 /// [`Adsr`](crate::prelude::Adsr) or a [`Sequence`](crate::prelude::Sequence)), but we can still
 /// keep exact track of an integral number of samples. Crucially, **incrementing time by one sample
 /// causes no loss of precision**.

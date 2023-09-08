@@ -291,7 +291,7 @@ impl<A: Audio> Buffer<A> {
 
     /// Creates a buffer from the output of a signal. The signal is not consumed.
     ///
-    /// Compare to [`crate::create`].
+    /// Compare to [`crate::create_from_sgn`].
     pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: Time, sgn: &mut S) -> Self {
         Self::create(length, |_| sgn.next())
     }
