@@ -50,7 +50,7 @@ The project uses the following features:
 | [`midly`](https://docs.rs/midly/latest/midly/) | Reading and playing back MIDI files. |
 | [`human-duration`](https://docs.rs/human-duration/latest/human_duration/)* | Pretty-printing for the [`RawTime`] type. |
 
-* Features marked with an asterisk are enabled by default.
+\* Features marked with an asterisk are enabled by default.
 
 ## Versions
 

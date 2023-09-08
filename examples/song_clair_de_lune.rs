@@ -12,8 +12,8 @@ fn main() {
     let tick_time = Time::from_sec_default(2.2e-3);
 
     // Soft triangle waves with a piano-like envelope.
-    let main_release = Time::from_sec_default(0.3);
-    let main_func = |data: MidiNoteData| {
+    let release = Time::from_sec_default(0.3);
+    let func = |data: MidiNoteData| {
         // Add a bit of octave compression just for fun.
         let mut raw = RawFreq::new_midi(data.key.into()).bend(0.5);
         raw.hz = raw.hz.powf(0.995);
@@ -23,23 +23,7 @@ fn main() {
             Time::from_sec_default(0.05),
             Time::from_sec_default(2.5),
             Vol::ZERO,
-            main_release,
-        )
-    };
-
-    // A nice sine bass.
-    let bass_release = Time::from_sec_default(1.0);
-    let bass_func = |data: MidiNoteData| {
-        // Add a bit of octave stretching just for fun.
-        let mut raw = RawFreq::new_midi((data.key - 1.into()).into());
-        raw.hz = raw.hz.powf(1.01);
-
-        AdsrEnvelope::new_adsr(
-            LoopGen::<Stereo, _>::new(Sin, Freq::from_raw_default(raw)),
-            Time::from_sec_default(0.2),
-            Time::from_sec_default(2.0),
-            Vol::HALF,
-            bass_release,
+            release,
         )
     };
 
@@ -56,16 +40,15 @@ fn main() {
 
     let mut main_melody = MelodySeq::new_melody(
         Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
-        FnWrapper::new(main_func),
+        FnWrapper::new(func),
     );
     let mut bass_melody = MelodySeq::new_melody(
         Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
-        FnWrapper::new(bass_func),
+        FnWrapper::new(func),
     );
 
     // Length of the file.
-    let length =
-        main_melody.total_time().max(bass_melody.total_time()) + main_release.max(bass_release);
+    let length = main_melody.total_time() + release;
 
     pointillism::create(
         "examples/clair_de_lune.wav",
