@@ -99,7 +99,7 @@ mod with_hound {
         writer.finalize()
     }
 
-    /// A convenience function to [`create`] a song from a given signal.
+    /// A convenience function to [`create`] a song from a given signal. The signal is not consumed.
     ///
     /// The resulting WAV file will be mono or stereo, depending on whether the passed function
     /// returns [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
@@ -111,7 +111,7 @@ mod with_hound {
         filename: P,
         length: Time,
         sample_rate: SampleRate,
-        mut sgn: S,
+        sgn: &mut S,
     ) -> hound::Result<()>
     where
         S::Sample: Audio,

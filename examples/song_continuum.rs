@@ -105,7 +105,7 @@ fn main() {
         NOTE_COUNT_LEN * note_len,
         SampleRate::default(),
         // 10.0 might be too much, but just to be safe from clipping.
-        Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
+        &mut Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
     )
     .unwrap();
 }

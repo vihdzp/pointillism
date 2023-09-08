@@ -1,5 +1,9 @@
 //! Defines different types for audio buffers.
 //!
+//! You can load a buffer from a WAV file (if the `hound` feature is enabled), or you can create
+//! your own buffer and write a signal into it, to then read it back. This can be useful if you want
+//! to loop an expensive to compute signal, for instance.
+//!
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
 
@@ -106,6 +110,22 @@ pub trait BufMutTrait:
     /// Gets a mutable reference to a sample at a given index.
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Item> {
         self.as_mut().get_mut(index)
+    }
+
+    /// Overwrites a buffer with the output from a song.
+    ///
+    /// The timer starts at zero.
+    fn overwrite<F: FnMut(Time) -> Self::Item>(&mut self, mut song: F) {
+        let mut time = Time::ZERO;
+        for sample in self.as_mut() {
+            *sample = song(time);
+            time.advance();
+        }
+    }
+
+    /// Overwrites a buffer with the output from a signal. The signal is not consumed.
+    fn overwrite_from_sgn<S: SignalMut<Sample = Self::Item>>(&mut self, sgn: &mut S) {
+        self.overwrite(|_| sgn.next());
     }
 }
 
@@ -251,6 +271,29 @@ impl<A: Audio> Buffer<A> {
     #[must_use]
     pub fn buf_mut(&mut self) -> BufMut<A> {
         BufMut::new(&mut self.data)
+    }
+
+    /// Creates a buffer from the output of a song.
+    ///
+    /// Compare to [`crate::create`].
+    pub fn create<F: FnMut(Time) -> A>(length: Time, mut song: F) -> Self {
+        let length = length.samples.int();
+        let mut data = Vec::with_capacity(length as usize);
+
+        let mut time = Time::ZERO;
+        for _ in 0..length {
+            data.push(song(time));
+            time.advance();
+        }
+
+        Self::from_data(data)
+    }
+
+    /// Creates a buffer from the output of a signal. The signal is not consumed.
+    ///
+    /// Compare to [`crate::create`].
+    pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: Time, sgn: &mut S) -> Self {
+        Self::create(length, |_| sgn.next())
     }
 }
 

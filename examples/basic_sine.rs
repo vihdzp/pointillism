@@ -12,8 +12,8 @@ fn main() {
     let freq = Freq::from_hz(440.0, SAMPLE_RATE);
 
     // We create a mono signal that loops through a sine curve at the specified frequency.
-    let sgn = LoopGen::<Mono, _>::new(Sin, freq);
+    let mut sgn = LoopGen::<Mono, _>::new(Sin, freq);
 
     // Export to file.
-    pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, sgn).unwrap();
+    pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn).unwrap();
 }
