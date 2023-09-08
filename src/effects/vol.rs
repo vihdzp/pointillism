@@ -6,9 +6,9 @@ use crate::prelude::*;
 
 /// Represents the gain of some signal.
 ///
-/// This also implements the [`Map`] trait, thus doubling as a function that
-/// multiplies the volume of a signal.
-#[derive(Clone, Copy, Debug)]
+/// This also implements the [`Map`] trait, thus doubling as a function that multiplies the volume
+/// of a signal.
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Vol {
     /// Gain factor.
     pub gain: f64,

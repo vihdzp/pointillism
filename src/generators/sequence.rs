@@ -21,17 +21,6 @@ use midly::num::{u4, u7};
 use crate::prelude::*;
 use std::hash::Hash;
 
-/// Increments a value in `0..len` by one, and wraps it around.
-///
-/// This should be marginally more efficient than `index = (index + 1) % len`, as it avoids the more
-/// costly modulo operation.
-fn mod_advance(len: usize, index: &mut usize) {
-    *index += 1;
-    if *index == len {
-        *index = 0;
-    }
-}
-
 /// Changes a signal according to a specified function, at specified times.
 ///
 /// See the [module docs](self) for more information.
@@ -280,7 +269,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     pub fn skip(&mut self) {
         self.seq.since = Time::ZERO;
         self.modify();
-        mod_advance(self.len(), &mut self.seq.index);
+        crate::mod_inc(self.len(), &mut self.seq.index);
     }
 
     /// The total time this loop takes to complete.
@@ -356,7 +345,7 @@ impl Arp {
 impl<S: Frequency> Mut<S> for Arp {
     fn modify(&mut self, sgn: &mut S) {
         *sgn.freq_mut() = self.current();
-        mod_advance(self.len(), &mut self.index);
+        crate::mod_inc(self.len(), &mut self.index);
     }
 }
 
@@ -559,7 +548,7 @@ where
             NoteEvent::Skip => {}
         }
 
-        mod_advance(self.len(), &mut self.index);
+        crate::mod_inc(self.len(), &mut self.index);
     }
 }
 

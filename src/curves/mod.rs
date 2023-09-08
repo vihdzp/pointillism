@@ -19,8 +19,6 @@
 //! plain curve by using [`CurvePlayer`](crate::prelude::CurvePlayer).
 
 pub mod interpolate;
-
-#[cfg(feature = "hound")]
 pub mod buffer;
 
 use crate::{

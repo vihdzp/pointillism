@@ -22,7 +22,19 @@ pub mod units;
 pub mod cpal;
 
 #[cfg(feature = "hound")]
-use prelude::*;
+use prelude::{Audio, SampleRate, SignalMut, Time};
+
+/// Increments a value in `0..len` by one, and wraps it around.
+///
+/// This should be marginally more efficient than `value = (value + 1) % len`, as it avoids the more
+/// costly modulo operation.
+pub(crate) fn mod_inc(len: usize, value: &mut usize) {
+    *value += 1;
+
+    if *value == len {
+        *value = 0;
+    }
+}
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[must_use]
@@ -38,7 +50,8 @@ pub fn sgn(x: f64) -> f64 {
 
 /// The specification for the output file.
 #[cfg(feature = "hound")]
-const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
+#[must_use]
+pub const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
     hound::WavSpec {
         channels: channels as u16,
         sample_rate: sample_rate.0,

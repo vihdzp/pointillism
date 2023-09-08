@@ -16,19 +16,90 @@ use std::path::Path;
 use crate::{prelude::*, sample::WavSample};
 
 /// A reader for a WAV file.
+#[cfg(feature = "hound")]
 pub type WavFileReader = hound::WavReader<std::io::BufReader<std::fs::File>>;
+
+/// A trait for some sort of buffer, mutable or not, that stores audio data.
+///
+/// This implements some auxiliary methods to calculate properties of the buffer.
+pub trait BufTrait: AsRef<[Self::Item]> {
+    /// The type of sample stored in the buffer.
+    type Item: Audio;
+
+    /// Returns the sample corresponding to peak amplitude on all channels.
+    #[must_use]
+    fn peak(&self) -> <Self::Item as ArrayLike>::Array<Vol> {
+        /// Prevent code duplication.
+        fn peak<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<Vol> {
+            let mut res = A::new_default();
+
+            for sample in buf {
+                A::for_each(|index| {
+                    let peak = &mut res[index];
+                    let new = sample[index].abs();
+
+                    if *peak > new {
+                        *peak = new;
+                    }
+                });
+            }
+
+            res.map_array(|&x| Vol::new(x))
+        }
+
+        peak(self.as_ref())
+    }
+
+    /// Calculates the RMS on all channels.
+    #[must_use]
+    fn rms(&self) -> <Self::Item as ArrayLike>::Array<Vol> {
+        /// Prevent code duplication.
+        fn rms<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<Vol> {
+            let mut res: <A as ArrayLike>::Array<f64> = ArrayLike::new_default();
+
+            for sample in buf {
+                A::for_each(|index| {
+                    let new = sample[index];
+                    res[index] += new * new;
+                });
+            }
+
+            // Precision loss should not occur in practice.
+            #[allow(clippy::cast_precision_loss)]
+            A::for_each(|index| {
+                res[index] = (res[index] / buf.len() as f64).sqrt();
+            });
+
+            res.map_array(|&x| Vol::new(x))
+        }
+
+        rms(self.as_ref())
+    }
+}
+
+impl<A: Audio> BufTrait for [A] {
+    type Item = A;
+}
+
+impl<A: Audio> BufTrait for &[A] {
+    type Item = A;
+}
+
+impl<A: Audio> BufTrait for &mut [A] {
+    type Item = A;
+}
 
 /// A sample buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Buffer<S: Sample> {
+pub struct Buffer<A: Audio> {
     /// The data stored by the buffer.
-    data: Vec<S>,
+    data: Vec<A>,
 }
 
-impl<S: Sample> Buffer<S> {
+impl<A: Audio> Buffer<A> {
     /// Initializes a new buffer from data.
     #[must_use]
-    pub const fn from_data(data: Vec<S>) -> Self {
+    pub const fn from_data(data: Vec<A>) -> Self {
         Self { data }
     }
 
@@ -40,12 +111,12 @@ impl<S: Sample> Buffer<S> {
 
     /// Returns the inner slice.    
     #[must_use]
-    pub fn as_slice(&self) -> &[S] {
+    pub fn as_slice(&self) -> &[A] {
         self.data.as_slice()
     }
 
     /// Returns a mutable reference to the inner slice.
-    pub fn as_mut_slice(&mut self) -> &mut [S] {
+    pub fn as_mut_slice(&mut self) -> &mut [A] {
         self.data.as_mut_slice()
     }
 
@@ -69,97 +140,73 @@ impl<S: Sample> Buffer<S> {
 
     /// Gets a sample at a given index.
     #[must_use]
-    pub fn get(&self, index: usize) -> Option<S> {
+    pub fn get(&self, index: usize) -> Option<A> {
         self.data.get(index).copied()
     }
 
     /// Gets a mutable reference to a sample at a given index.
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut S> {
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut A> {
         self.data.get_mut(index)
-    }
-
-    /// Returns the sample corresponding to peak amplitude on all channels.
-    #[must_use]
-    pub fn peak(&self) -> S::Array<Vol> {
-        let mut res = S::Array::new_default();
-
-        for sample in self {
-            S::for_each(|index| {
-                let peak = &mut res[index];
-                let new = sample[index].abs();
-
-                if *peak > new {
-                    *peak = new;
-                }
-            });
-        }
-
-        res.map_array(|&x| Vol::new(x))
-    }
-
-    /// Calculates the RMS on all channels.
-    #[must_use]
-    pub fn rms(&self) -> S::Array<Vol> {
-        let mut res: S::Array<f64> = ArrayLike::new_default();
-
-        for sample in self {
-            S::for_each(|index| {
-                let new = sample[index];
-                res[index] += new * new;
-            });
-        }
-
-        // Precision loss should not occur in practice.
-        #[allow(clippy::cast_precision_loss)]
-        S::for_each(|index| {
-            res[index] = (res[index] / self.len() as f64).sqrt();
-        });
-
-        res.map_array(|&x| Vol::new(x))
     }
 }
 
-impl<S: Sample> std::ops::Index<usize> for Buffer<S> {
-    type Output = S;
+impl<A: Audio> AsRef<[A]> for Buffer<A> {
+    fn as_ref(&self) -> &[A] {
+        self.as_slice()
+    }
+}
+
+impl<A: Audio> AsMut<[A]> for Buffer<A> {
+    fn as_mut(&mut self) -> &mut [A] {
+        self.as_mut_slice()
+    }
+}
+
+impl<A: Audio> BufTrait for Buffer<A> {
+    type Item = A;
+}
+
+impl<A: Audio> std::ops::Index<usize> for Buffer<A> {
+    type Output = A;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.as_slice()[index]
     }
 }
 
-impl<S: Sample> std::ops::IndexMut<usize> for Buffer<S> {
+impl<A: Audio> std::ops::IndexMut<usize> for Buffer<A> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.as_mut_slice()[index]
     }
 }
 
-impl<S: Sample> FromIterator<S> for Buffer<S> {
-    fn from_iter<T: IntoIterator<Item = S>>(iter: T) -> Self {
+impl<A: Audio> FromIterator<A> for Buffer<A> {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self::from_data(FromIterator::from_iter(iter))
     }
 }
 
-impl<S: Sample> IntoIterator for Buffer<S> {
-    type IntoIter = std::vec::IntoIter<S>;
-    type Item = S;
+impl<A: Audio> IntoIterator for Buffer<A> {
+    type IntoIter = std::vec::IntoIter<A>;
+    type Item = A;
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.into_iter()
     }
 }
 
-impl<'a, S: Sample> IntoIterator for &'a Buffer<S> {
-    type IntoIter = std::slice::Iter<'a, S>;
-    type Item = &'a S;
+impl<'a, A: Audio> IntoIterator for &'a Buffer<A> {
+    type IntoIter = std::slice::Iter<'a, A>;
+    type Item = &'a A;
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.iter()
     }
 }
 
-impl<'a, S: Sample> IntoIterator for &'a mut Buffer<S> {
-    type IntoIter = std::slice::IterMut<'a, S>;
-    type Item = &'a mut S;
+impl<'a, A: Audio> IntoIterator for &'a mut Buffer<A> {
+    type IntoIter = std::slice::IterMut<'a, A>;
+    type Item = &'a mut A;
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.iter_mut()
@@ -436,42 +483,42 @@ impl Buffer<Stereo> {
 
 /// A generator that reads through an audio buffer, once.
 #[derive(Clone, Debug)]
-pub struct OnceBufGen<S: Sample> {
+pub struct OnceBufGen<A: Audio> {
     /// The inner buffer.
-    buffer: Buffer<S>,
+    buffer: Buffer<A>,
 
     /// The sample being read.
     index: usize,
 }
 
-impl<S: Sample> OnceBufGen<S> {
+impl<A: Audio> OnceBufGen<A> {
     /// Initializes a new [`OnceBufGen`].
     #[must_use]
-    pub const fn new(buffer: Buffer<S>) -> Self {
+    pub const fn new(buffer: Buffer<A>) -> Self {
         Self { buffer, index: 0 }
     }
 
     /// Returns a reference to the underlying buffer.
     #[must_use]
-    pub const fn buffer(&self) -> &Buffer<S> {
+    pub const fn buffer(&self) -> &Buffer<A> {
         &self.buffer
     }
 
     /// Returns a mutable reference to the underlying buffer.
-    pub fn buffer_mut(&mut self) -> &mut Buffer<S> {
+    pub fn buffer_mut(&mut self) -> &mut Buffer<A> {
         &mut self.buffer
     }
 }
 
-impl<S: Sample> Signal for OnceBufGen<S> {
-    type Sample = S;
+impl<A: Audio> Signal for OnceBufGen<A> {
+    type Sample = A;
 
-    fn get(&self) -> S {
+    fn get(&self) -> A {
         self.buffer().get(self.index).unwrap_or_default()
     }
 }
 
-impl<S: Sample> SignalMut for OnceBufGen<S> {
+impl<A: Audio> SignalMut for OnceBufGen<A> {
     fn advance(&mut self) {
         self.index += 1;
     }
@@ -481,23 +528,23 @@ impl<S: Sample> SignalMut for OnceBufGen<S> {
     }
 }
 
-impl<S: Sample> Base for OnceBufGen<S> {
+impl<A: Audio> Base for OnceBufGen<A> {
     impl_base!();
 }
 
-impl<S: Sample> Stop for OnceBufGen<S> {
+impl<A: Audio> Stop for OnceBufGen<A> {
     fn stop(&mut self) {
         self.index = self.buffer().len();
     }
 }
 
-impl<S: Sample> Done for OnceBufGen<S> {
+impl<A: Audio> Done for OnceBufGen<A> {
     fn is_done(&self) -> bool {
         self.index >= self.buffer().len()
     }
 }
 
-impl<S: Sample> Panic for OnceBufGen<S> {
+impl<A: Audio> Panic for OnceBufGen<A> {
     fn panic(&mut self) {
         self.stop();
     }
@@ -505,47 +552,67 @@ impl<S: Sample> Panic for OnceBufGen<S> {
 
 /// A generator that loops an audio buffer.
 #[derive(Clone, Debug)]
-pub struct LoopBufGen<S: Sample> {
+pub struct LoopBufGen<A: Audio> {
     /// The inner buffer.
-    buffer: Buffer<S>,
+    buffer: Buffer<A>,
 
     /// The sample being read.
     index: usize,
 }
 
-impl<S: Sample> LoopBufGen<S> {
+impl<A: Audio> LoopBufGen<A> {
     /// Initializes a new [`LoopBufGen`].
     #[must_use]
-    pub const fn new(buffer: Buffer<S>) -> Self {
+    pub const fn new(buffer: Buffer<A>) -> Self {
         Self { buffer, index: 0 }
     }
 
     /// Returns a reference to the underlying buffer.
     #[must_use]
-    pub const fn buffer(&self) -> &Buffer<S> {
+    pub const fn buffer(&self) -> &Buffer<A> {
         &self.buffer
     }
 
     /// Returns a mutable reference to the underlying buffer.
-    pub fn buffer_mut(&mut self) -> &mut Buffer<S> {
+    pub fn buffer_mut(&mut self) -> &mut Buffer<A> {
         &mut self.buffer
+    }
+
+    /// Returns the inner slice.    
+    #[must_use]
+    pub fn as_slice(&self) -> &[A] {
+        self.buffer.as_slice()
+    }
+
+    /// Returns a mutable reference to the inner slice.
+    pub fn as_mut_slice(&mut self) -> &mut [A] {
+        self.buffer.as_mut_slice()
+    }
+
+    /// Returns the number of samples in the buffer.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
+    /// Returns whether the buffer is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
     }
 }
 
-impl<S: Sample> Signal for LoopBufGen<S> {
-    type Sample = S;
+impl<A: Audio> Signal for LoopBufGen<A> {
+    type Sample = A;
 
-    fn get(&self) -> S {
+    fn get(&self) -> A {
         self.buffer()[self.index]
     }
 }
 
-impl<S: Sample> SignalMut for LoopBufGen<S> {
+impl<A: Audio> SignalMut for LoopBufGen<A> {
     fn advance(&mut self) {
-        self.index += 1;
-        if self.index == self.buffer().len() {
-            self.index = 0;
-        }
+        crate::mod_inc(self.len(), &mut self.index);
     }
 
     fn retrigger(&mut self) {
@@ -553,6 +620,6 @@ impl<S: Sample> SignalMut for LoopBufGen<S> {
     }
 }
 
-impl<S: Sample> Base for LoopBufGen<S> {
+impl<A: Audio> Base for LoopBufGen<A> {
     impl_base!();
 }
