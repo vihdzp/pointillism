@@ -22,7 +22,7 @@ pub mod units;
 pub mod cpal;
 
 #[cfg(feature = "hound")]
-use prelude::{Audio, SampleRate, SignalMut, Time};
+pub use hound::*;
 
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
@@ -48,65 +48,68 @@ pub fn sgn(x: f64) -> f64 {
     2.0 * x - 1.0
 }
 
-/// The specification for the output file.
+/// Methods that require [`hound`].
 #[cfg(feature = "hound")]
-#[must_use]
-pub const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
-    hound::WavSpec {
-        channels: channels as u16,
-        sample_rate: sample_rate.0,
-        bits_per_sample: 32,
-        sample_format: hound::SampleFormat::Float,
-    }
-}
+mod hound {
+    use crate::prelude::{Audio, SampleRate, SignalMut, Time};
 
-/// Creates a song with a given duration, writing down each sample as it comes. The duration of the
-/// file is exact to the sample.
-///
-/// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
-/// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
-///
-/// See the `examples` folder for example creations.
-///
-/// ## Errors
-///
-/// This should only return an error in case of an IO error.
-#[cfg(feature = "hound")]
-pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
-    filename: P,
-    length: Time,
-    sample_rate: SampleRate,
-    mut song: F,
-) -> hound::Result<()> {
-    let length = length.samples.int();
-    let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
-
-    let mut time = Time::ZERO;
-    for _ in 0..length {
-        song(time).write(&mut writer)?;
-        time.advance();
+    /// The specification for the output file.
+    #[must_use]
+    pub const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
+        hound::WavSpec {
+            channels: channels as u16,
+            sample_rate: sample_rate.0,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        }
     }
 
-    writer.finalize()
-}
+    /// Creates a song with a given duration, writing down each sample as it comes. The duration of the
+    /// file is exact to the sample.
+    ///
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
+    /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    ///
+    /// See the `examples` folder for example creations.
+    ///
+    /// ## Errors
+    ///
+    /// This should only return an error in case of an IO error.
+    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
+        filename: P,
+        length: Time,
+        sample_rate: SampleRate,
+        mut song: F,
+    ) -> hound::Result<()> {
+        let length = length.samples.int();
+        let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
 
-/// A convenience function to [`create`] a song from a given signal.
-///
-/// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
-/// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
-///
-/// ## Errors
-///
-/// This should only return an error in case of an IO error.
-#[cfg(feature = "hound")]
-pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
-    filename: P,
-    length: Time,
-    sample_rate: SampleRate,
-    mut sgn: S,
-) -> hound::Result<()>
-where
-    S::Sample: Audio,
-{
-    create(filename, length, sample_rate, |_| sgn.next())
+        let mut time = Time::ZERO;
+        for _ in 0..length {
+            song(time).write(&mut writer)?;
+            time.advance();
+        }
+
+        writer.finalize()
+    }
+
+    /// A convenience function to [`create`] a song from a given signal.
+    ///
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function returns
+    /// [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    ///
+    /// ## Errors
+    ///
+    /// This should only return an error in case of an IO error.
+    pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
+        filename: P,
+        length: Time,
+        sample_rate: SampleRate,
+        mut sgn: S,
+    ) -> hound::Result<()>
+    where
+        S::Sample: Audio,
+    {
+        create(filename, length, sample_rate, |_| sgn.next())
+    }
 }
