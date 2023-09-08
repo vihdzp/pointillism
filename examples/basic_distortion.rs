@@ -61,6 +61,11 @@ fn main() {
 
     // This gives a really weird effect.
     let dist = PwMapSgn::cubic(poly_loop);
-    pointillism::create_from_sgn("output/distortion.wav", 10u8 * note_len, SAMPLE_RATE, dist)
-        .unwrap();
+    pointillism::create_from_sgn(
+        "examples/distortion.wav",
+        10u8 * note_len,
+        SAMPLE_RATE,
+        dist,
+    )
+    .unwrap();
 }

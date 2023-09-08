@@ -101,7 +101,7 @@ fn main() {
     );
 
     pointillism::create_from_sgn(
-        "output/continuum.wav",
+        "examples/continuum.wav",
         NOTE_COUNT_LEN * note_len,
         SampleRate::default(),
         // 10.0 might be too much, but just to be safe from clipping.

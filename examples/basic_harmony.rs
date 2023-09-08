@@ -64,7 +64,7 @@ fn main() {
     );
 
     pointillism::create(
-        "output/harmony.wav",
+        "examples/harmony.wav",
         note_len * chords.len() as f64 + Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
         |_| seq.next() / 6.0,

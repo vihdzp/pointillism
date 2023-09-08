@@ -10,6 +10,33 @@
 //! - 24-bit integer
 //! - 32-bit integer
 //! - 32-bit float
+//!
+//! ## Example
+//!
+//! ```
+//! # use crate::prelude::*;
+//! const FILENAME: &str = "examples/buffer.wav";
+//! 
+//! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
+//! pointillism::create_from_sgn(
+//!     FILENAME,
+//!     Time::from_raw_default(RawTime::SEC),
+//!     SampleRate::default(),
+//!     LoopGen::<Mono, Sin>::default(),
+//! )
+//! .expect("IO error!");
+//!
+//! // Read back the file, stretch it to 3 seconds.
+//! //
+//! // This lowers the pitch, and may introduce some artifacts depending on the interpolation method.
+//! const FACTOR: f64 = 3.0;
+//! let buf_sgn = OnceBufGen::new(Buffer::<Mono>::from_wav(FILENAME).unwrap());
+//! let time = buf_sgn.buffer().time();
+//!
+//! // We can change the interpolation method here.
+//! let sgn = Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
+//! pointillism::create_from_sgn(FILENAME, time * FACTOR, SAMPLE_RATE, sgn).unwrap();
+//! ```
 
 use crate::{prelude::*, sample::WavSample};
 use std::path::Path;

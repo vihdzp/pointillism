@@ -30,7 +30,7 @@ fn main() {
 
     let mut timer = Timer::new(length);
 
-    pointillism::create("output/arpeggio.wav", 2u8 * length, SAMPLE_RATE, |time| {
+    pointillism::create("examples/arpeggio.wav", 2u8 * length, SAMPLE_RATE, |time| {
         // We switch up the arpeggio after the first phrase.
         if timer.tick(time) {
             arp.arp_mut().notes[2] = Freq::from_raw(RawFreq::F4, SAMPLE_RATE);

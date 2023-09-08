@@ -15,5 +15,5 @@ fn main() {
     let sgn = LoopGen::<Mono, _>::new(Sin, freq);
 
     // Export to file.
-    pointillism::create_from_sgn("output/sine.wav", length, SAMPLE_RATE, sgn).unwrap();
+    pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, sgn).unwrap();
 }

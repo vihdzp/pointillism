@@ -37,7 +37,7 @@ fn main() {
     let mut oscillators: [_; NUM_OSC] =
         std::array::from_fn(|i| osc(Val::new(i as f64 / NUM_OSC as f64)));
 
-    pointillism::create("output/fiveosc.wav", 2u8 * time, SAMPLE_RATE, |_| {
+    pointillism::create("examples/fiveosc.wav", 2u8 * time, SAMPLE_RATE, |_| {
         oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
     })
     .unwrap();

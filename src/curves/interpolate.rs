@@ -1,4 +1,4 @@
-//! Implements functions for interpolating between samples.
+//! Implements functions for interpolating between samples
 
 use crate::prelude::*;
 
