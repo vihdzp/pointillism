@@ -283,7 +283,7 @@ impl DivAssign<f64> for RawFreq {
 impl Mul<Interval> for RawFreq {
     type Output = Self;
 
-    fn mul(self, rhs: Interval) -> Self::Output {
+    fn mul(self, rhs: Interval) -> Self {
         rhs.ratio * self
     }
 }
@@ -291,7 +291,7 @@ impl Mul<Interval> for RawFreq {
 impl Mul<RawFreq> for Interval {
     type Output = RawFreq;
 
-    fn mul(self, rhs: RawFreq) -> Self::Output {
+    fn mul(self, rhs: RawFreq) -> RawFreq{
         self.ratio * rhs
     }
 }

@@ -131,6 +131,14 @@ impl<X> Map for Id<X> {
 }
 
 /// The zero function.
+///
+/// This ignores the input and returns the additive identity for samples.
+///
+/// ## Caveat
+///
+/// The [additive
+/// identity](https://codeyarns.com/tech/2020-06-12-floating-point-identity-elements.html#gsc.tab=0)
+/// for floating point numbers is `-0.0`, and not `0.0`! This function will return the former.
 #[derive(Clone, Copy, Debug)]
 pub struct Zero<X, S: Sample> {
     /// Dummy value.
@@ -158,7 +166,7 @@ impl<X, S: Sample> Map for Zero<X, S> {
     type Output = S;
 
     fn eval(&self, _: X) -> S {
-        S::ZERO
+        -S::ZERO
     }
 }
 

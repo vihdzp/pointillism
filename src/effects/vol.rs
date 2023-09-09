@@ -105,7 +105,8 @@ impl<S: Signal> Signal for Volume<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.inner.get()
+        // We need to call it like this or `rust-analyzer` gets tripped up.
+        Signal::get(&self.inner)
     }
 }
 
@@ -236,7 +237,8 @@ impl<S: Signal, E: Signal<Sample = Env>> Signal for Tremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.inner.get()
+        // We need to call it like this or `rust-analyzer` gets tripped up.
+        Signal::get(&self.inner)
     }
 }
 
@@ -357,7 +359,8 @@ impl<S: SignalMut, E: Stop<Sample = Env>> Signal for StopTremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.inner.get()
+        // We need to call it like this or `rust-analyzer` gets tripped up.
+        Signal::get(&self.inner)
     }
 }
 

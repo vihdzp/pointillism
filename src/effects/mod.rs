@@ -7,6 +7,7 @@
 //! [`MapSgn`], [`MutSgn`], and [`ModSgn`].
 
 pub mod adsr;
+pub mod delay;
 pub mod distortion;
 pub mod freq;
 pub mod mix;
@@ -384,7 +385,8 @@ impl<S: SignalMut, E: Stop<Sample = Env>, F: MutEnv<S>> Signal for ModSgn<S, E, 
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.inner.get()
+        // We need to call it like this or `rust-analyzer` gets tripped up.
+        Signal::get(&self.inner)
     }
 }
 

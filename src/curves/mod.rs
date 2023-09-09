@@ -292,7 +292,7 @@ impl Map for Sq {
     type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: Self::Input) -> Self::Output {
+    fn eval(&self, x: Self::Input) -> f64 {
         pulse(x.inner(), 0.5)
     }
 }
@@ -486,7 +486,7 @@ impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Map f
     type Input = Val;
     type Output = f64;
 
-    fn eval(&self, x: Self::Input) -> Self::Output {
+    fn eval(&self, x: Val) -> f64 {
         self::interpolate::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
     }
 }

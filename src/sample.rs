@@ -322,7 +322,6 @@ unsafe impl ArrayLike for Mono {
 }
 
 impl Sample for Mono {}
-
 impl Audio for Mono {}
 
 impl SampleLike for Stereo {
@@ -350,7 +349,6 @@ unsafe impl ArrayLike for Stereo {
 }
 
 impl Sample for Stereo {}
-
 impl Audio for Stereo {}
 
 impl SampleLike for Env {
@@ -362,7 +360,6 @@ unsafe impl ArrayLike for Env {
     const SIZE: usize = 2;
 
     type Item = f64;
-
     type Array<T> = [T; 1];
 
     fn from_array(array: [f64; 1]) -> Self {
@@ -406,7 +403,7 @@ macro_rules! impl_op {
     ($ty: ty; $($op: ident, $fn: ident),*) => {
         $(impl $op for $ty {
             type Output = Self;
-            fn $fn(self, rhs: Self) -> Self::Output {
+            fn $fn(self, rhs: Self) -> Self {
                 self.pairwise(rhs, |x, y| std::ops::$op::$fn(x, y))
             }
         })*
@@ -588,8 +585,14 @@ impl WavSample for f32 {
     }
 }
 
-#[cfg(test)]
+impl Stereo {
+    /// Flips the channels of a stereo sample.
+    pub fn flip(self) -> Self {
+        Self(self.1, self.0)
+    }
+}
 
+#[cfg(test)]
 mod test {
     use super::*;
     use std::mem::{align_of, size_of};

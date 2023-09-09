@@ -63,6 +63,12 @@ pub trait Signal {
     /// This should return the same result when called repeatedly, as long as the signal isn't
     /// modified, and `advance` or `retrigger` is not called.
     fn get(&self) -> Self::Sample;
+
+    /// Currently, `rust-analyzer` trips up sometimes that `get` is called, confusing it with
+    /// [`ArrayLike::get`](crate::prelude::ArrayLike::get). This hack bypasses this.
+    fn _get(&self) -> Self::Sample {
+        self.get()
+    }
 }
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
@@ -112,10 +118,11 @@ pub trait Frequency: SignalMut {
 }
 
 /// A trait for a signal with a "base" signal that can be modified. This is often a generator in a
-/// chain of effects.
-///
-/// This is implemented both for basic signals that don't depend on others, as well as
-/// straightforward wrappers of these.
+/// chain of effects. This is implemented both for basic signals that don't depend on others, as
+/// well as straightforward wrappers of these.
+/// 
+/// This convenience trait doesn't really add functionality, but is instead meant to help make code
+/// a bit more manageable.
 pub trait Base: SignalMut {
     /// The "base" signal type.
     type Base: SignalMut;
@@ -161,9 +168,8 @@ pub trait Done: Signal {
     fn is_done(&self) -> bool;
 }
 
-/// Represents a signal that can be stopped.
-///
-/// You can think of the `stop` method as an analog to a MIDI note off event.
+/// Represents a signal that can be stopped. You can think of the `stop` method as an analog to a
+/// MIDI note off event.
 ///
 /// Note that stopping a signal doesn't necessarily mean it will immediately stop producing sound.
 /// Use [`Panic`] for this purpose.

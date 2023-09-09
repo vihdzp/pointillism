@@ -13,6 +13,7 @@ pub use crate::{
     },
     effects::{
         adsr::{Adsr, AdsrEnvelope},
+        delay::*,
         freq::*,
         mix::*,
         pan::{LinearPanner, MixedPanner, Panner, PowerPanner},

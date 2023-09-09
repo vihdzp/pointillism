@@ -1,7 +1,6 @@
 //! Declares the [`Unison`] struct.
 //!
-//! This can be used in order to more efficiently and effectively play multiple copies of a base
-//! signal.
+//! This can be used in order to more effectively play multiple copies of a base signal.
 
 use crate::prelude::*;
 
@@ -9,13 +8,11 @@ use crate::prelude::*;
 pub struct DetuneIter {
     /// The interval between two successive outputs.
     detune: Interval,
-
     /// The number of intervals to output.
     num: u16,
 
     /// Stores the next interval to output.
     output: Interval,
-
     /// How many intervals have been output.
     index: u16,
 }
@@ -70,9 +67,6 @@ impl Iterator for DetuneIter {
 }
 
 /// Plays multiple copies of a curve in unison.
-///
-/// It is strongly recommended you don't play 256 or more curves at once. Besides practical
-/// concerns, many methods don't support this.
 pub struct UnisonCurve<C: Map<Input = Val>>
 where
     C::Output: Sample,

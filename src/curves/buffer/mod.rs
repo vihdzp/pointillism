@@ -127,6 +127,11 @@ pub trait BufMutTrait:
     fn overwrite_from_sgn<S: SignalMut<Sample = Self::Item>>(&mut self, sgn: &mut S) {
         self.overwrite(|_| sgn.next());
     }
+
+    /// Clears a buffer, without changing its length.
+    fn clear(&mut self) {
+        self.overwrite(|_| Self::Item::ZERO);
+    }
 }
 
 /// A buffer that holds a reference to its data.
@@ -203,13 +208,13 @@ impl<A: Audio> Index<usize> for Buffer<A> {
 }
 
 impl<'a, A: Audio> IndexMut<usize> for BufMut<'a, A> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+    fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
 impl<A: Audio> IndexMut<usize> for Buffer<A> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+    fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
@@ -225,6 +230,9 @@ impl<'a, A: Audio> BufTrait for BufMut<'a, A> {
 impl<A: Audio> BufTrait for Buffer<A> {
     type Item = A;
 }
+
+impl<'a, A: Audio> BufMutTrait for BufMut<'a, A> {}
+impl<A: Audio> BufMutTrait for Buffer<A> {}
 
 impl<'a, A: Audio> BufRef<'a, A> {
     /// Initializes a new [`BufRef`].
@@ -259,6 +267,17 @@ impl<A: Audio> Buffer<A> {
     #[must_use]
     pub const fn new() -> Self {
         Self::from_data(Vec::new())
+    }
+
+    /// Initializes an empty buffer with a given size. All samples are initialized to zero.
+    pub fn empty(samples: usize) -> Self {
+        Self::from_data(vec![A::ZERO; samples])
+    }
+
+    /// Initializes an empty buffer with a given length, rounded down to the nearest sample. All
+    /// samples are initialized to zero.
+    pub fn empty_time(time: Time) -> Self {
+        Self::empty(time.samples.int() as usize)
     }
 
     /// Converts `self` into a `BufRef`.
@@ -305,6 +324,12 @@ impl<A: Audio> Buffer<A> {
     }
 }
 
+impl<A: Audio> From<Vec<A>> for Buffer<A> {
+    fn from(data: Vec<A>) -> Self {
+        Self::from_data(data)
+    }
+}
+
 impl<A: Audio> FromIterator<A> for Buffer<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self::from_data(FromIterator::from_iter(iter))
@@ -341,17 +366,6 @@ impl<'a, A: Audio> IntoIterator for &'a mut Buffer<A> {
 /// Boilerplate common to [`OnceBufGen`] and [`LoopBufGen`].
 macro_rules! buf_gen_boilerplate {
     () => {
-        /// Returns a reference to the underlying buffer.
-        #[must_use]
-        pub const fn buffer(&self) -> &B {
-            &self.buffer
-        }
-
-        /// Returns a mutable reference to the underlying buffer.
-        pub fn buffer_mut(&mut self) -> &mut B {
-            &mut self.buffer
-        }
-
         /// Returns the number of samples in the buffer.
         #[must_use]
         pub fn len(&self) -> usize {
@@ -377,6 +391,11 @@ macro_rules! buf_gen_boilerplate {
         {
             self.buffer.as_mut_slice()
         }
+
+        /// Returns the current index.
+        pub const fn index(&self) -> usize {
+            self.index
+        }
     };
 }
 
@@ -384,7 +403,7 @@ macro_rules! buf_gen_boilerplate {
 #[derive(Clone, Debug)]
 pub struct OnceBufGen<B: BufTrait> {
     /// The inner buffer.
-    buffer: B,
+    pub buffer: B,
 
     /// The sample being read.
     index: usize,
@@ -404,7 +423,7 @@ impl<B: BufTrait> Signal for OnceBufGen<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
-        self.buffer().get(self.index).unwrap_or_default()
+        self.buffer.get(self.index).unwrap_or_default()
     }
 }
 
@@ -424,13 +443,13 @@ impl<B: BufTrait> Base for OnceBufGen<B> {
 
 impl<B: BufTrait> Stop for OnceBufGen<B> {
     fn stop(&mut self) {
-        self.index = self.buffer().len();
+        self.index = self.buffer.len();
     }
 }
 
 impl<B: BufTrait> Done for OnceBufGen<B> {
     fn is_done(&self) -> bool {
-        self.index >= self.buffer().len()
+        self.index >= self.buffer.len()
     }
 }
 
@@ -444,7 +463,7 @@ impl<B: BufTrait> Panic for OnceBufGen<B> {
 #[derive(Clone, Debug)]
 pub struct LoopBufGen<B: BufTrait> {
     /// The inner buffer.
-    buffer: B,
+    pub buffer: B,
 
     /// The sample being read.
     index: usize,
@@ -464,7 +483,7 @@ impl<B: BufTrait> Signal for LoopBufGen<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
-        self.buffer()[self.index]
+        self.buffer[self.index]
     }
 }
 

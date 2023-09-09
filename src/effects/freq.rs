@@ -75,7 +75,7 @@ impl<S: Frequency, E: SignalMut<Sample = Env>> Signal for Vibrato<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        self.inner.get()
+        self.inner._get()
     }
 }
 
