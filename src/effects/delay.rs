@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-
 /// Plays a signal back with a delay. Can have some optional feedback.
 ///
 /// To emulate a dry/wet effect, you can add this to the original signal in different proportions.

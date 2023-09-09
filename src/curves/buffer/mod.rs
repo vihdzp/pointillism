@@ -2,7 +2,7 @@
 //!
 //! You can load a buffer from a WAV file (if the `hound` feature is enabled), or you can create
 //! your own buffer and write a signal into it, to then read it back. This can be useful if you want
-//! to loop an expensive to compute signal, for instance.
+//! to loop an expensive to compute signal, for instance. This is also used in [`Delay`].
 //!
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.

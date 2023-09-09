@@ -120,7 +120,7 @@ pub trait Frequency: SignalMut {
 /// A trait for a signal with a "base" signal that can be modified. This is often a generator in a
 /// chain of effects. This is implemented both for basic signals that don't depend on others, as
 /// well as straightforward wrappers of these.
-/// 
+///
 /// This convenience trait doesn't really add functionality, but is instead meant to help make code
 /// a bit more manageable.
 pub trait Base: SignalMut {

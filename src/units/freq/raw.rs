@@ -291,7 +291,7 @@ impl Mul<Interval> for RawFreq {
 impl Mul<RawFreq> for Interval {
     type Output = RawFreq;
 
-    fn mul(self, rhs: RawFreq) -> RawFreq{
+    fn mul(self, rhs: RawFreq) -> RawFreq {
         self.ratio * rhs
     }
 }
