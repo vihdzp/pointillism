@@ -10,8 +10,8 @@
 //!   or by directly tweaking parameters via [`MutSgn`](crate::prelude::MutSgn) or
 //!   [`ModSgn`](crate::prelude::ModSgn).
 //!
-//! In many cases, one can use a Rust function, wrapped in an [`FnWrapper`] struct. However, in
-//! cases where one wants control over this function, or to create multiple instances of it, one is
+//! In many cases, one can use a Rust function, wrapped in a [`Func`] struct. However, in cases
+//! where one wants control over this function, or to create multiple instances of it, one is
 //! encouraged to implement these traits for their own custom structs.
 
 use std::marker::PhantomData;
@@ -24,7 +24,7 @@ use crate::{
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
-/// must wrap your function in an [`FnWrapper`].
+/// must wrap your function in an [`Func`].
 pub trait Map {
     /// Input type for the map.
     type Input;
@@ -38,7 +38,7 @@ pub trait Map {
 /// An abstract trait for a structure representing a function which modifies a [`Signal`].
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
-/// must wrap your function in an [`FnWrapper`].
+/// must wrap your function in a [`Func`].
 pub trait Mut<S: Signal> {
     /// Modifies `sgn`.
     fn modify(&mut self, sgn: &mut S);
@@ -48,7 +48,7 @@ pub trait Mut<S: Signal> {
 /// to an envelope.
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
-/// must wrap your function in an [`FnWrapper`].
+/// must wrap your function in a [`Func`].
 pub trait MutEnv<S: Signal> {
     /// Modifies `sgn` according to `val`.
     fn modify_env(&mut self, sgn: &mut S, val: Env);
@@ -59,25 +59,25 @@ pub trait MutEnv<S: Signal> {
 /// Unfortunately, it may be necessary to explicitly write down the types of the arguments to the
 /// function.
 #[derive(Clone, Copy, Debug)]
-pub struct FnWrapper<X, Y, F> {
-    /// Dummy value.
-    phantom: PhantomData<(X, Y)>,
-
+pub struct Func<X, Y, F> {
     /// Wrapped function.
     pub func: F,
+
+    /// Dummy value.
+    phantom: PhantomData<(X, Y)>,
 }
 
-impl<X, Y, F> FnWrapper<X, Y, F> {
-    /// Wraps a function in an [`FnWrapper`].
+impl<X, Y, F> Func<X, Y, F> {
+    /// Wraps a function in an [`Func`].
     pub const fn new(func: F) -> Self {
         Self {
-            phantom: PhantomData,
             func,
+            phantom: PhantomData,
         }
     }
 }
 
-impl<X, Y, F: Fn(X) -> Y> Map for FnWrapper<X, Y, F> {
+impl<X, Y, F: Fn(X) -> Y> Map for Func<X, Y, F> {
     type Input = X;
     type Output = Y;
 
@@ -86,13 +86,13 @@ impl<X, Y, F: Fn(X) -> Y> Map for FnWrapper<X, Y, F> {
     }
 }
 
-impl<S: Signal, F: FnMut(&mut S, Env)> MutEnv<S> for FnWrapper<S, Env, F> {
+impl<S: Signal, F: FnMut(&mut S, Env)> MutEnv<S> for Func<S, Env, F> {
     fn modify_env(&mut self, x: &mut S, y: Env) {
         (self.func)(x, y);
     }
 }
 
-impl<S: Signal, F: FnMut(&mut S)> Mut<S> for FnWrapper<S, (), F> {
+impl<S: Signal, F: FnMut(&mut S)> Mut<S> for Func<S, (), F> {
     fn modify(&mut self, x: &mut S) {
         (self.func)(x);
     }

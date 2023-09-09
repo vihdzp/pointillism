@@ -46,7 +46,7 @@ fn main() {
         vec![note_len],
         // we modify the signal `poly`,
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_, _>| {
+        Func::new(|poly: &mut Polyphony<_, _>| {
             // by stopping the note we just played,
             poly.stop(&index);
             index += 1;

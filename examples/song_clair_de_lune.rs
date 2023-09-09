@@ -40,11 +40,11 @@ fn main() {
 
     let mut main_melody = MelodySeq::new_melody(
         Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
-        FnWrapper::new(func),
+        Func::new(func),
     );
     let mut bass_melody = MelodySeq::new_melody(
         Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
-        FnWrapper::new(func),
+        Func::new(func),
     );
 
     // Length of the file.

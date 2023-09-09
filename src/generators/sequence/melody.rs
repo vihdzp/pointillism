@@ -52,7 +52,7 @@
 //! };
 //!
 //! let melody = Melody::piano_roll(notes, |idx| idx as u8);
-//! let mut melody_loop = MelodyLoop::new_melody(melody, FnWrapper::new(func));
+//! let mut melody_loop = MelodyLoop::new_melody(melody, Func::new(func));
 //! let mut timer = Timer::new(2u8 * length);
 //!
 //! // We play the melody twice.

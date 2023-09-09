@@ -27,6 +27,7 @@ default = ["human-duration", "hound"]
 cpal = ["dep:cpal"]
 midly = ["dep:midly"]
 
-# This only exists so GitHub actions doesn't fail.
+# Disables some code that won't/can't work on Github actions.
 github-actions-hack = []
+# All features to test code with.
 github-actions-all-features = ["cpal", "midly", "github-actions-hack"]
