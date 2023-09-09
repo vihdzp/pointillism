@@ -46,7 +46,7 @@ fn main() {
     let mut seq = Sequence::new(
         vec![note_len; chords.len()],
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_, _>| {
+        Func::new(|poly: &mut Polyphony<_, _>| {
             // Add next notes.
             if idx != chords.len() {
                 for (i, &c) in chords[idx].iter().enumerate() {

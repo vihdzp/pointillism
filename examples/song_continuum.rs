@@ -52,7 +52,7 @@ fn main() {
                 ),
                 OnceGen::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
-                FnWrapper::new(
+                Func::new(
                     |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: Env| {
                         sgn.sgn_mut().curve_mut().shape = Val::new(val.0);
                     },
@@ -78,7 +78,7 @@ fn main() {
     let poly_loop = Loop::new(
         vec![note_len],
         poly,
-        FnWrapper::new(|poly: &mut Polyphony<_, _>| {
+        Func::new(|poly: &mut Polyphony<_, _>| {
             // Stops the previous note.
             poly.stop(&index);
             index += 1;

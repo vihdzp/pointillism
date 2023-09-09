@@ -1,6 +1,7 @@
 //! Declares the [`Unison`] struct.
 //!
-//! This can be used in order to more efficiently play multiple copies of a base signal.
+//! This can be used in order to more efficiently and effectively play multiple copies of a base
+//! signal.
 
 use crate::prelude::*;
 
@@ -10,13 +11,13 @@ pub struct DetuneIter {
     detune: Interval,
 
     /// The number of intervals to output.
-    num: u8,
+    num: u16,
 
     /// Stores the next interval to output.
     output: Interval,
 
     /// How many intervals have been output.
-    index: u8,
+    index: u16,
 }
 
 impl DetuneIter {
@@ -24,12 +25,13 @@ impl DetuneIter {
     ///
     /// The `detune` interval passed is the distance between successive outputs.
     #[must_use]
-    pub fn new(detune: Interval, num: u8) -> Self {
+    pub fn new(detune: Interval, num: u16) -> Self {
         // We initialize the output to the highest frequency detune.
+        let num_i32 = i32::from(num);
         let output = if num % 2 == 0 {
-            detune.sqrt() * detune.powi(i32::from(num) / 2 - 1)
+            detune.sqrt() * detune.powi(num_i32 / 2 - 1)
         } else {
-            detune.powi(i32::from(num) / 2)
+            detune.powi(num_i32 / 2)
         };
 
         Self {
@@ -42,7 +44,7 @@ impl DetuneIter {
 
     /// The number of values yet to be output.
     #[must_use]
-    pub fn size(&self) -> u8 {
+    pub fn size(&self) -> u16 {
         self.num - self.index
     }
 }
@@ -122,7 +124,7 @@ where
     ///
     /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
     /// pitched.
-    pub fn detune_curve(map: C, base: Freq, detune: Interval, num: u8) -> Self {
+    pub fn detune_curve(map: C, base: Freq, detune: Interval, num: u16) -> Self {
         Self::new_curve(map, base, DetuneIter::new(detune, num))
     }
 
@@ -265,7 +267,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Unison<S, C> {
     ///
     /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
     /// pitched.
-    pub fn detune(map: C, base: Freq, detune: Interval, num: u8) -> Self {
+    pub fn detune(map: C, base: Freq, detune: Interval, num: u16) -> Self {
         Self::detune_curve(CurvePlayer::new(map), base, detune, num)
     }
 }
@@ -284,7 +286,7 @@ where
         // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
         // truncation.
         #[allow(clippy::cast_possible_truncation)]
-        let num = sgn.len() as u8;
+        let num = sgn.len() as u16;
 
         for (int, detune) in sgn
             .intervals_mut()

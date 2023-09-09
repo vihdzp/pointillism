@@ -66,7 +66,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
         MutSgn::new(
             wave(freq),
             OnceGen::new(PosSaw, Time::from_sec_default(5.0)),
-            FnWrapper::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
+            Func::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
                 sgn.curve_mut().shape = Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
         )
@@ -87,7 +87,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
     Loop::new(
         vec![Time::from_sec_default(4.0)],
         poly,
-        FnWrapper::new(move |poly: &mut Polyphony<_, _>| {
+        Func::new(move |poly: &mut Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];
             poly.add(index, trem(freq));
             index += 1;
