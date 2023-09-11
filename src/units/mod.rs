@@ -48,7 +48,7 @@ impl Mul<Freq> for Time {
     type Output = f64;
 
     fn mul(self, rhs: Freq) -> f64 {
-        self.samples.into_f64() * rhs.samples()
+        self.samples.into_f64() * rhs.samples
     }
 }
 
@@ -88,7 +88,7 @@ impl Freq {
     /// Converts frequency into time.
     #[must_use]
     pub fn time(self) -> Time {
-        Time::new(FracInt::from_f64(1.0 / self.samples()))
+        Time::new(FracInt::from_f64(1.0 / self.samples))
     }
 }
 
@@ -120,7 +120,7 @@ impl Mul<Freq> for SampleRate {
     type Output = RawFreq;
 
     fn mul(self, rhs: Freq) -> RawFreq {
-        RawFreq::new(f64::from(self.0) * rhs.samples())
+        RawFreq::new(f64::from(self.0) * rhs.samples)
     }
 }
 

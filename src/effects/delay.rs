@@ -225,19 +225,6 @@ where
     }
 }
 
-/// The function that [flips](Stereo::flip) a [`Stereo`] signal.
-#[derive(Copy, Clone, Debug, Default)]
-pub struct Flip;
-
-impl Map for Flip {
-    type Input = Stereo;
-    type Output = Stereo;
-
-    fn eval(&self, x: Stereo) -> Stereo {
-        x.flip()
-    }
-}
-
 /// An exponential delay with a ping-pong effect.
 pub type FlipDelay<S, B> = Delay<S, B, Comp<Pw<Stereo, Vol>, Flip>>;
 

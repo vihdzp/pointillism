@@ -22,6 +22,19 @@ impl Vol {
     /// Half amplitude.
     pub const HALF: Self = Self::new(0.5);
 
+    /// -3 dB.
+    ///
+    /// Roughly corresponds to a halving of power.
+    pub const DB3: Self = Self::new(0.70794578438413791080221494218931);
+    /// -6 dB.
+    ///
+    /// Roughly corresponds to a halving of amplitude, voltage, or sound power level (SPL).
+    pub const DB6: Self = Self::new(0.50118723362727228500155418688495);
+    /// -10 dB.
+    ///
+    /// What a human might percieve as "half as loud".
+    pub const DB10: Self = Self::new(0.31622776601683793319988935444327);
+
     /// Initializes a new volume variable.
     #[must_use]
     pub const fn new(gain: f64) -> Self {
@@ -304,8 +317,8 @@ pub struct StopTremolo<S: SignalMut, E: Stop<Sample = Env>> {
     inner: ModSgn<Volume<S>, E, Trem<S>>,
 }
 
-/// Turns a [`Tremolo`] into a [`StopTremolo`]. This changes the functionality
-/// of the signal when stopped, as described in the [`StopTremolo`] docs.
+/// Turns a [`Tremolo`] into a [`StopTremolo`]. This changes the functionality of the signal when
+/// stopped, as described in the [`StopTremolo`] docs.
 impl<S: SignalMut, E: Stop<Sample = Env>> From<Tremolo<S, E>> for StopTremolo<S, E> {
     fn from(value: Tremolo<S, E>) -> Self {
         Self {

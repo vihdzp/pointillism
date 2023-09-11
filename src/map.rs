@@ -18,7 +18,7 @@ use std::marker::PhantomData;
 
 use crate::{
     generators::Sample,
-    prelude::{Env, Signal},
+    prelude::{Env, Signal, Stereo},
 };
 
 /// An abstract trait for a structure representing a function `X → Y`.
@@ -221,5 +221,18 @@ impl<F: Map, G: Map<Input = F::Output>> Map for Comp<F, G> {
 
     fn eval(&self, x: F::Input) -> G::Output {
         self.outer.eval(self.inner.eval(x))
+    }
+}
+
+/// The function that [flips](Stereo::flip) a [`Stereo`] signal.
+#[derive(Copy, Clone, Debug, Default)]
+pub struct Flip;
+
+impl crate::Map for Flip {
+    type Input = Stereo;
+    type Output = Stereo;
+
+    fn eval(&self, x: Stereo) -> Stereo {
+        x.flip()
     }
 }

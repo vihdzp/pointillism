@@ -34,7 +34,7 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Freq {
     /// The frequency in inverse samples.
-    samples: f64,
+    pub samples: f64,
 }
 
 impl Freq {
@@ -49,12 +49,6 @@ impl Freq {
     #[must_use]
     pub const fn new(samples: f64) -> Self {
         Self { samples }
-    }
-
-    /// The frequency in inverse samples.
-    #[must_use]
-    pub const fn samples(self) -> f64 {
-        self.samples
     }
 
     /// Converts [`RawFreq`] into [`Freq`], using the specified sample rate.
@@ -84,7 +78,7 @@ impl Freq {
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
     #[must_use]
     pub fn into_raw(self, sample_rate: SampleRate) -> RawFreq {
-        RawFreq::new(self.samples() * f64::from(sample_rate))
+        RawFreq::new(self.samples * f64::from(sample_rate))
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the default sample rate.
@@ -126,7 +120,7 @@ impl Freq {
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
     fn round_midi_aux(self, a4: Self) -> f64 {
-        (self.samples() / a4.samples()).log2() * 12.0 + A4_MIDI
+        (self.samples / a4.samples).log2() * 12.0 + A4_MIDI
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -172,7 +166,7 @@ impl RawFreq {
     /// To use the default 44.1 kHz sample rate, use [`Self::from_freq`].
     #[must_use]
     pub fn from_freq_with(freq: Freq, sample_rate: SampleRate) -> Self {
-        Self::new(freq.samples() * f64::from(sample_rate))
+        Self::new(freq.samples * f64::from(sample_rate))
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.

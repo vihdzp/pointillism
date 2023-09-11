@@ -67,7 +67,7 @@ impl Val {
 
     /// Advances the inner value in order to play a wave with the specified frequency.
     pub fn advance_freq(&mut self, freq: Freq) {
-        *self = Self::fract(self.inner() + freq.samples());
+        *self = Self::fract(self.inner() + freq.samples);
     }
 }
 

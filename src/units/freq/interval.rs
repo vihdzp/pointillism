@@ -85,6 +85,12 @@ impl Interval {
     pub fn powf(self, n: f64) -> Self {
         Self::new(self.ratio.powf(n))
     }
+
+    /// An interval in octaves.
+    #[must_use]
+    pub fn octaves(oct: f64) -> Self {
+        Self::OCTAVE.powf(oct)
+    }
 }
 
 impl std::ops::Mul for Interval {

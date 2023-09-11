@@ -4,6 +4,11 @@
 //! your own buffer and write a signal into it, to then read it back. This can be useful if you want
 //! to loop an expensive to compute signal, for instance. This is also used in [`Delay`].
 //!
+//! You can also use a buffer if you want to process large amounts of audio data before playing it
+//! back. This is useful for certain algorithms, such as the
+//! [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform). Convenience methods such as
+//! [`BufMutTrait::overwrite`] are provided for loading a buffer.
+//!
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
 
@@ -114,13 +119,20 @@ pub trait BufMutTrait:
 
     /// Overwrites a buffer with the output from a song.
     ///
-    /// The timer starts at zero.
-    fn overwrite<F: FnMut(Time) -> Self::Item>(&mut self, mut song: F) {
-        let mut time = Time::ZERO;
+    /// The passed `time` parameter is used for the function.
+    fn overwrite_time<F: FnMut(Time) -> Self::Item>(&mut self, time: &mut Time, mut song: F) {
         for sample in self.as_mut() {
-            *sample = song(time);
+            *sample = song(*time);
             time.advance();
         }
+    }
+
+    /// Overwrites a buffer with the output from a song.
+    ///
+    /// The timer starts at zero. Use [`Self::overwrite_time`] to specify the time.
+    fn overwrite<F: FnMut(Time) -> Self::Item>(&mut self, song: F) {
+        let mut time = Time::ZERO;
+        self.overwrite_time(&mut time, song)
     }
 
     /// Overwrites a buffer with the output from a signal. The signal is not consumed.

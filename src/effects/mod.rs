@@ -9,6 +9,7 @@
 pub mod adsr;
 pub mod delay;
 pub mod distortion;
+pub mod filter;
 pub mod freq;
 pub mod mix;
 pub mod pan;
