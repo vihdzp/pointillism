@@ -87,6 +87,11 @@ impl Freq {
         self.into_raw(SampleRate::default())
     }
 
+    /// The angular frequency in radians / sample, obtained by simply multiplying by `τ`.
+    pub fn angular(self) -> f64 {
+        self.samples * std::f64::consts::TAU
+    }
+
     /// Bends a note by a number of notes in a given `edo`.
     ///
     /// You can use this to generate an scale in some EDO, based on some note.

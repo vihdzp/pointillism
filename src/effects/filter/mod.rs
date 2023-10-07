@@ -1,16 +1,16 @@
 use crate::prelude::*;
 
-pub mod biquad;
+pub mod design;
 
 /// Coefficients of a difference equation
 ///
 /// ```txt
-/// y[n] = b[0]x[n] + b[1]x[n - 1] + ... + b[p]x[n - p]
-///                 - a[1]y[n - 1] - ... - a[q]y[n - q]
+/// y[n] = b[0]x[n] + b[1]x[n - 1] + ... + b[T - 1]x[n - p]
+///                 - a[1]y[n - 1] - ... - a[U - 1]y[n - q]
 /// ```
 ///
 /// The values `x[n]` are the inputs, while the values `y[n]` are the outputs. These can be used to
-/// build a [`Filter`].
+/// build a [`Filter`]. `T` is the length of `b`, while `U` is the length of `a`.
 ///
 /// For common filter designs, see [`Biquad`].
 ///
@@ -37,6 +37,8 @@ pub struct Coefficients<const T: usize, const U: usize> {
 
 impl<const T: usize, const U: usize> Coefficients<T, U> {
     /// Initializes new normalized [`Coefficients`].
+    ///
+    /// The first feedback coefficient `a0` is omitted.
     #[must_use]
     pub const fn new_normalized(input: [f64; T], feedback: [f64; U]) -> Self {
         Self { input, feedback }
@@ -46,22 +48,37 @@ impl<const T: usize, const U: usize> Coefficients<T, U> {
     ///
     /// ## Panics
     ///
-    /// You must guarantee `V = T + 1`!
+    /// You must guarantee `V = U + 1`!
     #[must_use]
-    pub fn new<const V: usize>(input: [f64; V], feedback: [f64; U]) -> Self {
-        assert_eq!(T, V + 1, "input element mismatch");
+    pub fn new<const V: usize>(mut input: [f64; T], feedback: [f64; V]) -> Self {
+        assert_eq!(T, U + 1, "input element mismatch");
+        let a0 = feedback[0];
 
-        let a0 = input[0];
-        let mut new_input = [0.0; T];
-        for i in 0..T {
-            new_input[i] = input[i + 1] / a0;
+        // Normalize input.
+        for x in &mut input {
+            *x /= a0;
         }
 
-        Self::new_normalized(new_input, feedback)
+        // Normalize feedback.
+        let mut new_feedback = [0.0; U];
+        for i in 0..T {
+            new_feedback[i] = feedback[i + 1] / a0;
+        }
+
+        Self::new_normalized(input, new_feedback)
     }
 }
 
-/// [`Coefficients`] for a biquadratic filter.
+impl<const T: usize> Coefficients<T, 0> {
+    /// Initializes the coefficients for a new Finite Impulse Response (FIR) filter.
+    ///
+    /// This just means that the feedback coefficients are all zero.
+    pub const fn new_fir(input: [f64; T]) -> Self {
+        Self::new_normalized(input, [])
+    }
+}
+
+/// [`Coefficients`] for a biquadratic (order 2) filter.
 pub type Biquad = Coefficients<3, 2>;
 
 /// Shifts the elements of an array by one position, adds a new one.

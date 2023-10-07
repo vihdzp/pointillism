@@ -16,7 +16,7 @@ fn main() {
         chord,
         Biquad::all_pass(
             Freq::from_raw_default(RawFreq::C6),
-            filter::biquad::QFactor::from_bw(Interval::OCTAVE),
+            filter::design::QFactor::from_bw(Interval::OCTAVE),
         ),
     );
 
