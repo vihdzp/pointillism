@@ -17,23 +17,38 @@ pub struct Vol {
 impl Vol {
     /// Silence.
     pub const ZERO: Self = Self::new(0.0);
-    /// Full volume.
-    pub const FULL: Self = Self::new(1.0);
     /// Half amplitude.
     pub const HALF: Self = Self::new(0.5);
+    /// Full volume.
+    pub const FULL: Self = Self::new(1.0);
+    /// Twice the amplitude.
+    pub const TWICE: Self = Self::new(2.0);
 
     /// -3 dB.
     ///
     /// Roughly corresponds to a halving of power.
-    pub const DB3: Self = Self::new(0.707_945_784_384_137_9);
+    pub const MDB3: Self = Self::new(0.707_945_784_384_137_9);
     /// -6 dB.
     ///
     /// Roughly corresponds to a halving of amplitude, voltage, or sound power level (SPL).
-    pub const DB6: Self = Self::new(0.501_187_233_627_272_2);
+    pub const MDB6: Self = Self::new(0.501_187_233_627_272_2);
     /// -10 dB.
     ///
     /// What a human might percieve as "half as loud".
-    pub const DB10: Self = Self::new(0.316_227_766_016_837_94);
+    pub const MDB10: Self = Self::new(0.316_227_766_016_837_94);
+
+    /// +3 dB.
+    ///
+    /// Roughly corresponds to a doubling of power.
+    pub const DB3: Self = Self::new(1.4125375446227543021556078639302);
+    /// +6 dB.
+    ///
+    /// Roughly corresponds to a doubling of amplitude, voltage, or sound power level (SPL).
+    pub const DB6: Self = Self::new(1.9952623149688796013524553967395);
+    /// +10 dB.
+    ///
+    /// What a human might percieve as "twice as loud".
+    pub const DB10: Self = Self::new(3.1622776601683793319988935444327);
 
     /// Initializes a new volume variable.
     #[must_use]

@@ -14,6 +14,7 @@ pub use crate::{
     effects::{
         adsr::{Adsr, AdsrEnvelope},
         delay::*,
+        filter::{design::QFactor, Biquad, Coefficients, Filter, Filtered},
         freq::*,
         mix::*,
         pan::{LinearPanner, MixedPanner, Panner, PowerPanner},

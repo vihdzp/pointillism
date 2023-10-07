@@ -9,13 +9,12 @@
 //! Cookbook](https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html) by Robert
 //! Bristow-Johnson.
 
-use std::f64::consts::TAU;
-
 use super::{Biquad, Coefficients};
 use crate::prelude::*;
 
 impl Coefficients<0, 0> {
     /// Coefficients for the filter that returns nothing, no matter the output.
+    #[must_use]
     pub const fn zero() -> Self {
         Self::new_fir([])
     }
@@ -29,11 +28,13 @@ impl Default for Coefficients<0, 0> {
 
 impl Coefficients<1, 0> {
     /// Coefficients for the filter that simply modifies the signal volume.
+    #[must_use]
     pub const fn gain(vol: Vol) -> Self {
         Self::new_fir([vol.gain])
     }
 
     /// Coefficients for the filter that returns the original signal, unaltered.
+    #[must_use]
     pub const fn trivial() -> Self {
         Self::gain(Vol::FULL)
     }
@@ -52,6 +53,7 @@ impl Coefficients<2, 0> {
     ///
     /// The high-pass filters are potentially useful, but the low-pass filters only do much at high
     /// frequencies.
+    #[must_use]
     pub fn single_zero(a: f64) -> Self {
         let norm = 1.0 / (1.0 + a.abs());
         Self::new_fir([-norm, norm * a])
@@ -65,6 +67,7 @@ impl Coefficients<1, 1> {
     ///
     /// The low-pass filters are potentially useful, but the high-pass filters only do much at high
     /// frequencies.
+    #[must_use]
     pub fn single_pole(a: f64) -> Self {
         let norm = 1.0 - a.abs();
         Self::new_normalized([norm], [norm * a])
@@ -195,17 +198,25 @@ impl Biquad {
     /// The frequency passed is the peak frequency. The [`Vol`] argument controls the peak gain. The
     /// [`QFactor`] controls the bandwidth of the filter. You can use [`QFactor::from_bw`] to set
     /// this bandwidth explicitly.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the volume is less or equal to zero.
+    ///
+    /// If you want to remove a frequency, use a [`notch`](Self::notch) filter instead.
     #[must_use]
     pub fn peaking(freq: Freq, vol: Vol, q: QFactor) -> Self {
+        assert!(vol.gain > 0.0);
+
         let (ws, wc) = freq.angular().sin_cos();
         let a1 = -2.0 * wc;
 
         let amp = vol.gain.sqrt();
         let a = ws / (2.0 * q.0);
-        let axa = a * amp;
-        let ada = a / amp;
+        let mul = a * amp;
+        let div = a / amp;
 
-        Self::new_biquad(1.0 + ada, a1, 1.0 - ada, 1.0 + axa, a1, 1.0 - axa)
+        Self::new_biquad(1.0 + div, a1, 1.0 - div, 1.0 + mul, a1, 1.0 - mul)
     }
 
     /// A low shelf filter.
@@ -213,29 +224,32 @@ impl Biquad {
     /// The frequency passed is the corner frequency. The [`Vol`] argument controls the shelf gain.
     /// The [`QFactor`] controls the bandwidth of the filter. You can use [`QFactor::from_bw`] to
     /// set this bandwidth explicitly.
+    ///
+    /// Very low volumes will result in more higher frequencies getting cut off. When the volume is
+    /// zero, the signal will also be zero.
     #[must_use]
     pub fn low_shelf(freq: Freq, vol: Vol, q: QFactor) -> Self {
         let (ws, wc) = freq.angular().sin_cos();
 
         let amp = vol.gain.sqrt();
         let amp_sqrt = amp.sqrt();
-        let axa = amp_sqrt * ws / q.0;
+        let mul = amp_sqrt * ws / q.0;
 
-        let ap1 = amp + 1.0;
-        let am1 = amp - 1.0;
-        let ap1w = ap1 * wc;
-        let am1w = am1 * wc;
+        let nxt = amp + 1.0;
+        let prv = amp - 1.0;
+        let nxt_mul = nxt * wc;
+        let prv_mul = prv * wc;
 
-        let apa = ap1 + am1w;
-        let ama = ap1 - am1w;
+        let add = nxt + prv_mul;
+        let sub = nxt - prv_mul;
 
         Self::new_biquad(
-            apa + axa,
-            -2.0 * (am1 + ap1w),
-            apa - axa,
-            amp * (ama + axa),
-            2.0 * amp * ama,
-            amp * (ama - axa),
+            add + mul,
+            -2.0 * (prv + nxt_mul),
+            add - mul,
+            amp * (sub + mul),
+            2.0 * amp * (prv - nxt_mul),
+            amp * (sub - mul),
         )
     }
 
@@ -244,29 +258,32 @@ impl Biquad {
     /// The frequency passed is the corner frequency. The [`Vol`] argument controls the shelf gain.
     /// The [`QFactor`] controls the bandwidth of the filter. You can use [`QFactor::from_bw`] to
     /// set this bandwidth explicitly.
+    ///
+    /// Very low volumes will result in more lower frequencies getting cut off. When the volume is
+    /// zero, the signal will also be zero.
     #[must_use]
     pub fn hi_shelf(freq: Freq, vol: Vol, q: QFactor) -> Self {
         let (ws, wc) = freq.angular().sin_cos();
 
         let amp = vol.gain.sqrt();
         let amp_sqrt = amp.sqrt();
-        let axa = amp_sqrt * ws / q.0;
+        let mul = amp_sqrt * ws / q.0;
 
-        let ap1 = amp + 1.0;
-        let am1 = amp - 1.0;
-        let ap1w = ap1 * wc;
-        let am1w = am1 * wc;
+        let nxt = amp + 1.0;
+        let prv = amp - 1.0;
+        let nxt_mul = nxt * wc;
+        let prv_mul = prv * wc;
 
-        let apa = ap1 + am1w;
-        let ama = ap1 - am1w;
+        let add = nxt + prv_mul;
+        let sub = nxt - prv_mul;
 
         Self::new_biquad(
-            ama + axa,
-            2.0 * (am1 - ap1w),
-            ama - axa,
-            amp * (apa + axa),
-            -2.0 * amp * apa,
-            amp * (apa - axa),
+            sub + mul,
+            2.0 * (prv - nxt_mul),
+            sub - mul,
+            amp * (add + mul),
+            -2.0 * amp * (prv + nxt_mul),
+            amp * (add - mul),
         )
     }
 }

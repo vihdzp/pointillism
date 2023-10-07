@@ -288,6 +288,10 @@ impl<A: Audio> Buffer<A> {
 
     /// Initializes an empty buffer with a given length, rounded down to the nearest sample. All
     /// samples are initialized to zero.
+    ///
+    /// ## Panics
+    ///
+    /// On a 32-bit machine, panics if the buffer is too large.
     #[must_use]
     pub fn empty_time(time: Time) -> Self {
         Self::empty(time.samples.int().try_into().expect("buffer too large"))

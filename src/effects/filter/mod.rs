@@ -28,6 +28,7 @@ pub mod design;
 ///
 /// - `|H(z)|` is the filter gain at this frequency,
 /// - `arg H(z)` is the phase shift.
+#[derive(Clone, Copy, Debug)]
 pub struct Coefficients<const T: usize, const U: usize> {
     /// The input or feedforward coefficients `b`.
     pub input: [f64; T],
@@ -61,7 +62,7 @@ impl<const T: usize, const U: usize> Coefficients<T, U> {
 
         // Normalize feedback.
         let mut new_feedback = [0.0; U];
-        for i in 0..T {
+        for i in 0..U {
             new_feedback[i] = feedback[i + 1] / a0;
         }
 
@@ -73,6 +74,7 @@ impl<const T: usize> Coefficients<T, 0> {
     /// Initializes the coefficients for a new Finite Impulse Response (FIR) filter.
     ///
     /// This just means that the feedback coefficients are all zero.
+    #[must_use]
     pub const fn new_fir(input: [f64; T]) -> Self {
         Self::new_normalized(input, [])
     }

@@ -88,6 +88,7 @@ impl Freq {
     }
 
     /// The angular frequency in radians / sample, obtained by simply multiplying by `τ`.
+    #[must_use]
     pub fn angular(self) -> f64 {
         self.samples * std::f64::consts::TAU
     }
