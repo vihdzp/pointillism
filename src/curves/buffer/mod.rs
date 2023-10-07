@@ -132,7 +132,7 @@ pub trait BufMutTrait:
     /// The timer starts at zero. Use [`Self::overwrite_time`] to specify the time.
     fn overwrite<F: FnMut(Time) -> Self::Item>(&mut self, song: F) {
         let mut time = Time::ZERO;
-        self.overwrite_time(&mut time, song)
+        self.overwrite_time(&mut time, song);
     }
 
     /// Overwrites a buffer with the output from a signal. The signal is not consumed.
@@ -288,8 +288,9 @@ impl<A: Audio> Buffer<A> {
 
     /// Initializes an empty buffer with a given length, rounded down to the nearest sample. All
     /// samples are initialized to zero.
+    #[must_use]
     pub fn empty_time(time: Time) -> Self {
-        Self::empty(time.samples.int() as usize)
+        Self::empty(time.samples.int().try_into().expect("buffer too large"))
     }
 
     /// Converts `self` into a `BufRef`.

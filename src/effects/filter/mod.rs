@@ -37,6 +37,7 @@ pub struct Coefficients<const T: usize, const U: usize> {
 
 impl<const T: usize, const U: usize> Coefficients<T, U> {
     /// Initializes new normalized [`Coefficients`].
+    #[must_use]
     pub const fn new_normalized(input: [f64; T], feedback: [f64; U]) -> Self {
         Self { input, feedback }
     }
@@ -46,6 +47,7 @@ impl<const T: usize, const U: usize> Coefficients<T, U> {
     /// ## Panics
     ///
     /// You must guarantee `V = T + 1`!
+    #[must_use]
     pub fn new<const V: usize>(input: [f64; V], feedback: [f64; U]) -> Self {
         assert_eq!(T, V + 1, "input element mismatch");
 
@@ -55,7 +57,7 @@ impl<const T: usize, const U: usize> Coefficients<T, U> {
             new_input[i] = input[i + 1] / a0;
         }
 
-        Self::new(new_input, feedback)
+        Self::new_normalized(new_input, feedback)
     }
 }
 
@@ -67,7 +69,7 @@ pub type Biquad = Coefficients<3, 2>;
 /// This is quite inefficient for larger arrays, but should be fine for small filters and gives a
 /// simple implementation.
 fn shift<T: Copy>(array: &mut [T], val: T) {
-    if array.len() != 0 {
+    if !array.is_empty() {
         for i in (0..(array.len() - 1)).rev() {
             array[i + 1] = array[i];
         }
@@ -103,6 +105,7 @@ impl<S: Sample, const T: usize, const U: usize> Filter<S, T, U> {
     }
 
     /// Initializes a new filter.
+    #[must_use]
     pub const fn new(coefficients: Coefficients<T, U>) -> Self {
         Self::new_prev(coefficients, [S::ZERO; T], [S::ZERO; U])
     }
@@ -118,9 +121,9 @@ impl<S: Sample, const T: usize, const U: usize> Filter<S, T, U> {
     }
 
     /// Takes in a new input, returns a new output.
-    /// 
+    ///
     /// The previous inputs and outputs are shifted every time this function is called, so this is
-    /// only efficient for low-order filters. 
+    /// only efficient for low-order filters.
     pub fn eval(&mut self, input: S) -> S {
         shift(&mut self.prev_inputs, input);
 

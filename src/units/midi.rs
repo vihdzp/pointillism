@@ -151,7 +151,7 @@ impl FromStr for MidiNote {
 
 impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        // Truncation is impossible.
+        // Truncation is mathematically impossible.
         #[allow(clippy::cast_possible_truncation)]
         let letter = note_to_letter(self.note.rem_euclid(12) as u8);
         let octave = isize::from(self.note / 12) - 1;

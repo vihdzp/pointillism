@@ -587,7 +587,7 @@ impl WavSample for f32 {
 
 impl Stereo {
     /// Flips the channels of a stereo sample.
-    pub fn flip(self) -> Self {
+    #[must_use] pub fn flip(self) -> Self {
         Self(self.1, self.0)
     }
 }

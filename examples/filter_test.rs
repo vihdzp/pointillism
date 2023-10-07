@@ -24,10 +24,7 @@ fn main() {
         "examples/filter_test.wav",
         Time::from_sec_default(1.0),
         SampleRate::default(),
-        |_| {
-            let sgn = (filter.sgn.get() + filter.next()) / 2.0;
-            sgn
-        },
+        |_| (filter.sgn.get() + filter.next()) / 2.0,
     )
     .unwrap();
 }
