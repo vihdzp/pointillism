@@ -391,6 +391,12 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
         Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)
     }
 
+    /// Initializes a new [`LoopGen`] with a random phase.
+    pub fn new_rand_phase(curve: C, freq: Freq) -> Self {
+        use rand::Rng;
+        Self::new_phase(curve, freq, rand::thread_rng().gen())
+    }
+
     /// Initializes a new [`LoopGen`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via

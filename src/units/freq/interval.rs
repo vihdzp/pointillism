@@ -40,6 +40,11 @@ impl Interval {
     /// Tritave interval `3/1`.
     pub const TRITAVE: Self = Self::new(3.0);
 
+    /// A 12-EDO semitone.
+    pub const SEMITONE: Self = Self::new(1.0594630943592952645618252949463);
+    /// A 12-EDO tone (two semitones).
+    pub const TONE: Self = Self::new(1.1224620483093729814335330496792);
+
     /// Initializes a new ratio.
     #[must_use]
     pub const fn new(ratio: f64) -> Self {

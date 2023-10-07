@@ -125,9 +125,12 @@ impl Map for Dup {
     }
 }
 
-impl<S: SignalMut<Sample = Mono>> MapSgn<S, Dup> {
+/// Duplicates a [`Mono`] signal to create a [`Stereo`] signal.
+pub type Duplicate<S> = MapSgn<S, Dup>;
+
+impl<S: Signal<Sample = Mono>> Duplicate<S> {
     /// Duplicates a [`Mono`] signal in both channels.
-    pub const fn dup(sgn: S) -> Self {
+    pub const fn new_dup(sgn: S) -> Self {
         Self::new(sgn, Dup)
     }
 }
