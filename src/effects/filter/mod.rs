@@ -189,6 +189,16 @@ impl<S: Signal, const T: usize, const U: usize> Filtered<S, T, U> {
     pub const fn new(sgn: S, coefficients: Coefficients<T, U>) -> Self {
         Self::new_prev(sgn, Filter::new(coefficients))
     }
+
+    /// Returns the current filter coefficients.
+    pub const fn coefficients(&self) -> Coefficients<T, U> {
+        self.filter.coefficients
+    }
+
+    /// Returns a reference to the filter coefficients.
+    pub fn coefficients_mut(&mut self) -> &mut Coefficients<T, U> {
+        &mut self.filter.coefficients
+    }
 }
 
 impl<S: Signal, const T: usize, const U: usize> Signal for Filtered<S, T, U> {

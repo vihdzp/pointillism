@@ -12,11 +12,11 @@
 use super::{Biquad, Coefficients};
 use crate::prelude::*;
 
-impl Coefficients<0, 0> {
-    /// Coefficients for the filter that returns nothing, no matter the output.
+impl<const T: usize, const U: usize> Coefficients<T, U> {
+    /// Zero all coefficients of the filter.
     #[must_use]
     pub const fn zero() -> Self {
-        Self::new_fir([])
+        Self::new_normalized([0.0; T], [0.0; U])
     }
 }
 

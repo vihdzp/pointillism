@@ -1,3 +1,10 @@
+## Version 0.3.7
+
+Implement common filters, including the low and hi-pass filters, peaking and notch filters, and
+shelf filters.
+
+High order filters are currently very impractical, but this is to change soon.
+
 ## Version 0.3.6
 
 Added MIDI support via the `midly` crate.

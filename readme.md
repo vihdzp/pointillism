@@ -64,7 +64,8 @@ The following versions of pointillism exist:
 
 Future goals of pointillism are:
 
-- Filters (as soon as I learn what the word "biquad" means)
+- Algorithmic reverb
+- Limiters, compressors, sidechaining
 - [Me](https://viiii.bandcamp.com) making a whole album with it :D
 
 ## Disclaimer
