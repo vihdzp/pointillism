@@ -40,15 +40,15 @@ impl Vol {
     /// +3 dB.
     ///
     /// Roughly corresponds to a doubling of power.
-    pub const DB3: Self = Self::new(1.4125375446227543021556078639302);
+    pub const DB3: Self = Self::new(1.412_537_544_622_754_4);
     /// +6 dB.
     ///
     /// Roughly corresponds to a doubling of amplitude, voltage, or sound power level (SPL).
-    pub const DB6: Self = Self::new(1.9952623149688796013524553967395);
+    pub const DB6: Self = Self::new(1.995_262_314_968_879_5);
     /// +10 dB.
     ///
     /// What a human might percieve as "twice as loud".
-    pub const DB10: Self = Self::new(3.1622776601683793319988935444327);
+    pub const DB10: Self = Self::new(3.162_277_660_168_379_5);
 
     /// Initializes a new volume variable.
     #[must_use]
