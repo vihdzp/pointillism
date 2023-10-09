@@ -90,7 +90,7 @@ where
 {
     /// Initializes a new delay that owns its buffer. The size of the buffer is determined by the
     /// delay time.
-    pub fn new_owned(sgn: S, delay: Time, feedback: F) -> Self {
+    pub fn new_owned(sgn: S, delay: unt::Time, feedback: F) -> Self {
         Self::new(sgn, Buffer::empty_time(delay), feedback)
     }
 }
@@ -126,11 +126,11 @@ impl<S: SignalMut<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Out
 impl<S: Frequency<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>>
     Frequency for Delay<S, B, F>
 {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> unt::Freq {
         self.sgn.freq()
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut unt::Freq {
         self.sgn.freq_mut()
     }
 }
@@ -184,7 +184,7 @@ where
 {
     /// Initializes a delay that only plays once and owns its buffer. The size of the buffer is
     /// determined by the delay time.
-    pub fn new_single_owned(sgn: S, delay: Time) -> Self {
+    pub fn new_single_owned(sgn: S, delay: unt::Time) -> Self {
         Self::new_owned(sgn, delay, Zero::new())
     }
 }
@@ -193,23 +193,23 @@ where
 ///
 /// This causes the signal to decay exponentially. You can set the volume to `1.0` for an infinite
 /// delay, but other than that, you'll probably want a value between `0.0` and `1.0`, exclusively.
-pub type ExpDelay<S, B> = Delay<S, B, Pw<<S as Signal>::Sample, Vol>>;
+pub type ExpDelay<S, B> = Delay<S, B, Pw<<S as Signal>::Sample, unt::Vol>>;
 
 impl<S: Signal<Sample = B::Item>, B: BufMutTrait> ExpDelay<S, B> {
     /// Initializes a new [`ExpDelay`].
     ///
     /// To use an empty, owned buffer, see [`Self::new_exp_owned`].
-    pub const fn new_exp(sgn: S, buffer: B, vol: Vol) -> Self {
+    pub const fn new_exp(sgn: S, buffer: B, vol: unt::Vol) -> Self {
         Self::new(sgn, buffer, Pw::new(vol))
     }
 
     /// Returns the feedback volume.
-    pub const fn vol(&self) -> Vol {
+    pub const fn vol(&self) -> unt::Vol {
         self.feedback.func
     }
 
     /// Returns a mutable reference to the feedback volume.
-    pub fn vol_mut(&mut self) -> &mut Vol {
+    pub fn vol_mut(&mut self) -> &mut unt::Vol {
         &mut self.feedback.func
     }
 }
@@ -220,16 +220,16 @@ where
 {
     /// Initializes a delay with exponential decay that owns its buffer. The size of the buffer is
     /// determined by the delay time.
-    pub fn new_exp_owned(sgn: S, delay: Time, vol: Vol) -> Self {
+    pub fn new_exp_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {
         Self::new_owned(sgn, delay, Pw::new(vol))
     }
 }
 
 /// An exponential delay with a ping-pong effect.
-pub type FlipDelay<S, B> = Delay<S, B, Comp<Pw<Stereo, Vol>, Flip>>;
+pub type FlipDelay<S, B> = Delay<S, B, Comp<Pw<Stereo, unt::Vol>, Flip>>;
 
 /// Simple auxiliary function.
-const fn comp_flip(vol: Vol) -> Comp<Pw<Stereo, Vol>, Flip> {
+const fn comp_flip(vol: unt::Vol) -> Comp<Pw<Stereo, unt::Vol>, Flip> {
     Comp::new(Pw::new(vol), Flip)
 }
 
@@ -238,17 +238,17 @@ impl<S: Signal<Sample = Stereo>, B: BufMutTrait<Item = Stereo>> FlipDelay<S, B> 
     ///
     /// You can set the volume to `1.0` for an infinite delay, but other than that, you'll probably
     /// want a value between `0.0` and `1.0`, exclusively.
-    pub const fn new_flip(sgn: S, buffer: B, vol: Vol) -> Self {
+    pub const fn new_flip(sgn: S, buffer: B, vol: unt::Vol) -> Self {
         Self::new(sgn, buffer, comp_flip(vol))
     }
 
     /// Returns the feedback volume.
-    pub const fn vol(&self) -> Vol {
+    pub const fn vol(&self) -> unt::Vol {
         self.feedback.inner.func
     }
 
     /// Returns a mutable reference to the feedback volume.
-    pub fn vol_mut(&mut self) -> &mut Vol {
+    pub fn vol_mut(&mut self) -> &mut unt::Vol {
         &mut self.feedback.inner.func
     }
 }
@@ -256,7 +256,7 @@ impl<S: Signal<Sample = Stereo>, B: BufMutTrait<Item = Stereo>> FlipDelay<S, B> 
 impl<S: Signal<Sample = Stereo>> FlipDelay<S, Buffer<S::Sample>> {
     /// Initializes a ping-pong delay that owns its buffer. The size of the buffer is determined by
     /// the delay time.
-    pub fn new_flip_owned(sgn: S, delay: Time, vol: Vol) -> Self {
+    pub fn new_flip_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {
         Self::new_owned(sgn, delay, comp_flip(vol))
     }
 }

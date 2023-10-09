@@ -4,22 +4,22 @@
 use pointillism::prelude::*;
 
 /// Project sample rate.
-const SAMPLE_RATE: SampleRate = SampleRate::CD;
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 
 fn main() {
     /// Length of each note.
-    const NOTE_LEN: RawTime = RawTime::new(7.0);
-    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
+    const NOTE_LEN: unt::RawTime = unt::RawTime::new(7.0);
+    let note_len = unt::Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
-    let base = Freq::from_raw(RawFreq::A3, SAMPLE_RATE);
+    let base = unt::Freq::from_raw(unt::RawFreq::A3, SAMPLE_RATE);
     let sgn = |freq| {
         AdsrEnvelope::new(
             LoopGen::<Stereo, _>::new(Tri, freq),
             Adsr::new(
-                Time::from_sec(4.0, SAMPLE_RATE),
-                Time::from_sec(6.0, SAMPLE_RATE),
-                Vol::new(0.25),
-                Time::from_sec(3.0, SAMPLE_RATE),
+                unt::Time::from_sec(4.0, SAMPLE_RATE),
+                unt::Time::from_sec(6.0, SAMPLE_RATE),
+                unt::Vol::new(0.25),
+                unt::Time::from_sec(3.0, SAMPLE_RATE),
             ),
         )
     };
@@ -65,7 +65,7 @@ fn main() {
 
     pointillism::create(
         "examples/harmony.wav",
-        note_len * chords.len() as f64 + Time::from_sec(3.0, SAMPLE_RATE),
+        note_len * chords.len() as f64 + unt::Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
         |_| seq.next() / 6.0,
     )

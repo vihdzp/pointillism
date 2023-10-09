@@ -14,8 +14,8 @@ For a starting example, see the [`create`] docs.
 
 ## Design
 
-The way in which pointillism outputs audio is by writing sample by sample into a 32-bit floating
-point `.wav` file. Internal calculations use 64-bit floating points.
+The default way in which pointillism outputs audio is by writing sample by sample into a 32-bit
+floating point `.wav` file. Internal calculations use 64-bit floating points.
 
 For convenience, the [`Signal`] trait is provided. Types implementing this trait generate sample
 data frame by frame. If the type also implements [`SignalMut`], it can be advanced or retriggered.
@@ -24,9 +24,15 @@ Signals may be composed to create more complex signals, using for instance the [
 [`MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits for your own
 structs, giving you vast control over the samples you're producing.
 
-We categorize signals into two broad families. Signals that generate audio on their own are called
-*generators*. Their names are suffixed by `Gen`. Signals that modify the output from another signal
-are called *effects*.
+### Naming scheme
+
+The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because of this, we rely on the `prelude` to categorize things neatly.
+
+Every type has a three-letter namespace which helps categorizes it. The namespaces are as follows:
+
+| Namespace | Contents |
+|-|-|
+| [`unt`]()
 
 ### Compile-time
 
@@ -70,7 +76,11 @@ Future goals of pointillism are:
 
 ## Disclaimer
 
-This is a passion project made by one college student. I make no guarantees on it being
-well-designed, well-maintained, or useable for your own goals.
+This is a passion project made by one college student learning about DSP. I make no guarantees on it
+being well-designed, well-maintained, or usable for your own goals.
+
+If you just want to make music with code, and especially if you enjoy live feedback,
+[SuperCollider](https://supercollider.github.io/) and [Pure Data](https://puredata.info/) will most
+likely be better alternatives for you.
 
 That said, if you happen to stumble across this and make something cool, please let me know!

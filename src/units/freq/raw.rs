@@ -70,8 +70,8 @@ impl RawFreq {
 
     /// The period, which equals the reciprocal of the frequency.
     #[must_use]
-    pub fn period(&self) -> RawTime {
-        RawTime::new(1.0 / self.hz)
+    pub fn period(&self) -> unt::RawTime {
+        unt::RawTime::new(1.0 / self.hz)
     }
 
     /// Bends a note by a number of notes in a given `edo`.
@@ -89,7 +89,7 @@ impl RawFreq {
     /// ```
     #[must_use]
     pub fn bend_edo(self, edo: u16, bend: f64) -> Self {
-        Interval::edo_note(edo, bend) * self
+        unt::Interval::edo_note(edo, bend) * self
     }
 
     /// Bends a note by a number of notes in 12-EDO.
@@ -113,7 +113,7 @@ impl RawFreq {
     /// This allows the user to specify the `A4` tuning. Use [`Self::new_midi`] for the default of
     /// 440 Hz.
     #[must_use]
-    pub fn new_midi_with(a4: Self, note: MidiNote) -> Self {
+    pub fn new_midi_with(a4: Self, note: unt::MidiNote) -> Self {
         a4.bend(f64::from(note.note) - A4_MIDI)
     }
 
@@ -121,7 +121,7 @@ impl RawFreq {
     ///
     /// This assumes A4 = 440 Hz. See [`Self::new_midi_with`] in order to specify the `A4` tuning.
     #[must_use]
-    pub fn new_midi(note: MidiNote) -> Self {
+    pub fn new_midi(note: unt::MidiNote) -> Self {
         Self::new_midi_with(RawFreq::A4, note)
     }
 
@@ -150,10 +150,10 @@ impl RawFreq {
     /// assert_eq!(freq.round_midi_with(RawFreq::A4), MidiNote::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi_with(self, a4: Self) -> MidiNote {
+    pub fn round_midi_with(self, a4: Self) -> unt::MidiNote {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
+        unt::MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -174,7 +174,7 @@ impl RawFreq {
     /// assert_eq!(freq.round_midi(), MidiNote::AS4);
     /// ```
     #[must_use]
-    pub fn round_midi(self) -> MidiNote {
+    pub fn round_midi(self) -> unt::MidiNote {
         self.round_midi_with(RawFreq::A4)
     }
 
@@ -196,13 +196,13 @@ impl RawFreq {
     /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
-    pub fn midi_semitones_with(self, a4: Self) -> (MidiNote, f64) {
+    pub fn midi_semitones_with(self, a4: Self) -> (unt::MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        (MidiNote::new(round as i16), note - round)
+        (unt::MidiNote::new(round as i16), note - round)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -223,14 +223,14 @@ impl RawFreq {
     /// assert_approx_eq!(semitones, -0.4);
     /// ```
     #[must_use]
-    pub fn midi_semitones(self) -> (MidiNote, f64) {
+    pub fn midi_semitones(self) -> (unt::MidiNote, f64) {
         self.midi_semitones_with(RawFreq::A4)
     }
 }
 
 /// We use A4 = 440 Hz.
-impl From<MidiNote> for RawFreq {
-    fn from(note: MidiNote) -> Self {
+impl From<unt::MidiNote> for RawFreq {
+    fn from(note: unt::MidiNote) -> Self {
         Self::new_midi(note)
     }
 }
@@ -240,7 +240,7 @@ impl FromStr for RawFreq {
     type Err = crate::units::midi::NameError;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        MidiNote::from_str(name).map(RawFreq::from)
+        unt::MidiNote::from_str(name).map(RawFreq::from)
     }
 }
 
@@ -280,15 +280,15 @@ impl DivAssign<f64> for RawFreq {
     }
 }
 
-impl Mul<Interval> for RawFreq {
+impl Mul<unt::Interval> for RawFreq {
     type Output = Self;
 
-    fn mul(self, rhs: Interval) -> Self {
+    fn mul(self, rhs: unt::Interval) -> Self {
         rhs.ratio * self
     }
 }
 
-impl Mul<RawFreq> for Interval {
+impl Mul<RawFreq> for unt::Interval {
     type Output = RawFreq;
 
     fn mul(self, rhs: RawFreq) -> RawFreq {
@@ -296,30 +296,30 @@ impl Mul<RawFreq> for Interval {
     }
 }
 
-impl MulAssign<Interval> for RawFreq {
-    fn mul_assign(&mut self, rhs: Interval) {
+impl MulAssign<unt::Interval> for RawFreq {
+    fn mul_assign(&mut self, rhs: unt::Interval) {
         self.hz *= rhs.ratio;
     }
 }
 
-impl Div<Interval> for RawFreq {
+impl Div<unt::Interval> for RawFreq {
     type Output = Self;
 
-    fn div(self, rhs: Interval) -> Self {
+    fn div(self, rhs: unt::Interval) -> Self {
         Self::new(self.hz / rhs.ratio)
     }
 }
 
-impl DivAssign<Interval> for RawFreq {
-    fn div_assign(&mut self, rhs: Interval) {
+impl DivAssign<unt::Interval> for RawFreq {
+    fn div_assign(&mut self, rhs: unt::Interval) {
         self.hz /= rhs.ratio;
     }
 }
 
 impl Div for RawFreq {
-    type Output = Interval;
+    type Output = unt::Interval;
 
-    fn div(self, rhs: Self) -> Interval {
-        Interval::new(self.hz / rhs.hz)
+    fn div(self, rhs: Self) -> unt::Interval {
+        unt::Interval::new(self.hz / rhs.hz)
     }
 }

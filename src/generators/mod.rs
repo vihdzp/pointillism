@@ -66,7 +66,7 @@ impl Val {
     }
 
     /// Advances the inner value in order to play a wave with the specified frequency.
-    pub fn advance_freq(&mut self, freq: Freq) {
+    pub fn advance_freq(&mut self, freq: unt::Freq) {
         *self = Self::fract(self.inner() + freq.samples);
     }
 }
@@ -134,9 +134,9 @@ where
     /// The curve we're playing.
     map: C,
     /// How long has the curve played for?
-    elapsed: Time,
+    elapsed: unt::Time,
     /// The time for which the curve is to be played.
-    time: Time,
+    time: unt::Time,
 }
 
 impl<C: Map<Input = Val>> OnceCurveGen<C>
@@ -147,10 +147,10 @@ where
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`OnceCurveGen`] from a plain curve, use [`OnceGen::new`].
-    pub const fn new_curve(map: C, time: Time) -> Self {
+    pub const fn new_curve(map: C, time: unt::Time) -> Self {
         Self {
             map,
-            elapsed: Time::ZERO,
+            elapsed: unt::Time::ZERO,
             time,
         }
     }
@@ -166,12 +166,12 @@ where
     }
 
     /// Returns how long the curve has been played for.
-    pub const fn elapsed(&self) -> Time {
+    pub const fn elapsed(&self) -> unt::Time {
         self.elapsed
     }
 
     /// The time for which the curve is to be played.
-    pub const fn time(&self) -> Time {
+    pub const fn time(&self) -> unt::Time {
         self.time
     }
 
@@ -204,7 +204,7 @@ where
     }
 
     fn retrigger(&mut self) {
-        self.elapsed = Time::ZERO;
+        self.elapsed = unt::Time::ZERO;
     }
 }
 
@@ -253,7 +253,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
     ///
     /// Note that this builds a [`OnceGen`]. In order to build a more general [`OnceCurveGen`], use
     /// `OnceCurveGen::new_curve`.
-    pub const fn new(curve: C, time: Time) -> Self {
+    pub const fn new(curve: C, time: unt::Time) -> Self {
         Self::new_curve(CurvePlayer::new(curve), time)
     }
 
@@ -283,7 +283,7 @@ where
     /// How far along the curve we are?
     val: Val,
     /// The frequency at which the curve is played.
-    freq: Freq,
+    freq: unt::Freq,
 }
 
 impl<C: Map<Input = Val>> LoopCurveGen<C>
@@ -291,7 +291,7 @@ where
     C::Output: Sample,
 {
     /// Initializes a new [`LoopCurveGen`] with a given phase.
-    pub const fn new_curve_phase(map: C, freq: Freq, phase: Val) -> Self {
+    pub const fn new_curve_phase(map: C, freq: unt::Freq, phase: Val) -> Self {
         Self {
             map,
             freq,
@@ -303,7 +303,7 @@ where
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
     /// [`LoopCurveGen`] from a plain curve, use [`LoopGen::new`].
-    pub const fn new_curve(map: C, freq: Freq) -> Self {
+    pub const fn new_curve(map: C, freq: unt::Freq) -> Self {
         Self::new_curve_phase(map, freq, Val::ZERO)
     }
 
@@ -328,12 +328,12 @@ where
     }
 
     /// The frequency at which the curve is played.
-    pub const fn freq(&self) -> Freq {
+    pub const fn freq(&self) -> unt::Freq {
         self.freq
     }
 
     /// A mutable reference to the frequency at which this curve is played.
-    pub fn freq_mut(&mut self) -> &mut Freq {
+    pub fn freq_mut(&mut self) -> &mut unt::Freq {
         &mut self.freq
     }
 }
@@ -366,11 +366,11 @@ impl<C: Map<Input = Val>> Frequency for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> unt::Freq {
         self.freq
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut unt::Freq {
         &mut self.freq
     }
 }
@@ -387,12 +387,12 @@ pub type LoopGen<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
 
 impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
     /// Initializes a new [`LoopGen`] with a given phase.
-    pub const fn new_phase(curve: C, freq: Freq, phase: Val) -> Self {
+    pub const fn new_phase(curve: C, freq: unt::Freq, phase: Val) -> Self {
         Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)
     }
 
     /// Initializes a new [`LoopGen`] with a random phase.
-    pub fn new_rand_phase(curve: C, freq: Freq) -> Self {
+    pub fn new_rand_phase(curve: C, freq: unt::Freq) -> Self {
         use rand::Rng;
         Self::new_phase(curve, freq, rand::thread_rng().gen())
     }
@@ -404,7 +404,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
     ///
     /// Note that this builds a [`LoopGen`]. In order to build a more general [`LoopCurveGen`], use
     /// `LoopCurveGen::new_curve`.
-    pub const fn new(curve: C, freq: Freq) -> Self {
+    pub const fn new(curve: C, freq: unt::Freq) -> Self {
         Self::new_phase(curve, freq, Val::ZERO)
     }
 

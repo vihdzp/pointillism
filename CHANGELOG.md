@@ -1,3 +1,8 @@
+## Version 0.4.0
+
+Implemented a much more robust naming scheme for types, which should hopefully make future additions
+to the code smoother.
+
 ## Version 0.3.7
 
 Implement common filters, including the low and hi-pass filters, peaking and notch filters, and

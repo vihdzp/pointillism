@@ -8,8 +8,6 @@
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
-// pointillism is really meant to be used through its prelude.
-#![allow(clippy::module_name_repetitions)]
 
 pub mod curves;
 pub mod effects;
@@ -22,7 +20,6 @@ pub mod units;
 
 #[cfg(feature = "cpal")]
 pub mod cpal;
-
 #[cfg(feature = "hound")]
 pub use with_hound::*;
 
@@ -61,7 +58,7 @@ mod with_hound {
 
     /// The [specification](hound::WavSpec) for the output file.
     #[must_use]
-    pub const fn spec(channels: u8, sample_rate: SampleRate) -> hound::WavSpec {
+    pub const fn spec(channels: u8, sample_rate: unt::SampleRate) -> hound::WavSpec {
         hound::WavSpec {
             channels: channels as u16,
             sample_rate: sample_rate.0,
@@ -103,16 +100,16 @@ mod with_hound {
     /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
     ///     .expect("IO error");
     /// ```
-    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(Time) -> A>(
+    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(unt::Time) -> A>(
         filename: P,
-        length: Time,
-        sample_rate: SampleRate,
+        length: unt::Time,
+        sample_rate: unt::SampleRate,
         mut song: F,
     ) -> hound::Result<()> {
         let length = length.samples.int();
         let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
 
-        let mut time = Time::ZERO;
+        let mut time = unt::Time::ZERO;
         for _ in 0..length {
             song(time).write(&mut writer)?;
             time.advance();
@@ -135,8 +132,8 @@ mod with_hound {
     /// For an example, see [`create`].
     pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
         filename: P,
-        length: Time,
-        sample_rate: SampleRate,
+        length: unt::Time,
+        sample_rate: unt::SampleRate,
         sgn: &mut S,
     ) -> hound::Result<()>
     where

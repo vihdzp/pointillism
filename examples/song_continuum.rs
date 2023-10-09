@@ -21,18 +21,18 @@ const MULTS: [f64; 6] = [
 
 fn main() {
     // Frequency of base note.
-    const BASE: RawFreq = RawFreq::new(400.0);
+    const BASE: unt::RawFreq = unt::RawFreq::new(400.0);
     // Length of each note.
-    const NOTE_LEN: RawTime = RawTime::new(3.0);
+    const NOTE_LEN: unt::RawTime = unt::RawTime::new(3.0);
     // Length of released note.
-    const RELEASE_LEN: RawTime = RawTime::new(45.0);
+    const RELEASE_LEN: unt::RawTime = unt::RawTime::new(45.0);
 
     // Length of song in notes.
     const NOTE_COUNT_LEN: u16 = 200;
     // Number of notes actually played (accounting for fade-out).
     const NOTE_COUNT: u16 = 185;
 
-    let note_len = Time::from_raw_default(NOTE_LEN);
+    let note_len = unt::Time::from_raw_default(NOTE_LEN);
 
     // Envelope for the wave shape.
     let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
@@ -46,9 +46,9 @@ fn main() {
                     LoopGen::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     note_len,
-                    Time::ZERO,
-                    Vol::FULL,
-                    Time::from_raw_default(RELEASE_LEN),
+                    unt::Time::ZERO,
+                    unt::Vol::FULL,
+                    unt::Time::from_raw_default(RELEASE_LEN),
                 ),
                 OnceGen::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
@@ -63,7 +63,7 @@ fn main() {
     };
 
     // Base frequency.
-    let base = Freq::from_raw_default(BASE);
+    let base = unt::Freq::from_raw_default(BASE);
     // Frequency of note being played.
     let mut freq = base;
 
@@ -72,7 +72,7 @@ fn main() {
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
-    let note_len = Time::from_raw_default(NOTE_LEN);
+    let note_len = unt::Time::from_raw_default(NOTE_LEN);
 
     // The song loop.
     let poly_loop = Loop::new(
@@ -103,9 +103,9 @@ fn main() {
     pointillism::create_from_sgn(
         "examples/continuum.wav",
         NOTE_COUNT_LEN * note_len,
-        SampleRate::default(),
+        unt::SampleRate::default(),
         // 10.0 might be too much, but just to be safe from clipping.
-        &mut Volume::new(poly_loop, Vol::new(1.0 / 10.0)),
+        &mut Volume::new(poly_loop, unt::Vol::new(1.0 / 10.0)),
     )
     .unwrap();
 }

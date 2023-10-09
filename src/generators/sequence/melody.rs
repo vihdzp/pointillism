@@ -109,12 +109,12 @@ pub enum NoteEvent<K: Eq + Hash + Clone, D> {
 #[derive(Clone, Copy)]
 pub struct Note<D: Clone> {
     /// Note start time.
-    pub start: Time,
+    pub start: unt::Time,
 
     /// Note length.
     ///
     /// If set to `None`, the note is trailing.
-    pub length: Option<Time>,
+    pub length: Option<unt::Time>,
 
     /// Note data.
     pub data: D,
@@ -124,7 +124,7 @@ impl<D: Clone> Note<D> {
     /// Initializes a new note.
     ///
     /// If the length is set to `None`, the note is trailing.
-    pub const fn new_raw(start: Time, length: Option<Time>, data: D) -> Self {
+    pub const fn new_raw(start: unt::Time, length: Option<unt::Time>, data: D) -> Self {
         Self {
             start,
             length,
@@ -133,7 +133,7 @@ impl<D: Clone> Note<D> {
     }
 
     /// Initializes a new note.
-    pub const fn new(start: Time, length: Time, data: D) -> Self {
+    pub const fn new(start: unt::Time, length: unt::Time, data: D) -> Self {
         Self::new_raw(start, Some(length), data)
     }
 
@@ -141,12 +141,12 @@ impl<D: Clone> Note<D> {
     ///
     /// If you're going to use this, you should probably make sure your note does eventually stop
     /// anyways!
-    pub const fn new_trailing(start: Time, data: D) -> Self {
+    pub const fn new_trailing(start: unt::Time, data: D) -> Self {
         Self::new_raw(start, None, data)
     }
 
     /// The time at which the note ends.
-    pub fn end(&self) -> Option<Time> {
+    pub fn end(&self) -> Option<unt::Time> {
         self.length.map(|t| t + self.start)
     }
 
@@ -156,7 +156,7 @@ impl<D: Clone> Note<D> {
     }
 
     /// The time and event associated with the note start.
-    pub fn start_event<K: Eq + Hash + Clone>(&self, key: K) -> (Time, NoteEvent<K, D>) {
+    pub fn start_event<K: Eq + Hash + Clone>(&self, key: K) -> (unt::Time, NoteEvent<K, D>) {
         (
             self.start,
             NoteEvent::Add {
@@ -167,7 +167,7 @@ impl<D: Clone> Note<D> {
     }
 
     /// The time and event associated with the note end, if applicable.
-    pub fn end_event<K: Eq + Hash + Clone>(&self, key: K) -> Option<(Time, NoteEvent<K, D>)> {
+    pub fn end_event<K: Eq + Hash + Clone>(&self, key: K) -> Option<(unt::Time, NoteEvent<K, D>)> {
         self.end().map(|end| (end, NoteEvent::Stop { key }))
     }
 }
@@ -307,7 +307,7 @@ pub type MelodyLoop<K, D, F> = Loop<Polyphony<K, <F as Map>::Output>, NoteReader
 #[derive(Clone, Debug)]
 pub struct Melody<K: Eq + Hash + Clone, D: Clone> {
     /// Times between successive note events.
-    pub times: Vec<Time>,
+    pub times: Vec<unt::Time>,
     /// The ordered list of note events.
     pub events: Vec<NoteEvent<K, D>>,
 }
@@ -317,7 +317,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
     ///
     /// It might be easier to use [`Self::piano_roll`] or [`Self::piano_roll_loop`] instead.
     #[must_use]
-    pub const fn new(times: Vec<Time>, events: Vec<NoteEvent<K, D>>) -> Self {
+    pub const fn new(times: Vec<unt::Time>, events: Vec<NoteEvent<K, D>>) -> Self {
         Self { times, events }
     }
 
@@ -357,7 +357,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
         time_events.sort_by_key(|(time, _)| *time);
 
         // We can now retrieve the events and the time intervals between them.
-        let mut last_time = Time::ZERO;
+        let mut last_time = unt::Time::ZERO;
         let mut times = Vec::with_capacity(event_len);
         let mut events = Vec::with_capacity(event_len);
 
@@ -389,7 +389,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
     /// starts later than the loop ends.
     pub fn piano_roll_loop<N: IntoIterator<Item = Note<D>>, G: FnMut(usize) -> K>(
         notes: N,
-        length: Time,
+        length: unt::Time,
         mut idx_cast: G,
     ) -> Self {
         // This only sets the capacity of the vectors.
@@ -414,7 +414,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
 
         // We can now retrieve the events and the time intervals between them.
         let last_time = time_events.last().unwrap().0;
-        let mut prev_time = Time::ZERO;
+        let mut prev_time = unt::Time::ZERO;
         let mut times = Vec::with_capacity(event_len + 1);
         let mut events = Vec::with_capacity(event_len + 1);
 
@@ -548,7 +548,7 @@ where
     F::Output: Frequency + Stop + Done,
 {
     /// Turns a [`NoteReader`] into a [`MelodySeq`].
-    pub fn new_note_reader(times: Vec<Time>, note_reader: NoteReader<K, D, F>) -> Self {
+    pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
         Self::new(times, Polyphony::new(), note_reader)
     }
 
@@ -575,7 +575,7 @@ where
     F::Output: Frequency + Stop + Done,
 {
     /// Turns a [`NoteReader`] into a [`MelodyLoop`].
-    pub fn new_note_reader(times: Vec<Time>, note_reader: NoteReader<K, D, F>) -> Self {
+    pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
         Self::new(times, Polyphony::new(), note_reader)
     }
 

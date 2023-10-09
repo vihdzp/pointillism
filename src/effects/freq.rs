@@ -7,7 +7,7 @@ use crate::prelude::*;
 /// The function that applies vibrato to a signal.
 pub struct Vib<S: Frequency> {
     /// Base frequency.
-    pub base: Freq,
+    pub base: unt::Freq,
 
     /// Dummy value.
     phantom: PhantomData<S>,
@@ -16,7 +16,7 @@ pub struct Vib<S: Frequency> {
 impl<S: Frequency> Vib<S> {
     /// Initializes a new [`Vib`].
     #[must_use]
-    pub const fn new(base: Freq) -> Self {
+    pub const fn new(base: unt::Freq) -> Self {
         Self {
             base,
             phantom: PhantomData,
@@ -26,7 +26,7 @@ impl<S: Frequency> Vib<S> {
 
 impl<S: Frequency> Default for Vib<S> {
     fn default() -> Self {
-        Self::new(Freq::default())
+        Self::new(unt::Freq::default())
     }
 }
 
@@ -44,7 +44,7 @@ pub struct Vibrato<S: Frequency, E: SignalMut<Sample = Env>> {
 
 impl<S: Frequency, E: SignalMut<Sample = Env>> Vibrato<S, E> {
     /// Initializes a new [`Tremolo`].
-    pub fn new(sgn: S, base: Freq, env: E) -> Self {
+    pub fn new(sgn: S, base: unt::Freq, env: E) -> Self {
         Self {
             inner: MutSgn::new(sgn, env, Vib::new(base)),
         }
@@ -102,11 +102,11 @@ impl<S: Frequency + Base, E: SignalMut<Sample = Env>> Base for Vibrato<S, E> {
 }
 
 impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Vibrato<S, E> {
-    fn freq(&self) -> Freq {
+    fn freq(&self) -> unt::Freq {
         self.inner.func().base
     }
 
-    fn freq_mut(&mut self) -> &mut Freq {
+    fn freq_mut(&mut self) -> &mut unt::Freq {
         &mut self.inner.func_mut().base
     }
 }

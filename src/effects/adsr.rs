@@ -7,16 +7,12 @@ use crate::prelude::*;
 pub enum Stage {
     /// Start to peak.
     Attack,
-
     /// Peak to sustain.
     Decay,
-
     /// Sustain.
     Sustain,
-
     /// Stop to done.
     Release,
-
     /// Done.
     Done,
 }
@@ -38,13 +34,13 @@ pub enum Stage {
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.
-    pub attack: Time,
+    pub attack: unt::Time,
     /// The time from the signal peak to its sustain point.
-    pub decay: Time,
+    pub decay: unt::Time,
     /// The sustain value for the signal.
-    pub sustain: Vol,
+    pub sustain: unt::Vol,
     /// The time from the signal stop to it being done.
-    pub release: Time,
+    pub release: unt::Time,
 
     /// Current stage of the envelope.
     stage: Stage,
@@ -53,26 +49,26 @@ pub struct Adsr {
     ///
     /// This can differ from the sustain value if the envelope is stopped before the `Sustain`
     /// phase.
-    sustain_val: Vol,
+    sustain_val: unt::Vol,
 
     /// How many frames have we spent in this phase?
-    phase_time: Time,
+    phase_time: unt::Time,
 }
 
 impl Adsr {
     /// Initializes a new [`Adsr`] envelope.
     #[must_use]
-    pub fn new(attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+    pub fn new(attack: unt::Time, decay: unt::Time, sustain: unt::Vol, release: unt::Time) -> Self {
         let mut adsr = Self {
             attack,
             decay,
             sustain,
             release,
             stage: Stage::Attack,
-            phase_time: Time::ZERO,
+            phase_time: unt::Time::ZERO,
 
             // Is properly initialized in `stop`.
-            sustain_val: Vol::ZERO,
+            sustain_val: unt::Vol::ZERO,
         };
 
         // Skip any stages with zero time.
@@ -130,7 +126,7 @@ impl SignalMut for Adsr {
 
     fn retrigger(&mut self) {
         self.stage = Stage::Attack;
-        self.phase_time = Time::ZERO;
+        self.phase_time = unt::Time::ZERO;
     }
 }
 
@@ -142,8 +138,8 @@ impl Done for Adsr {
 
 impl Stop for Adsr {
     fn stop(&mut self) {
-        self.sustain_val = Vol::new(self.get().0);
-        self.phase_time = Time::ZERO;
+        self.sustain_val = unt::Vol::new(self.get().0);
+        self.phase_time = unt::Time::ZERO;
         self.stage = Stage::Release;
     }
 }
@@ -161,7 +157,13 @@ pub type AdsrEnvelope<S> = StopTremolo<S, Adsr>;
 
 impl<S: SignalMut> AdsrEnvelope<S> {
     /// Initializes an [`AdsrEnvelope`] with the given parameters.
-    pub fn new_adsr(sgn: S, attack: Time, decay: Time, sustain: Vol, release: Time) -> Self {
+    pub fn new_adsr(
+        sgn: S,
+        attack: unt::Time,
+        decay: unt::Time,
+        sustain: unt::Vol,
+        release: unt::Time,
+    ) -> Self {
         Self::new(sgn, Adsr::new(attack, decay, sustain, release))
     }
 }

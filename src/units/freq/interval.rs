@@ -1,6 +1,6 @@
-//! Implements the [`Interval`] type.
+//! Implements the [`Interval`] type, and defines many associated constants.
 
-/// Represents an interval, or a ratio between notes.
+/// Represents an interval, or a ratio between notes. This is a dimensionless quantity.
 ///
 /// This is functionally identical to a single `f64`, but it implements some helper methods and
 /// constants tailored for musical intervals.
@@ -44,6 +44,15 @@ impl Interval {
     pub const SEMITONE: Self = Self::new(1.059_463_094_359_295_3);
     /// A 12-EDO tone (two semitones).
     pub const TONE: Self = Self::new(1.122_462_048_309_373);
+    /// A 12-EDO tritone (half an octave).
+    pub const TRITONE: Self = Self::new(std::f64::consts::SQRT_2);
+
+    /// The [golden ratio](https://en.wikipedia.org/wiki/Golden_ratio).
+    ///
+    /// Being touted as the ["most irrational
+    /// number"](https://en.wikipedia.org/wiki/Hurwitz%27s_theorem_(number_theory)), this might be
+    /// said to be the most mathematically dissonant interval.
+    pub const PHI: Self = Self::new(1.6180339887498948482045868343656);
 
     /// Initializes a new ratio.
     #[must_use]

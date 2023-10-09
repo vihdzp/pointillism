@@ -14,7 +14,7 @@ pub use crate::{
     effects::{
         adsr::{Adsr, AdsrEnvelope},
         delay::*,
-        filter::{design::QFactor, Biquad, Coefficients, Filter, Filtered},
+        filter::{Biquad, Coefficients, Filter, Filtered},
         freq::*,
         mix::*,
         pan::{LinearPanner, MixedPanner, Panner, PowerPanner},
@@ -33,5 +33,5 @@ pub use crate::{
     sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,
-    units::{midi::MidiNote, Freq, Interval, RawFreq, RawTime, SampleRate, Time, Timer},
+    units as unt,
 };

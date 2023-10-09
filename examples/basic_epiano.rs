@@ -6,7 +6,7 @@ use pointillism::prelude::*;
 use rand::Rng;
 
 /// Project sample rate.
-const SAMPLE_RATE: SampleRate = SampleRate::CD;
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 
 /// First ten harmonic volumes of a piano sample.
 const HARMONICS: [f64; 10] = [
@@ -29,7 +29,7 @@ impl EPiano {
     }
 
     /// Create a new electric piano with the given frequency.
-    fn new(freq: Freq) -> Self {
+    fn new(freq: unt::Freq) -> Self {
         let mut epiano = Self::default();
         epiano.rand_phases();
 
@@ -73,38 +73,38 @@ impl SignalMut for EPiano {
 }
 
 /// An electric piano with a slight tremolo effect applied.
-fn trem_piano(freq: Freq, vib_freq: Freq) -> impl Stop<Sample = Mono> {
+fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = Mono> {
     // The volume follows a rescaled sine wave curve.
     let env = LoopGen::new(Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
 
     // Some subtle ADSR.
     let adsr = Adsr::new(
-        Time::from_sec(0.1, SAMPLE_RATE),
-        Time::from_sec(0.2, SAMPLE_RATE),
-        Vol::new(0.7),
-        Time::from_sec(0.1, SAMPLE_RATE),
+        unt::Time::from_sec(0.1, SAMPLE_RATE),
+        unt::Time::from_sec(0.2, SAMPLE_RATE),
+        unt::Vol::new(0.7),
+        unt::Time::from_sec(0.1, SAMPLE_RATE),
     );
 
     AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
 }
 
 fn main() {
-    let c3 = Freq::from_raw(RawFreq::C3, SAMPLE_RATE);
-    let sec = Time::from_raw(RawTime::SEC, SAMPLE_RATE);
+    let c3 = unt::Freq::from_raw(unt::RawFreq::C3, SAMPLE_RATE);
+    let sec = unt::Time::from_raw(unt::RawTime::SEC, SAMPLE_RATE);
 
     // One piano for each note.
     let (mut p1, mut p2, mut p3) = (
-        trem_piano(c3, Freq::from_hz_default(4.0)),
-        trem_piano(5.0 / 4.0 * c3, Freq::from_hz_default(5.0)),
-        trem_piano(3.0 / 2.0 * c3, Freq::from_hz_default(6.0)),
+        trem_piano(c3, unt::Freq::from_hz_default(4.0)),
+        trem_piano(5.0 / 4.0 * c3, unt::Freq::from_hz_default(5.0)),
+        trem_piano(3.0 / 2.0 * c3, unt::Freq::from_hz_default(6.0)),
     );
 
-    let mut timer = Timer::new(5.0 * sec);
+    let mut timer = unt::Timer::new(5.0 * sec);
     pointillism::create("examples/epiano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.
-        if time > Time::from_raw_default(RawTime::SEC) {
+        if time > unt::Time::from_raw_default(unt::RawTime::SEC) {
             sgn += p2.next();
         }
 

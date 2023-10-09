@@ -23,8 +23,8 @@ pub mod design;
 /// ```
 ///
 /// Suppose a [`Filter`] is built from these coefficients. Let `f` be the [`Freq`] of some signal
-/// (measured in inverse samples). Let `z = exp(τi * f)`, where `τ ≈ 6.28` and `i` is the imaginary
-/// unit. Then:
+/// (measured in samples<sup>–1</sup>). Let `z = exp(τi * f)`, where `τ ≈ 6.28` and `i` is the
+/// imaginary unit. Then:
 ///
 /// - `|H(z)|` is the filter gain at this frequency,
 /// - `arg H(z)` is the phase shift.

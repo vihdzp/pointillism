@@ -25,9 +25,9 @@ use crate::prelude::*;
 #[derive(Clone, Debug)]
 pub struct Sequence<S: SignalMut, F: Mut<S>> {
     /// A list of time intervals between an event and the next.
-    pub times: Vec<Time>,
+    pub times: Vec<unt::Time>,
     /// Time since last event.
-    since: Time,
+    since: unt::Time,
     /// The current event being read.
     index: usize,
 
@@ -39,10 +39,10 @@ pub struct Sequence<S: SignalMut, F: Mut<S>> {
 
 impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// Initializes a new sequence.
-    pub const fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
+    pub const fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
         Self {
             times,
-            since: Time::ZERO,
+            since: unt::Time::ZERO,
             index: 0,
             sgn,
             func,
@@ -50,7 +50,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     }
 
     /// Time since last event.
-    pub const fn since(&self) -> Time {
+    pub const fn since(&self) -> unt::Time {
         self.since
     }
 
@@ -70,7 +70,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     }
 
     /// Returns the time for the current event.
-    pub fn current_time(&self) -> Option<Time> {
+    pub fn current_time(&self) -> Option<unt::Time> {
         self.times.get(self.index()).copied()
     }
 
@@ -106,7 +106,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     pub fn skip(&mut self) -> bool {
         let res = self.index < self.len();
         if res {
-            self.since = Time::ZERO;
+            self.since = unt::Time::ZERO;
             self.modify();
             self.index += 1;
         }
@@ -138,7 +138,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     /// The total time this sequence takes to complete.
     ///
     /// This method is expensive, as it must add all the times together.
-    pub fn total_time(&self) -> Time {
+    pub fn total_time(&self) -> unt::Time {
         self.times.iter().copied().sum()
     }
 }
@@ -161,7 +161,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
     fn retrigger(&mut self) {
         self.sgn.retrigger();
         self.index = 0;
-        self.since = Time::ZERO;
+        self.since = unt::Time::ZERO;
     }
 }
 
@@ -193,12 +193,12 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// This method panics if the `times` vector is empty.
-    pub fn new(times: Vec<Time>, sgn: S, func: F) -> Self {
+    pub fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
         Self::new_seq(Sequence::new(times, sgn, func))
     }
 
     /// Time since last event.
-    pub const fn since(&self) -> Time {
+    pub const fn since(&self) -> unt::Time {
         self.seq.since
     }
 
@@ -227,7 +227,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// Panics if the loop is empty.
-    pub fn current_time(&self) -> Time {
+    pub fn current_time(&self) -> unt::Time {
         self.seq.current_time().unwrap()
     }
 
@@ -265,7 +265,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     ///
     /// Panics if the loop is empty.
     pub fn skip(&mut self) {
-        self.seq.since = Time::ZERO;
+        self.seq.since = unt::Time::ZERO;
         self.modify();
         crate::mod_inc(self.len(), &mut self.seq.index);
     }
@@ -273,7 +273,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// The total time this loop takes to complete.
     ///
     /// This method is expensive, as it must add all the times together.
-    pub fn total_time(&self) -> Time {
+    pub fn total_time(&self) -> unt::Time {
         self.seq.total_time()
     }
 }
@@ -306,7 +306,7 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
 #[derive(Clone, Debug)]
 pub struct Arp {
     /// The notes to play, in order.
-    pub notes: Vec<Freq>,
+    pub notes: Vec<unt::Freq>,
 
     /// The index of the note currently playing.
     pub index: usize,
@@ -315,13 +315,13 @@ pub struct Arp {
 impl Arp {
     /// Initializes a new arpeggio with the given notes.
     #[must_use]
-    pub const fn new(notes: Vec<Freq>) -> Self {
+    pub const fn new(notes: Vec<unt::Freq>) -> Self {
         Self { notes, index: 0 }
     }
 
     /// The currently played note.
     #[must_use]
-    pub fn current(&self) -> Freq {
+    pub fn current(&self) -> unt::Freq {
         self.notes[self.index]
     }
 
@@ -400,7 +400,7 @@ impl<S: Frequency> Arpeggio<S> {
     /// ## Panics
     ///
     /// This method panics if the `times` vector is empty.
-    pub fn new_arp(times: Vec<Time>, sgn: S, notes: Vec<Freq>) -> Self {
+    pub fn new_arp(times: Vec<unt::Time>, sgn: S, notes: Vec<unt::Freq>) -> Self {
         Self::new(times, sgn, Arp::new(notes))
     }
 
@@ -415,12 +415,12 @@ impl<S: Frequency> Arpeggio<S> {
     }
 
     /// Returns a reference to the notes.
-    pub fn notes(&self) -> &[Freq] {
+    pub fn notes(&self) -> &[unt::Freq] {
         &self.arp().notes
     }
 
     /// Returns a mutable reference to the notes.
-    pub fn notes_mut(&mut self) -> &mut [Freq] {
+    pub fn notes_mut(&mut self) -> &mut [unt::Freq] {
         &mut self.arp_mut().notes
     }
 }

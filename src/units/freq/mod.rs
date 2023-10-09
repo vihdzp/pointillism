@@ -14,14 +14,11 @@ mod raw;
 
 pub use {interval::Interval, raw::RawFreq};
 
-use crate::{
-    prelude::MidiNote,
-    units::{SampleRate, A4_MIDI},
-};
+use crate::prelude::*;
 
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
-/// A frequency, measured in **inverse samples**.
+/// A frequency, measured in **samples<sup>–1</sup>**.
 ///
 /// Note that in order to convert between a [`RawFreq`] in hertz and this type, you must know the
 /// [`SampleRate`]. See [`Self::from_raw`].
@@ -53,38 +50,38 @@ impl Freq {
 
     /// Converts [`RawFreq`] into [`Freq`], using the specified sample rate.
     #[must_use]
-    pub fn from_raw(raw: RawFreq, sample_rate: SampleRate) -> Self {
+    pub fn from_raw(raw: RawFreq, sample_rate: unt::SampleRate) -> Self {
         raw / sample_rate
     }
 
     /// Converts [`RawFreq`] into [`Freq`], using the default sample rate.
     #[must_use]
     pub fn from_raw_default(raw: RawFreq) -> Self {
-        Self::from_raw(raw, SampleRate::default())
+        Self::from_raw(raw, unt::SampleRate::default())
     }
 
     /// Initializes a [`Freq`] from the value in hertz, and a sample rate.
     #[must_use]
-    pub fn from_hz(hz: f64, sample_rate: SampleRate) -> Self {
+    pub fn from_hz(hz: f64, sample_rate: unt::SampleRate) -> Self {
         Self::from_raw(RawFreq::new(hz), sample_rate)
     }
 
     /// Initializes a [`Freq`] from the value in hertz, using the default sample rate.
     #[must_use]
     pub fn from_hz_default(hz: f64) -> Self {
-        Self::from_hz(hz, SampleRate::default())
+        Self::from_hz(hz, unt::SampleRate::default())
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
     #[must_use]
-    pub fn into_raw(self, sample_rate: SampleRate) -> RawFreq {
+    pub fn into_raw(self, sample_rate: unt::SampleRate) -> RawFreq {
         RawFreq::new(self.samples * f64::from(sample_rate))
     }
 
     /// Converts [`Freq`] into [`RawFreq`], using the default sample rate.
     #[must_use]
     pub fn into_raw_default(self) -> RawFreq {
-        self.into_raw(SampleRate::default())
+        self.into_raw(unt::SampleRate::default())
     }
 
     /// The angular frequency in radians / sample, obtained by simply multiplying by `τ`.
@@ -119,14 +116,14 @@ impl Freq {
     ///
     /// The note for `A4`, which depends on both the tuning and the sample rate, must be specified.
     #[must_use]
-    pub fn new_midi(a4: Self, note: MidiNote) -> Self {
-        a4.bend(f64::from(note.note) - A4_MIDI)
+    pub fn new_midi(a4: Self, note: unt::MidiNote) -> Self {
+        a4.bend(f64::from(note.note) - unt::A4_MIDI)
     }
 
     /// Rounds this frequency to the nearest (fractional) MIDI note.
     #[must_use]
     fn round_midi_aux(self, a4: Self) -> f64 {
-        (self.samples / a4.samples).log2() * 12.0 + A4_MIDI
+        (self.samples / a4.samples).log2() * 12.0 + unt::A4_MIDI
     }
 
     /// Rounds this frequency to the nearest MIDI note.
@@ -141,10 +138,10 @@ impl Freq {
     ///
     /// For an example, see the functionally identical [`RawFreq::round_midi_with`].
     #[must_use]
-    pub fn round_midi(self, a4: Self) -> MidiNote {
+    pub fn round_midi(self, a4: Self) -> unt::MidiNote {
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        MidiNote::new((self.round_midi_aux(a4).round()) as i16)
+        unt::MidiNote::new((self.round_midi_aux(a4).round()) as i16)
     }
 
     /// Rounds this frequency to the nearest MIDI note, and how many semitones away from this note
@@ -156,13 +153,13 @@ impl Freq {
     ///
     /// For an example, see the functionally identical [`RawFreq::midi_semitones_with`].
     #[must_use]
-    pub fn midi_semitones(self, a4: Self) -> (MidiNote, f64) {
+    pub fn midi_semitones(self, a4: Self) -> (unt::MidiNote, f64) {
         let note = self.round_midi_aux(a4);
         let round = note.round();
 
         // Truncation should not occur in practice.
         #[allow(clippy::cast_possible_truncation)]
-        (MidiNote::new(round as i16), note - round)
+        (unt::MidiNote::new(round as i16), note - round)
     }
 }
 
@@ -171,16 +168,16 @@ impl RawFreq {
     ///
     /// To use the default 44.1 kHz sample rate, use [`Self::from_freq`].
     #[must_use]
-    pub fn from_freq_with(freq: Freq, sample_rate: SampleRate) -> Self {
+    pub fn from_freq_with(freq: Freq, sample_rate: unt::SampleRate) -> Self {
         Self::new(freq.samples * f64::from(sample_rate))
     }
 
-    /// Converts [`Freq`] into [`RawFreq`], using the specified sample rate.
+    /// Converts [`Freq`] into [`RawFreq`], using the default sample rate.
     ///
-    /// To specify the sample rate, use [`Self::from_freq`].
+    /// To specify the sample rate, use [`Self::from_freq_with`].
     #[must_use]
     pub fn from_freq(freq: Freq) -> Self {
-        Self::from_freq_with(freq, SampleRate::default())
+        Self::from_freq_with(freq, unt::SampleRate::default())
     }
 }
 
@@ -195,7 +192,7 @@ impl RawFreq {
 /// will result in a 440 Hz sine wave when sampled at 44.1 kHz.
 impl Default for Freq {
     fn default() -> Self {
-        Freq::from_raw(RawFreq::default(), SampleRate::default())
+        Freq::from_raw(RawFreq::default(), unt::SampleRate::default())
     }
 }
 

@@ -9,16 +9,16 @@ use rand::Rng;
 /// Project sample rate.
 ///
 /// Lower sample rates make for an even scrunchier sound.
-const SAMPLE_RATE: SampleRate = SampleRate::TELEPHONE;
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::TELEPHONE;
 
 fn main() {
     // Base frequency.
-    const BASE: RawFreq = RawFreq::new(350.0);
+    const BASE: unt::RawFreq = unt::RawFreq::new(350.0);
     // Length of each note.
-    const NOTE_LEN: RawTime = RawTime::new(5.0);
+    const NOTE_LEN: unt::RawTime = unt::RawTime::new(5.0);
 
-    let base = Freq::from_raw(BASE, SAMPLE_RATE);
-    let note_len = Time::from_raw(NOTE_LEN, SAMPLE_RATE);
+    let base = unt::Freq::from_raw(BASE, SAMPLE_RATE);
+    let note_len = unt::Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
@@ -29,7 +29,7 @@ fn main() {
             Adsr::new(
                 0.8 * note_len,
                 0.2 * note_len,
-                Vol::new(0.8),
+                unt::Vol::new(0.8),
                 1.5 * note_len,
             ),
         )

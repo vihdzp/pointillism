@@ -5,18 +5,18 @@
 use pointillism::prelude::*;
 
 /// Project sample rate.
-const SAMPLE_RATE: SampleRate = SampleRate::CD;
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 
 fn main() {
     // Number of oscillators.
     const NUM_OSC: usize = 5;
     // Base frequency.
-    const BASE: RawFreq = RawFreq::new(400.0);
+    const BASE: unt::RawFreq = unt::RawFreq::new(400.0);
     // RawTime to complete a cycle.
-    const TIME: RawTime = RawTime::new(10.0);
+    const TIME: unt::RawTime = unt::RawTime::new(10.0);
 
-    let base = Freq::from_raw(BASE, SAMPLE_RATE);
-    let time = Time::from_raw(TIME, SAMPLE_RATE);
+    let base = unt::Freq::from_raw(BASE, SAMPLE_RATE);
+    let time = unt::Time::from_raw(TIME, SAMPLE_RATE);
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {

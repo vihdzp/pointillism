@@ -36,8 +36,8 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 
     /// Returns the time that takes to play this buffer.
     #[must_use]
-    fn time(&self) -> Time {
-        Time::new(crate::units::FracInt::new(self.len() as u64))
+    fn time(&self) -> unt::Time {
+        unt::Time::new(crate::units::FracInt::new(self.len() as u64))
     }
 
     /// Returns the inner slice.    
@@ -54,9 +54,9 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 
     /// Returns the sample corresponding to peak amplitude on all channels.
     #[must_use]
-    fn peak(&self) -> <Self::Item as ArrayLike>::Array<Vol> {
+    fn peak(&self) -> <Self::Item as ArrayLike>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn peak<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<Vol> {
+        fn peak<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<unt::Vol> {
             let mut res = A::new_default();
 
             for sample in buf {
@@ -70,7 +70,7 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
                 });
             }
 
-            res.map_array(|&x| Vol::new(x))
+            res.map_array(|&x| unt::Vol::new(x))
         }
 
         peak(self.as_ref())
@@ -78,9 +78,9 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 
     /// Calculates the RMS on all channels.
     #[must_use]
-    fn rms(&self) -> <Self::Item as ArrayLike>::Array<Vol> {
+    fn rms(&self) -> <Self::Item as ArrayLike>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn rms<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<Vol> {
+        fn rms<A: Audio>(buf: &[A]) -> <A as ArrayLike>::Array<unt::Vol> {
             let mut res: <A as ArrayLike>::Array<f64> = ArrayLike::new_default();
 
             for sample in buf {
@@ -96,7 +96,7 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
                 res[index] = (res[index] / buf.len() as f64).sqrt();
             });
 
-            res.map_array(|&x| Vol::new(x))
+            res.map_array(|&x| unt::Vol::new(x))
         }
 
         rms(self.as_ref())
@@ -120,7 +120,11 @@ pub trait BufMutTrait:
     /// Overwrites a buffer with the output from a song.
     ///
     /// The passed `time` parameter is used for the function.
-    fn overwrite_time<F: FnMut(Time) -> Self::Item>(&mut self, time: &mut Time, mut song: F) {
+    fn overwrite_time<F: FnMut(unt::Time) -> Self::Item>(
+        &mut self,
+        time: &mut unt::Time,
+        mut song: F,
+    ) {
         for sample in self.as_mut() {
             *sample = song(*time);
             time.advance();
@@ -130,8 +134,8 @@ pub trait BufMutTrait:
     /// Overwrites a buffer with the output from a song.
     ///
     /// The timer starts at zero. Use [`Self::overwrite_time`] to specify the time.
-    fn overwrite<F: FnMut(Time) -> Self::Item>(&mut self, song: F) {
-        let mut time = Time::ZERO;
+    fn overwrite<F: FnMut(unt::Time) -> Self::Item>(&mut self, song: F) {
+        let mut time = unt::Time::ZERO;
         self.overwrite_time(&mut time, song);
     }
 
@@ -293,7 +297,7 @@ impl<A: Audio> Buffer<A> {
     ///
     /// On a 32-bit machine, panics if the buffer is too large.
     #[must_use]
-    pub fn empty_time(time: Time) -> Self {
+    pub fn empty_time(time: unt::Time) -> Self {
         Self::empty(time.samples.int().try_into().expect("buffer too large"))
     }
 
@@ -316,11 +320,11 @@ impl<A: Audio> Buffer<A> {
     /// ## Panics
     ///
     /// Panics if a buffer of this size can't be created.
-    pub fn create<F: FnMut(Time) -> A>(length: Time, mut song: F) -> Self {
+    pub fn create<F: FnMut(unt::Time) -> A>(length: unt::Time, mut song: F) -> Self {
         let length = length.samples.int();
         let mut data = Vec::with_capacity(usize::try_from(length).expect("buffer too large"));
 
-        let mut time = Time::ZERO;
+        let mut time = unt::Time::ZERO;
         for _ in 0..length {
             data.push(song(time));
             time.advance();
@@ -336,7 +340,7 @@ impl<A: Audio> Buffer<A> {
     /// ## Panics
     ///
     /// Panics if a buffer of this size can't be created.
-    pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: Time, sgn: &mut S) -> Self {
+    pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: unt::Time, sgn: &mut S) -> Self {
         Self::create(length, |_| sgn.next())
     }
 }

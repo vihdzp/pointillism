@@ -1,7 +1,7 @@
 use pointillism::prelude::*;
 
 /// Project sample rate.
-const SAMPLE_RATE: SampleRate = SampleRate::CD;
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 /// Pluck duration.
 const PLUCK_TIME: f64 = 0.45;
 /// Note duration.
@@ -11,17 +11,17 @@ const NOTES: u16 = 8;
 
 fn main() {
     // Saw wave with random phase.
-    let saw = |freq: RawFreq| {
-        LoopGen::<Stereo, _>::new_rand_phase(Saw, Freq::from_raw(freq, SAMPLE_RATE))
+    let saw = |freq: unt::RawFreq| {
+        LoopGen::<Stereo, _>::new_rand_phase(Saw, unt::Freq::from_raw(freq, SAMPLE_RATE))
     };
 
     // Play a C major chord.
     let chord = Volume::new(
         Mix::new(
-            Mix::new(saw(RawFreq::C4), saw(RawFreq::E4)),
-            saw(RawFreq::G4),
+            Mix::new(saw(unt::RawFreq::C4), saw(unt::RawFreq::E4)),
+            saw(unt::RawFreq::G4),
         ),
-        Vol::MDB10,
+        unt::Vol::MDB10,
     );
 
     // Low-pass filter the chord.
@@ -32,16 +32,16 @@ fn main() {
     // An envelope that closes the filter.
     let env = MutSgn::new(
         filter,
-        OnceGen::new(PosInvSaw, Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
+        OnceGen::new(PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
         Func::new(|filter: &mut Filtered<_, 3, 2>, env: Env| {
             let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
             *filter.coefficients_mut() =
-                Biquad::low_pass(Freq::from_hz(hz, SAMPLE_RATE), QFactor(1.0));
+                Biquad::low_pass(unt::Freq::from_hz(hz, SAMPLE_RATE), unt::QFactor(1.0));
         }),
     );
 
     // Retrigger the pluck in a loop.
-    let note_time = Time::from_sec(NOTE_TIME, SAMPLE_RATE);
+    let note_time = unt::Time::from_sec(NOTE_TIME, SAMPLE_RATE);
     let mut env_loop = Loop::new(
         vec![note_time],
         env,
