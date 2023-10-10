@@ -17,7 +17,7 @@ const HARMONICS: [f64; 10] = [
 #[derive(Default)]
 pub struct EPiano {
     /// Oscillators at the fundamental frequency, twice that, etc.
-    oscs: [gen::Loop<smp::Mono, Sin>; 10],
+    oscs: [gen::Loop<smp::Mono, crv::Sin>; 10],
 }
 
 impl EPiano {
@@ -76,7 +76,7 @@ impl SignalMut for EPiano {
 fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = smp::Mono> {
     // The volume follows a rescaled sine wave curve.
     let env = gen::Loop::new(
-        map::Comp::new(Sin, map::Linear::rescale_sgn(0.8, 1.0)),
+        map::Comp::new(crv::Sin, map::Linear::rescale_sgn(0.8, 1.0)),
         vib_freq,
     );
 

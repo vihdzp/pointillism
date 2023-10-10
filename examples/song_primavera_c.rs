@@ -36,7 +36,7 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
     let vib_freq = unt::Freq::from_raw_default(VIB_FREQ);
 
     // A sine wave.
-    let wave = |freq| gen::Loop::new(Sin, freq);
+    let wave = |freq| gen::Loop::new(crv::Sin, freq);
 
     // Vibrato sine wave.
     let vib = |freq| {
@@ -44,7 +44,7 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
             wave(freq),
             freq,
             eff::PwMapSgn::new_pw(
-                gen::Loop::new(Sin, vib_freq),
+                gen::Loop::new(crv::Sin, vib_freq),
                 map::Linear::rescale_sgn(0.99, 1.01),
             ),
         )
@@ -61,15 +61,15 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
 
     // Our waves are saw-triangle morphs.
-    let wave = |freq| gen::Loop::new(SawTri::tri(), freq);
+    let wave = |freq| gen::Loop::new(crv::SawTri::tri(), freq);
 
     // Their shape is abruptly turned from a saw into a triangle, which results in a rudimentary
     // "pluck" sound.
     let shape = move |freq| {
         eff::MutSgn::new(
             wave(freq),
-            gen::Once::new(PosSaw, unt::Time::from_sec_default(5.0)),
-            map::Func::new(|sgn: &mut gen::Loop<_, SawTri>, val: smp::Env| {
+            gen::Once::new(crv::PosSaw, unt::Time::from_sec_default(5.0)),
+            map::Func::new(|sgn: &mut gen::Loop<_, crv::SawTri>, val: smp::Env| {
                 sgn.curve_mut().shape = unt::Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
         )
@@ -79,7 +79,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     let trem = move |freq| {
         eff::StopTremolo::new(
             shape(freq),
-            gen::Once::new(PosInvSaw, unt::Time::from_sec_default(10.0)),
+            gen::Once::new(crv::PosInvSaw, unt::Time::from_sec_default(10.0)),
         )
     };
 

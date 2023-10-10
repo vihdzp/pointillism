@@ -22,9 +22,9 @@ fn main() {
     let osc = |phase| {
         eff::MutSgn::new(
             // A triangle wave with a placeholder frequency.
-            gen::Loop::new(Tri, base),
+            gen::Loop::new(crv::Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
-            gen::Loop::new_phase(Sin, (NUM_OSC * time).freq(), phase),
+            gen::Loop::new_phase(crv::Sin, (NUM_OSC * time).freq(), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
             map::Func::new(|sgn: &mut gen::Loop<_, _>, val: smp::Env| {

@@ -35,7 +35,7 @@ fn main() {
     let note_len = unt::Time::from_raw_default(NOTE_LEN);
 
     // Envelope for the wave shape.
-    let shape_env = map::Comp::new(Saw, map::Linear::rescale_sgn(0.75, 0.5));
+    let shape_env = map::Comp::new(crv::Saw, map::Linear::rescale_sgn(0.75, 0.5));
 
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
@@ -43,7 +43,7 @@ fn main() {
             eff::MutSgn::new(
                 eff::env::AdsrEnv::new_adsr(
                     // Saw-triangle wave with specified frequency.
-                    gen::Loop::new(SawTri::saw(), freq),
+                    gen::Loop::new(crv::SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     eff::env::Adsr::new(
                         note_len,
@@ -55,7 +55,8 @@ fn main() {
                 gen::Once::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
                 map::Func::new(
-                    |sgn: &mut eff::env::AdsrEnv<gen::Loop<smp::Stereo, SawTri>>, val: smp::Env| {
+                    |sgn: &mut eff::env::AdsrEnv<gen::Loop<smp::Stereo, crv::SawTri>>,
+                     val: smp::Env| {
                         sgn.sgn_mut().curve_mut().shape = unt::Val::new(val.0);
                     },
                 ),
