@@ -24,7 +24,7 @@ fn main() {
     let osc = |freq| {
         AdsrEnvelope::new(
             // Sine wave with specified frequency.
-            LoopGen::<smp::Stereo, _>::new(Sin, freq),
+            gen::Loop::<smp::Stereo, _>::new(Sin, freq),
             // ADSR envelope with long attack, long release.
             Adsr::new(
                 0.8 * note_len,

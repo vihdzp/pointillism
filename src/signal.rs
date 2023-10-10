@@ -106,7 +106,7 @@ pub trait SignalMut: Signal {
 /// A trait for a signal with a "main" frequency that can be modified.
 ///
 /// This is implemented both for signals that have a frequency parameter such as
-/// [`LoopGen`](crate::generators::LoopGen), as well as straightforward wrappers for these signals.
+/// [`gen::Loop`](crate::generators::gen::Loop), as well as straightforward wrappers for these signals.
 ///
 /// Not to be confused with [`Freq`].
 pub trait Frequency: SignalMut {

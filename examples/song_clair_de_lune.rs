@@ -19,7 +19,7 @@ fn main() {
         raw.hz = raw.hz.powf(0.995);
 
         AdsrEnvelope::new_adsr(
-            LoopGen::<Stereo, _>::new(Morph::half(Sin, Tri), Freq::from_raw_default(raw)),
+            gen::Loop::<Stereo, _>::new(Morph::half(Sin, Tri), Freq::from_raw_default(raw)),
             Time::from_sec_default(0.05),
             Time::from_sec_default(2.5),
             Vol::ZERO,

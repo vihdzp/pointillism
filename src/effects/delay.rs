@@ -23,13 +23,13 @@ pub struct Delay<
     /// The played signal.
     pub sgn: S,
 
-    /// The backing [`LoopBufGen`]. This contains the buffer, and an index controlling the current
+    /// The backing [`gen::LoopBuf`]. This contains the buffer, and an index controlling the current
     /// position.
     ///
     /// The length of the buffer deterimes the length of the delay. Since buffers can only hold an
     /// integral amount of samples, a delay might not be exact to the frame. This probably isn't a
     /// problem unless you have a really long delay though.
-    pub loop_gen: buf::LoopBufGen<B>,
+    pub loop_gen: gen::LoopBuf<B>,
 
     /// A function that determines how a sample from the buffer is fed back into itself. This is
     /// most often used to lower its volume, and flip the channels for a ping-pong effect.
@@ -47,7 +47,7 @@ impl<S: Signal<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Outp
     pub const fn new(sgn: S, buffer: B, feedback: F) -> Self {
         Self {
             sgn,
-            loop_gen: buf::LoopBufGen::new(buffer),
+            loop_gen: gen::LoopBuf::new(buffer),
             feedback,
         }
     }

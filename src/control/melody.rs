@@ -43,7 +43,7 @@
 //! // Each note is a triangle wave, with a simple ADSR envelope, playing the corresponding note.
 //! let func = |freq: Freq| {
 //!     AdsrEnvelope::new_adsr(
-//!         LoopGen::<Mono, _>::new(Tri, freq),
+//!         gen::Loop::<Mono, _>::new(Tri, freq),
 //!         Time::from_sec(0.1, SAMPLE_RATE),
 //!         q,
 //!         Vol::new(0.2),
@@ -273,7 +273,7 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<poly::Polyphony<K, F::Output>>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<ply::Polyphony<K, F::Output>>
     for NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
@@ -293,10 +293,10 @@ where
 
 /// A melody that plays from start to end.
 pub type MelodySeq<K, D, F> =
-    ctr::Sequence<poly::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Sequence<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
 pub type MelodyLoop<K, D, F> =
-    ctr::Loop<poly::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Loop<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 
 /// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`MelodySeq`] or a
 /// [`MelodyLoop`].

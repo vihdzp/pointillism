@@ -35,7 +35,7 @@
 //! let freq = Freq::from_hz(440.0, sample_rate);
 //!
 //! // Play a sine wave with a specified frequency.
-//! let sgn = LoopGen::<Mono, _>::new(Sin, freq);
+//! let sgn = gen::Loop::<Mono, _>::new(Sin, freq);
 //!
 //! // Creates the stream and plays it.
 //! let stream = pointillism::cpal::build_output_stream_from_sgn(

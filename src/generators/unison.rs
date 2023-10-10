@@ -245,7 +245,7 @@ where
 ///
 /// It is strongly recommended you don't play 256 or more curves at once. Besides practical
 /// concerns, many methods don't support this.
-pub type Unison<S, C> = UnisonCurve<CurvePlayer<S, C>>;
+pub type Unison<S, C> = UnisonCurve<gen::CurvePlayer<S, C>>;
 
 impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
     /// Initializes a new [`Unison`].
@@ -257,7 +257,7 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
         base: unt::Freq,
         val_inters: Vec<(unt::Val, unt::Interval)>,
     ) -> Self {
-        Self::new_curve_phases(CurvePlayer::new(map), base, val_inters)
+        Self::new_curve_phases(gen::CurvePlayer::new(map), base, val_inters)
     }
 
     /// Initializes a new [`Unison`].
@@ -269,7 +269,7 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
         base: unt::Freq,
         intervals: I,
     ) -> Self {
-        Self::new_curve(CurvePlayer::new(map), base, intervals)
+        Self::new_curve(gen::CurvePlayer::new(map), base, intervals)
     }
 
     /// Plays copies of a curve, centered at a certain base frequency, spaced out by a given
@@ -278,7 +278,7 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
     /// Assuming an interval larger than `1.0`, the curves are indexed from highest to lowest
     /// pitched.
     pub fn detune(map: C, base: unt::Freq, detune: unt::Interval, num: u16) -> Self {
-        Self::detune_curve(CurvePlayer::new(map), base, detune, num)
+        Self::detune_curve(gen::CurvePlayer::new(map), base, detune, num)
     }
 }
 
@@ -349,7 +349,7 @@ impl<
 {
     /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: unt::Freq, num: u8, env: E) -> Self {
-        Self::new_detune_curve(CurvePlayer::new(map), base, num, env)
+        Self::new_detune_curve(gen::CurvePlayer::new(map), base, num, env)
     }
 }
 
@@ -378,7 +378,7 @@ impl<
 ///     Saw,
 ///     Freq::from_raw_default(RawFreq::A3),
 ///     NUM,
-///     OnceGen::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), len),
+///     gen::Once::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), len),
 /// );
 ///
 /// // If you play a large amount of curves and remove this, you'll get some wacky interference.

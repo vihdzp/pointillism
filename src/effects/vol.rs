@@ -251,7 +251,7 @@ impl<S: SignalMut, E: Stop<Sample = smp::Env>> From<Tremolo<S, E>> for StopTremo
 /// An envelope with attack and release.
 ///
 /// Initialize with [`Self::new_ar`].
-pub type ArEnvelope<S> = StopTremolo<S, OnceGen<smp::Env, SawTri>>;
+pub type ArEnvelope<S> = StopTremolo<S, gen::Once<smp::Env, SawTri>>;
 
 impl<S: SignalMut, E: Stop<Sample = smp::Env>> StopTremolo<S, E> {
     /// Initializes a new [`StopTremolo`].
@@ -285,7 +285,7 @@ impl<S: SignalMut> ArEnvelope<S> {
     pub fn new_ar(sgn: S, attack: unt::Time, release: unt::Time) -> Self {
         let time = attack + release;
         let shape = attack / time;
-        Self::new(sgn, OnceGen::new(SawTri::new(unt::Val::new(shape)), time))
+        Self::new(sgn, gen::Once::new(SawTri::new(unt::Val::new(shape)), time))
     }
 }
 

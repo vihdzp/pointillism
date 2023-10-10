@@ -10,8 +10,11 @@
 use crate::prelude::*;
 use std::marker::PhantomData;
 
+mod buffer;
 pub mod poly;
 pub mod unison;
+
+pub use buffer::{LoopBuf, OnceBuf};
 
 /// Converts a plain curve into a sample curve that outputs a signal of the specified type.
 #[derive(Clone, Copy, Debug, Default)]
@@ -70,7 +73,7 @@ where
     /// Initializes a new [`OnceCurveGen`].
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
-    /// [`OnceCurveGen`] from a plain curve, use [`OnceGen::new`].
+    /// [`OnceCurveGen`] from a plain curve, use [`gen::Once::new`].
     pub const fn new_curve(map: C, time: unt::Time) -> Self {
         Self {
             map,
@@ -167,15 +170,15 @@ where
 }
 
 /// Plays a given curve by reading its output as values of a given sample type.
-pub type OnceGen<S, C> = OnceCurveGen<CurvePlayer<S, C>>;
+pub type Once<S, C> = OnceCurveGen<CurvePlayer<S, C>>;
 
-impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> OnceGen<S, C> {
-    /// Initializes a new [`OnceGen`].
+impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Once<S, C> {
+    /// Initializes a new [`gen::Once`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via
-    /// `OnceGen::<S, _>::new`.
+    /// `gen::Once::<S, _>::new`.
     ///
-    /// Note that this builds a [`OnceGen`]. In order to build a more general [`OnceCurveGen`], use
+    /// Note that this builds a [`gen::Once`]. In order to build a more general [`OnceCurveGen`], use
     /// `OnceCurveGen::new_curve`.
     pub const fn new(curve: C, time: unt::Time) -> Self {
         Self::new_curve(CurvePlayer::new(curve), time)
@@ -226,7 +229,7 @@ where
     /// Initializes a new [`LoopCurveGen`].
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
-    /// [`LoopCurveGen`] from a plain curve, use [`LoopGen::new`].
+    /// [`LoopCurveGen`] from a plain curve, use [`gen::Loop::new`].
     pub const fn new_curve(map: C, freq: unt::Freq) -> Self {
         Self::new_curve_phase(map, freq, unt::Val::ZERO)
     }
@@ -307,26 +310,26 @@ where
 }
 
 /// Loops a given curve by reading its output as values of a given sample type.
-pub type LoopGen<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
+pub type Loop<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
 
-impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> LoopGen<S, C> {
-    /// Initializes a new [`LoopGen`] with a given phase.
+impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Loop<S, C> {
+    /// Initializes a new [`gen::Loop`] with a given phase.
     pub const fn new_phase(curve: C, freq: unt::Freq, phase: unt::Val) -> Self {
         Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)
     }
 
-    /// Initializes a new [`LoopGen`] with a random phase.
+    /// Initializes a new [`gen::Loop`] with a random phase.
     pub fn new_rand_phase(curve: C, freq: unt::Freq) -> Self {
         use rand::Rng;
         Self::new_phase(curve, freq, rand::thread_rng().gen())
     }
 
-    /// Initializes a new [`LoopGen`].
+    /// Initializes a new [`gen::Loop`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via
-    /// `LoopGen::<S, _>::new`.
+    /// `gen::Loop::<S, _>::new`.
     ///
-    /// Note that this builds a [`LoopGen`]. In order to build a more general [`LoopCurveGen`], use
+    /// Note that this builds a [`gen::Loop`]. In order to build a more general [`LoopCurveGen`], use
     /// `LoopCurveGen::new_curve`.
     pub const fn new(curve: C, freq: unt::Freq) -> Self {
         Self::new_phase(curve, freq, unt::Val::ZERO)

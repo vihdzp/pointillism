@@ -1,5 +1,5 @@
-//! Declares basic curves that may be to generate audio via [`OnceGen`](crate::prelude::OnceGen) or
-//! [`LoopGen`](crate::prelude::LoopGen).
+//! Declares basic curves that may be to generate audio via [`gen::Once`](crate::prelude::gen::Once) or
+//! [`gen::Loop`](crate::prelude::gen::Loop).
 //!
 //! All of the provided curves, by default, take values from `-1.0` to `1.0`. They can be rescaled
 //! via the [`Comp::pos`], [`Comp::sgn`], and [`Comp::neg`] methods.

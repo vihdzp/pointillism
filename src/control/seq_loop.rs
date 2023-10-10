@@ -368,7 +368,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// // Initializes the arpeggio.
 /// let mut arp = Arpeggio::new_arp(
 ///     vec![note_time],
-///     LoopGen::<Mono, _>::new(Tri, Freq::ZERO),
+///     gen::Loop::<Mono, _>::new(Tri, Freq::ZERO),
 ///     notes,
 /// );
 ///

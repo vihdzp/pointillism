@@ -24,7 +24,7 @@
 //!     FILENAME,
 //!     Time::from_raw_default(RawTime::SEC),
 //!     SampleRate::default(),
-//!     &mut LoopGen::<Mono, Sin>::default(),
+//!     &mut gen::Loop::<Mono, Sin>::default(),
 //! )
 //! .expect("IO error!");
 //!
@@ -32,7 +32,7 @@
 //! //
 //! // This lowers the pitch, and may introduce some artifacts depending on the interpolation method.
 //! const FACTOR: f64 = 3.0;
-//! let buf_sgn = OnceBufGen::new(Buffer::<Mono>::from_wav(FILENAME).unwrap());
+//! let buf_sgn = gen::OnceBuf::new(Buffer::<Mono>::from_wav(FILENAME).unwrap());
 //! let time = buf_sgn.buffer.time();
 //!
 //! // We can change the interpolation method here.

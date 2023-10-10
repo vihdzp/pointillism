@@ -43,17 +43,17 @@ fn main() {
             MutSgn::new(
                 AdsrEnvelope::new_adsr(
                     // Saw-triangle wave with specified frequency.
-                    LoopGen::new(SawTri::saw(), freq),
+                    gen::Loop::new(SawTri::saw(), freq),
                     // ADSR envelope with long attack, very long release.
                     note_len,
                     unt::Time::ZERO,
                     unt::Vol::FULL,
                     unt::Time::from_raw_default(RELEASE_LEN),
                 ),
-                OnceGen::new(shape_env, note_len),
+                gen::Once::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
                 map::Func::new(
-                    |sgn: &mut AdsrEnvelope<LoopGen<smp::Stereo, SawTri>>, val: smp::Env| {
+                    |sgn: &mut AdsrEnvelope<gen::Loop<smp::Stereo, SawTri>>, val: smp::Env| {
                         sgn.sgn_mut().curve_mut().shape = unt::Val::new(val.0);
                     },
                 ),

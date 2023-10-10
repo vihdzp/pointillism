@@ -12,7 +12,7 @@ const NOTES: u16 = 8;
 fn main() {
     // Saw wave with random phase.
     let saw = |freq: unt::RawFreq| {
-        LoopGen::<smp::Stereo, _>::new_rand_phase(Saw, unt::Freq::from_raw(freq, SAMPLE_RATE))
+        gen::Loop::<smp::Stereo, _>::new_rand_phase(Saw, unt::Freq::from_raw(freq, SAMPLE_RATE))
     };
 
     // Play a C major chord.
@@ -32,7 +32,7 @@ fn main() {
     // An envelope that closes the filter.
     let env = MutSgn::new(
         filter,
-        OnceGen::new(PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
+        gen::Once::new(PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
         map::Func::new(|filter: &mut Filtered<_, 3, 2>, env: smp::Env| {
             let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
             *filter.coefficients_mut() =
