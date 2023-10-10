@@ -7,7 +7,7 @@
 //! You can also use a buffer if you want to process large amounts of audio data before playing it
 //! back. This is useful for certain algorithms, such as the
 //! [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform). Convenience methods such as
-//! [`BufMutTrait::overwrite`] are provided for loading a buffer.
+//! [`buf::Mut::overwrite`] are provided for loading a buffer.
 //!
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
@@ -19,8 +19,8 @@ use crate::prelude::*;
 #[cfg(feature = "hound")]
 pub mod wav;
 
-/// A trait common to all buffers.
-pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
+/// A trait for readable buffers.
+pub trait Ref: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
     /// The type of sample stored in the buffer.
     type Item: smp::Audio;
 
@@ -54,9 +54,9 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 
     /// Returns the sample corresponding to peak amplitude on all channels.
     #[must_use]
-    fn peak(&self) -> <Self::Item as smp::ArrayLike>::Array<unt::Vol> {
+    fn peak(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn peak<A: smp::Audio>(buf: &[A]) -> <A as smp::ArrayLike>::Array<unt::Vol> {
+        fn peak<A: smp::Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
             let mut res = A::new_default();
 
             for sample in buf {
@@ -78,11 +78,11 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 
     /// Calculates the RMS on all channels.
     #[must_use]
-    fn rms(&self) -> <Self::Item as smp::ArrayLike>::Array<unt::Vol> {
+    fn rms(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn rms<A: smp::Audio>(buf: &[A]) -> <A as smp::ArrayLike>::Array<unt::Vol> {
-            use smp::ArrayLike;
-            let mut res: <A as ArrayLike>::Array<f64> = ArrayLike::new_default();
+        fn rms<A: smp::Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
+            use smp::Array;
+            let mut res: <A as Array>::Array<f64> = Array::new_default();
 
             for sample in buf {
                 A::for_each(|index| {
@@ -105,9 +105,7 @@ pub trait BufTrait: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::
 }
 
 /// A trait for buffers that hold a mutable reference to its data.
-pub trait BufMutTrait:
-    BufTrait + AsMut<[Self::Item]> + std::ops::IndexMut<usize, Output = Self::Item>
-{
+pub trait Mut: Ref + AsMut<[Self::Item]> + std::ops::IndexMut<usize, Output = Self::Item> {
     /// Returns a mutable reference to the inner slice.
     fn as_mut_slice(&mut self) -> &mut [Self::Item] {
         self.as_mut()
@@ -147,7 +145,7 @@ pub trait BufMutTrait:
 
     /// Clears a buffer, without changing its length.
     fn clear(&mut self) {
-        self.overwrite(|_| smp::SampleLike::ZERO);
+        self.overwrite(|_| smp::Base::ZERO);
     }
 }
 
@@ -236,20 +234,20 @@ impl<A: smp::Audio> IndexMut<usize> for Buffer<A> {
     }
 }
 
-impl<'a, A: smp::Audio> BufTrait for BufRef<'a, A> {
+impl<'a, A: smp::Audio> Ref for BufRef<'a, A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> BufTrait for BufMut<'a, A> {
+impl<'a, A: smp::Audio> Ref for BufMut<'a, A> {
     type Item = A;
 }
 
-impl<A: smp::Audio> BufTrait for Buffer<A> {
+impl<A: smp::Audio> Ref for Buffer<A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> BufMutTrait for BufMut<'a, A> {}
-impl<A: smp::Audio> BufMutTrait for Buffer<A> {}
+impl<'a, A: smp::Audio> Mut for BufMut<'a, A> {}
+impl<A: smp::Audio> Mut for Buffer<A> {}
 
 impl<'a, A: smp::Audio> BufRef<'a, A> {
     /// Initializes a new [`BufRef`].
@@ -409,7 +407,7 @@ macro_rules! buf_gen_boilerplate {
         /// Returns a mutable reference to the inner slice.
         pub fn as_mut_slice(&mut self) -> &mut [B::Item]
         where
-            B: BufMutTrait,
+            B: Mut,
         {
             self.buffer.as_mut_slice()
         }
@@ -423,7 +421,7 @@ macro_rules! buf_gen_boilerplate {
 
 /// A generator that reads through an audio buffer, once.
 #[derive(Clone, Debug)]
-pub struct OnceBufGen<B: BufTrait> {
+pub struct OnceBufGen<B: Ref> {
     /// The inner buffer.
     pub buffer: B,
 
@@ -431,7 +429,7 @@ pub struct OnceBufGen<B: BufTrait> {
     index: usize,
 }
 
-impl<B: BufTrait> OnceBufGen<B> {
+impl<B: Ref> OnceBufGen<B> {
     /// Initializes a new [`OnceBufGen`].
     #[must_use]
     pub const fn new(buffer: B) -> Self {
@@ -441,7 +439,7 @@ impl<B: BufTrait> OnceBufGen<B> {
     buf_gen_boilerplate!();
 }
 
-impl<B: BufTrait> Signal for OnceBufGen<B> {
+impl<B: Ref> Signal for OnceBufGen<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
@@ -449,7 +447,7 @@ impl<B: BufTrait> Signal for OnceBufGen<B> {
     }
 }
 
-impl<B: BufTrait> SignalMut for OnceBufGen<B> {
+impl<B: Ref> SignalMut for OnceBufGen<B> {
     fn advance(&mut self) {
         self.index += 1;
     }
@@ -459,23 +457,23 @@ impl<B: BufTrait> SignalMut for OnceBufGen<B> {
     }
 }
 
-impl<B: BufTrait> Base for OnceBufGen<B> {
+impl<B: Ref> Base for OnceBufGen<B> {
     impl_base!();
 }
 
-impl<B: BufTrait> Stop for OnceBufGen<B> {
+impl<B: Ref> Stop for OnceBufGen<B> {
     fn stop(&mut self) {
         self.index = self.buffer.len();
     }
 }
 
-impl<B: BufTrait> Done for OnceBufGen<B> {
+impl<B: Ref> Done for OnceBufGen<B> {
     fn is_done(&self) -> bool {
         self.index >= self.buffer.len()
     }
 }
 
-impl<B: BufTrait> Panic for OnceBufGen<B> {
+impl<B: Ref> Panic for OnceBufGen<B> {
     fn panic(&mut self) {
         self.stop();
     }
@@ -483,7 +481,7 @@ impl<B: BufTrait> Panic for OnceBufGen<B> {
 
 /// A generator that loops an audio buffer.
 #[derive(Clone, Debug)]
-pub struct LoopBufGen<B: BufTrait> {
+pub struct LoopBufGen<B: Ref> {
     /// The inner buffer.
     pub buffer: B,
 
@@ -491,7 +489,7 @@ pub struct LoopBufGen<B: BufTrait> {
     index: usize,
 }
 
-impl<B: BufTrait> LoopBufGen<B> {
+impl<B: Ref> LoopBufGen<B> {
     /// Initializes a new [`LoopBufGen`].
     #[must_use]
     pub const fn new(buffer: B) -> Self {
@@ -501,7 +499,7 @@ impl<B: BufTrait> LoopBufGen<B> {
     buf_gen_boilerplate!();
 }
 
-impl<B: BufTrait> Signal for LoopBufGen<B> {
+impl<B: Ref> Signal for LoopBufGen<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
@@ -509,7 +507,7 @@ impl<B: BufTrait> Signal for LoopBufGen<B> {
     }
 }
 
-impl<B: BufTrait> SignalMut for LoopBufGen<B> {
+impl<B: Ref> SignalMut for LoopBufGen<B> {
     fn advance(&mut self) {
         crate::mod_inc(self.len(), &mut self.index);
     }
@@ -519,6 +517,6 @@ impl<B: BufTrait> SignalMut for LoopBufGen<B> {
     }
 }
 
-impl<B: BufTrait> Base for LoopBufGen<B> {
+impl<B: Ref> Base for LoopBufGen<B> {
     impl_base!();
 }

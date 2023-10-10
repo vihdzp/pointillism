@@ -17,7 +17,7 @@ use crate::prelude::*;
 #[derive(Clone, Debug)]
 pub struct Delay<
     S: Signal<Sample = B::Item>,
-    B: BufMutTrait,
+    B: buf::Mut,
     F: map::Map<Input = B::Item, Output = B::Item>,
 > {
     /// The played signal.
@@ -29,7 +29,7 @@ pub struct Delay<
     /// The length of the buffer deterimes the length of the delay. Since buffers can only hold an
     /// integral amount of samples, a delay might not be exact to the frame. This probably isn't a
     /// problem unless you have a really long delay though.
-    pub loop_gen: LoopBufGen<B>,
+    pub loop_gen: buf::LoopBufGen<B>,
 
     /// A function that determines how a sample from the buffer is fed back into itself. This is
     /// most often used to lower its volume, and flip the channels for a ping-pong effect.
@@ -38,11 +38,8 @@ pub struct Delay<
     pub feedback: F,
 }
 
-impl<
-        S: Signal<Sample = B::Item>,
-        B: BufMutTrait,
-        F: map::Map<Input = B::Item, Output = B::Item>,
-    > Delay<S, B, F>
+impl<S: Signal<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Output = B::Item>>
+    Delay<S, B, F>
 {
     /// Initializes a new delay.
     ///    
@@ -50,7 +47,7 @@ impl<
     pub const fn new(sgn: S, buffer: B, feedback: F) -> Self {
         Self {
             sgn,
-            loop_gen: LoopBufGen::new(buffer),
+            loop_gen: buf::LoopBufGen::new(buffer),
             feedback,
         }
     }
@@ -87,22 +84,20 @@ impl<
     }
 }
 
-impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>> Delay<S, Buffer<S::Sample>, F>
+impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>>
+    Delay<S, buf::Buffer<S::Sample>, F>
 where
     S::Sample: smp::Audio,
 {
     /// Initializes a new delay that owns its buffer. The size of the buffer is determined by the
     /// delay time.
     pub fn new_owned(sgn: S, delay: unt::Time, feedback: F) -> Self {
-        Self::new(sgn, Buffer::empty_time(delay), feedback)
+        Self::new(sgn, buf::Buffer::empty_time(delay), feedback)
     }
 }
 
-impl<
-        S: Signal<Sample = B::Item>,
-        B: BufMutTrait,
-        F: map::Map<Input = B::Item, Output = B::Item>,
-    > Signal for Delay<S, B, F>
+impl<S: Signal<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Output = B::Item>>
+    Signal for Delay<S, B, F>
 {
     type Sample = S::Sample;
 
@@ -113,7 +108,7 @@ impl<
 
 impl<
         S: SignalMut<Sample = B::Item>,
-        B: BufMutTrait,
+        B: buf::Mut,
         F: map::Map<Input = B::Item, Output = B::Item>,
     > SignalMut for Delay<S, B, F>
 {
@@ -134,7 +129,7 @@ impl<
 
 impl<
         S: Frequency<Sample = B::Item>,
-        B: BufMutTrait,
+        B: buf::Mut,
         F: map::Map<Input = B::Item, Output = B::Item>,
     > Frequency for Delay<S, B, F>
 {
@@ -147,7 +142,7 @@ impl<
     }
 }
 
-impl<S: Base<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>> Base
+impl<S: Base<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Output = B::Item>> Base
     for Delay<S, B, F>
 {
     type Base = S::Base;
@@ -161,7 +156,7 @@ impl<S: Base<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Out
     }
 }
 
-impl<S: Stop<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>> Stop
+impl<S: Stop<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Output = B::Item>> Stop
     for Delay<S, B, F>
 {
     fn stop(&mut self) {
@@ -169,11 +164,8 @@ impl<S: Stop<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Out
     }
 }
 
-impl<
-        S: Panic<Sample = B::Item>,
-        B: BufMutTrait,
-        F: map::Map<Input = B::Item, Output = B::Item>,
-    > Panic for Delay<S, B, F>
+impl<S: Panic<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Output = B::Item>> Panic
+    for Delay<S, B, F>
 {
     fn panic(&mut self) {
         self.sgn.panic();
@@ -184,7 +176,7 @@ impl<
 /// A delay that only plays once.
 pub type SingleDelay<S, B> = Delay<S, B, map::Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
 
-impl<S: Signal<Sample = B::Item>, B: BufMutTrait> SingleDelay<S, B> {
+impl<S: Signal<Sample = B::Item>, B: buf::Mut> SingleDelay<S, B> {
     /// Initializes a delay that only plays once.
     ///
     /// To use an empty, owned buffer, see [`Self::new_single_owned`].
@@ -193,7 +185,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait> SingleDelay<S, B> {
     }
 }
 
-impl<S: Signal> SingleDelay<S, Buffer<S::Sample>>
+impl<S: Signal> SingleDelay<S, buf::Buffer<S::Sample>>
 where
     S::Sample: smp::Audio,
 {
@@ -210,7 +202,7 @@ where
 /// delay, but other than that, you'll probably want a value between `0.0` and `1.0`, exclusively.
 pub type ExpDelay<S, B> = Delay<S, B, Pw<<S as Signal>::Sample, unt::Vol>>;
 
-impl<S: Signal<Sample = B::Item>, B: BufMutTrait> ExpDelay<S, B> {
+impl<S: Signal<Sample = B::Item>, B: buf::Mut> ExpDelay<S, B> {
     /// Initializes a new [`ExpDelay`].
     ///
     /// To use an empty, owned buffer, see [`Self::new_exp_owned`].
@@ -229,7 +221,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait> ExpDelay<S, B> {
     }
 }
 
-impl<S: Signal> ExpDelay<S, Buffer<S::Sample>>
+impl<S: Signal> ExpDelay<S, buf::Buffer<S::Sample>>
 where
     S::Sample: smp::Audio,
 {
@@ -248,7 +240,7 @@ const fn comp_flip(vol: unt::Vol) -> map::Comp<Pw<smp::Stereo, unt::Vol>, map::F
     map::Comp::new(Pw::new(vol), map::Flip)
 }
 
-impl<S: Signal<Sample = smp::Stereo>, B: BufMutTrait<Item = smp::Stereo>> FlipDelay<S, B> {
+impl<S: Signal<Sample = smp::Stereo>, B: buf::Mut<Item = smp::Stereo>> FlipDelay<S, B> {
     /// Initializes a new [`FlipDelay`].
     ///
     /// You can set the volume to `1.0` for an infinite delay, but other than that, you'll probably
@@ -268,7 +260,7 @@ impl<S: Signal<Sample = smp::Stereo>, B: BufMutTrait<Item = smp::Stereo>> FlipDe
     }
 }
 
-impl<S: Signal<Sample = smp::Stereo>> FlipDelay<S, Buffer<S::Sample>> {
+impl<S: Signal<Sample = smp::Stereo>> FlipDelay<S, buf::Buffer<S::Sample>> {
     /// Initializes a ping-pong delay that owns its buffer. The size of the buffer is determined by
     /// the delay time.
     pub fn new_flip_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {

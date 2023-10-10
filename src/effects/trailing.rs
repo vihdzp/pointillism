@@ -94,7 +94,7 @@ impl<S: SignalMut> Signal for Stopping<S> {
 
     fn get(&self) -> S::Sample {
         if self.done {
-            smp::SampleLike::ZERO
+            smp::Base::ZERO
         } else {
             self.sgn.get()
         }

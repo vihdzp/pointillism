@@ -41,7 +41,7 @@ pub struct Env(pub f64);
 /// This trait exists mostly for convenient, general implementations of methods such as
 /// [`linear_inter`](crate::curves::interpolate::linear), which make sense both for samples and for
 /// floating point values.
-pub trait SampleLike:
+pub trait Base:
     Copy
     + Default
     + Debug
@@ -60,7 +60,7 @@ pub trait SampleLike:
     const ZERO: Self;
 }
 
-impl SampleLike for f64 {
+impl Base for f64 {
     const ZERO: Self = 0.0;
 }
 
@@ -76,7 +76,7 @@ impl SampleLike for f64 {
 ///
 /// Implementors of the trait must guarantee that the type has the same size and alignment as
 /// `[Self::Item; Self::SIZE]`.
-pub unsafe trait ArrayLike:
+pub unsafe trait Array:
     AsRef<[Self::Item]>
     + AsMut<[Self::Item]>
     + Index<usize, Output = Self::Item>
@@ -92,7 +92,7 @@ pub unsafe trait ArrayLike:
     /// The array type with the same number of elements as `SIZE`.
     ///
     /// If we could use `[T; Self::SIZE]`, this wouldn't be needed.
-    type Array<T>: ArrayLike<Item = T>;
+    type Array<T>: Array<Item = T>;
 
     /// Creates a value from an array.
     fn from_array(array: Self::Array<Self::Item>) -> Self;
@@ -149,7 +149,7 @@ pub unsafe trait ArrayLike:
 
     /// Applies a function `f` to all entries of the sample.
     #[must_use]
-    fn map_array<T: ArrayLike, F: FnMut(&Self::Item) -> T::Item>(&self, mut f: F) -> T {
+    fn map_array<T: Array, F: FnMut(&Self::Item) -> T::Item>(&self, mut f: F) -> T {
         T::from_fn(|index| f(&self[index]))
     }
 
@@ -201,7 +201,7 @@ pub unsafe trait ArrayLike:
 ///
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
 /// envelopes such as in an LFO.
-pub trait Sample: SampleLike + ArrayLike<Item = f64> {
+pub trait Sample: Base + Array<Item = f64> {
     /// The size as a `u8`.
     #[must_use]
     fn size_u8() -> u8 {
@@ -297,12 +297,12 @@ pub trait Audio: Sample {
     }
 }
 
-impl SampleLike for Mono {
+impl Base for Mono {
     const ZERO: Self = Self(0.0);
 }
 
 /// Safety: The type is tagged as `#[repr(C)]`.
-unsafe impl ArrayLike for Mono {
+unsafe impl Array for Mono {
     const SIZE: usize = 1;
 
     type Item = f64;
@@ -324,12 +324,12 @@ unsafe impl ArrayLike for Mono {
 impl Sample for Mono {}
 impl Audio for Mono {}
 
-impl SampleLike for Stereo {
+impl Base for Stereo {
     const ZERO: Self = Self(0.0, 0.0);
 }
 
 /// Safety: The type is tagged as `#[repr(C)]`.
-unsafe impl ArrayLike for Stereo {
+unsafe impl Array for Stereo {
     const SIZE: usize = 2;
 
     type Item = f64;
@@ -351,12 +351,12 @@ unsafe impl ArrayLike for Stereo {
 impl Sample for Stereo {}
 impl Audio for Stereo {}
 
-impl SampleLike for Env {
+impl Base for Env {
     const ZERO: Self = Self(0.0);
 }
 
 /// Safety: The type is tagged as `#[repr(C)]`.
-unsafe impl ArrayLike for Env {
+unsafe impl Array for Env {
     const SIZE: usize = 2;
 
     type Item = f64;
@@ -378,11 +378,10 @@ unsafe impl ArrayLike for Env {
 impl Sample for Env {}
 
 /// Safety: `[T; N]` has the same layout as itself.
-unsafe impl<T, const N: usize> ArrayLike for [T; N] {
+unsafe impl<T, const N: usize> Array for [T; N] {
     const SIZE: usize = N;
 
     type Item = T;
-
     type Array<U> = [U; N];
 
     fn from_fn<F: FnMut(usize) -> Self::Item>(f: F) -> Self {

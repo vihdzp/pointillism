@@ -4,8 +4,7 @@
 pub use crate::buffer::wav::*;
 
 pub use crate::{
-    buffer::*,
-    control as ctr,
+    buffer as buf, control as ctr,
     curves::{
         interpolate::{
             CubicStretch, DropStretch, HermiteStretch, Interpolate, LinearStretch, Stretch,

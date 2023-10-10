@@ -9,7 +9,7 @@
 use crate::prelude::*;
 
 /// Linearly interpolates two samples `x0` and `x1`.
-pub fn linear<S: smp::SampleLike>(x0: S, x1: S, t: unt::Val) -> S {
+pub fn linear<S: smp::Base>(x0: S, x1: S, t: unt::Val) -> S {
     let t = t.inner();
     x0 * (1.0 - t) + x1 * t
 }
@@ -18,7 +18,7 @@ pub fn linear<S: smp::SampleLike>(x0: S, x1: S, t: unt::Val) -> S {
 /// sample `x3`.
 ///
 /// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
+pub fn cubic<S: smp::Base>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
     let t = t.inner();
     let a0 = x3 - x2 - x0 + x1;
     let a1 = x0 - x1 - a0;
@@ -32,7 +32,7 @@ pub fn cubic<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
 /// the next sample `x3`.
 ///
 /// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
+pub fn hermite<S: smp::Base>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
     let t = t.inner();
     let diff = x1 - x2;
     let c1 = x2 - x0;
@@ -64,7 +64,7 @@ pub fn hermite<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S
 /// them.
 pub trait Interpolate: map::Map<Input = unt::Val, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
-    type Sample:  smp::Sample;
+    type Sample: smp::Sample;
 
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
