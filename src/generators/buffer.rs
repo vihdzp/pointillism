@@ -1,3 +1,7 @@
+//! Implements generators that read from a buffer.
+//! 
+//! These are [`OnceBuf`] and [`LoopBuf`], which work analogously to [`Once`] and [`Loop`].
+
 use crate::prelude::*;
 
 /// Boilerplate common to [`OnceBuf`] and [`LoopBuf`].

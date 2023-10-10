@@ -153,7 +153,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// # use pointillism::prelude::*;
 /// // The original signals.
 /// let mut signal = gen::Loop::new(Saw, Freq::from_raw_default(RawFreq::A3));
-/// let mut trem_env = LoopCurveGen::new(PosSaw, Freq::from_hz_default(1.5));
+/// let mut trem_env = gen::LoopCurve::new(PosSaw, Freq::from_hz_default(1.5));
 ///
 /// pointillism::create(
 ///     "examples/routing.wav",

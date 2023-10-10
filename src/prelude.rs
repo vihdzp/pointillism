@@ -23,8 +23,7 @@ pub use crate::{
         *,
     },
     gen::poly as ply,
-    generators as gen,
-    map, pos, sample as smp, sgn,
+    generators as gen, map, pos, sample as smp, sgn,
     signal::*,
     units as unt,
 };

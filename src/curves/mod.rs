@@ -1,8 +1,7 @@
-//! Declares basic curves that may be to generate audio via [`gen::Once`](crate::prelude::gen::Once) or
-//! [`gen::Loop`](crate::prelude::gen::Loop).
+//! Declares basic curves that may be to generate audio via [`gen::Once`] or [`gen::Loop`].
 //!
 //! All of the provided curves, by default, take values from `-1.0` to `1.0`. They can be rescaled
-//! via the [`Comp::pos`], [`Comp::sgn`], and [`Comp::neg`] methods.
+//! via the [`map::Comp::pos`], [`map::Comp::sgn`], and [`map::Comp::neg`] methods.
 //!
 //! The exception to this rule are saw waves. Due to their prevalence, we provide four variants:
 //! [`Saw`], [`InvSaw`], [`PosSaw`], [`PosInvSaw`]. These vary on whether they take values from
@@ -11,12 +10,12 @@
 //! ## Terminology
 //!
 //! We distinguish between two kinds of curves. The most basic curves like [`Sin`], [`SawTri`],
-//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing [`Map`]
+//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing [`map::Map`]
 //! where the input is [`unt::Val`] both the input and output are `f64`.
 //!
-//! On the other hand, **sample curves**, are types implementing [`Map`] where the input is [`unt::Val`]
-//! and the output is a [`Sample`](crate::prelude::Sample). One can create a sample curve from a
-//! plain curve by using [`CurvePlayer`](crate::prelude::CurvePlayer).
+//! On the other hand, **sample curves**, are types implementing [`map::Map`] where the input is
+//! [`unt::Val`] and the output is a [`Sample`](crate::prelude::Sample). One can create a sample
+//! curve from a plain curve by using [`CurvePlayer`](gen::CurvePlayer).
 
 pub mod interpolate;
 

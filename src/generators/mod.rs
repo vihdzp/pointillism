@@ -52,9 +52,9 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> map::Map for C
 ///
 /// Initialize with [`Self::new_curve`].
 ///
-/// See also [`LoopCurveGen`].
+/// See also [`gen::LoopCurve`].
 #[derive(Clone, Debug)]
-pub struct OnceCurveGen<C: map::Map<Input = unt::Val>>
+pub struct OnceCurve<C: map::Map<Input = unt::Val>>
 where
     C::Output: smp::Sample,
 {
@@ -66,14 +66,14 @@ where
     time: unt::Time,
 }
 
-impl<C: map::Map<Input = unt::Val>> OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
-    /// Initializes a new [`OnceCurveGen`].
+    /// Initializes a new [`gen::OnceCurve`].
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
-    /// [`OnceCurveGen`] from a plain curve, use [`gen::Once::new`].
+    /// [`gen::OnceCurve`] from a plain curve, use [`gen::Once::new`].
     pub const fn new_curve(map: C, time: unt::Time) -> Self {
         Self {
             map,
@@ -108,7 +108,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Signal for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Signal for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -119,7 +119,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> SignalMut for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> SignalMut for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -135,14 +135,14 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Base for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Base for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
     impl_base!();
 }
 
-impl<C: map::Map<Input = unt::Val>> Done for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Done for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -151,7 +151,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Stop for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Stop for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -160,7 +160,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Panic for OnceCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Panic for OnceCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -170,7 +170,7 @@ where
 }
 
 /// Plays a given curve by reading its output as values of a given sample type.
-pub type Once<S, C> = OnceCurveGen<CurvePlayer<S, C>>;
+pub type Once<S, C> = OnceCurve<CurvePlayer<S, C>>;
 
 impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Once<S, C> {
     /// Initializes a new [`gen::Once`].
@@ -178,8 +178,8 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Once<S, C
     /// You might need to explicitly specify the type of sample this curve will produce, via
     /// `gen::Once::<S, _>::new`.
     ///
-    /// Note that this builds a [`gen::Once`]. In order to build a more general [`OnceCurveGen`], use
-    /// `OnceCurveGen::new_curve`.
+    /// Note that this builds a [`gen::Once`]. In order to build a more general [`gen::OnceCurve`],
+    /// use [`gen::OnceCurve::new_curve`].
     pub const fn new(curve: C, time: unt::Time) -> Self {
         Self::new_curve(CurvePlayer::new(curve), time)
     }
@@ -199,9 +199,9 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Once<S, C
 ///
 /// Initialize with [`Self::new_curve`].
 ///
-/// See also [`OnceCurveGen`].
+/// See also [`gen::OnceCurve`].
 #[derive(Clone, Debug, Default)]
-pub struct LoopCurveGen<C: map::Map<Input = unt::Val>>
+pub struct LoopCurve<C: map::Map<Input = unt::Val>>
 where
     C::Output: smp::Sample,
 {
@@ -213,11 +213,11 @@ where
     freq: unt::Freq,
 }
 
-impl<C: map::Map<Input = unt::Val>> LoopCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> LoopCurve<C>
 where
     C::Output: smp::Sample,
 {
-    /// Initializes a new [`LoopCurveGen`] with a given phase.
+    /// Initializes a new [`gen::LoopCurve`] with a given phase.
     pub const fn new_curve_phase(map: C, freq: unt::Freq, phase: unt::Val) -> Self {
         Self {
             map,
@@ -226,10 +226,10 @@ where
         }
     }
 
-    /// Initializes a new [`LoopCurveGen`].
+    /// Initializes a new [`gen::LoopCurve`].
     ///
     /// Note that the `map` argument takes in a sample curve. If you wish to build a
-    /// [`LoopCurveGen`] from a plain curve, use [`gen::Loop::new`].
+    /// [`gen::LoopCurve`] from a plain curve, use [`gen::Loop::new`].
     pub const fn new_curve(map: C, freq: unt::Freq) -> Self {
         Self::new_curve_phase(map, freq, unt::Val::ZERO)
     }
@@ -265,7 +265,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Signal for LoopCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Signal for LoopCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -276,7 +276,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> SignalMut for LoopCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> SignalMut for LoopCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -289,7 +289,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Frequency for LoopCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Frequency for LoopCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -302,7 +302,7 @@ where
     }
 }
 
-impl<C: map::Map<Input = unt::Val>> Base for LoopCurveGen<C>
+impl<C: map::Map<Input = unt::Val>> Base for LoopCurve<C>
 where
     C::Output: smp::Sample,
 {
@@ -310,7 +310,7 @@ where
 }
 
 /// Loops a given curve by reading its output as values of a given sample type.
-pub type Loop<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
+pub type Loop<S, C> = LoopCurve<CurvePlayer<S, C>>;
 
 impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Loop<S, C> {
     /// Initializes a new [`gen::Loop`] with a given phase.
@@ -329,8 +329,8 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> gen::Loop<S, C
     /// You might need to explicitly specify the type of sample this curve will produce, via
     /// `gen::Loop::<S, _>::new`.
     ///
-    /// Note that this builds a [`gen::Loop`]. In order to build a more general [`LoopCurveGen`], use
-    /// `LoopCurveGen::new_curve`.
+    /// Note that this builds a [`gen::Loop`]. In order to build a more general [`gen::LoopCurve`],
+    /// use `gen::LoopCurve::new_curve`.
     pub const fn new(curve: C, freq: unt::Freq) -> Self {
         Self::new_phase(curve, freq, unt::Val::ZERO)
     }
