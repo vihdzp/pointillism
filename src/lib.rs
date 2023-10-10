@@ -9,7 +9,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
 
-pub mod buffer;
+pub mod buffers;
 pub mod control;
 pub mod curves;
 pub mod effects;

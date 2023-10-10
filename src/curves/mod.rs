@@ -14,10 +14,8 @@
 //! where the input is [`unt::Val`] both the input and output are `f64`.
 //!
 //! On the other hand, **sample curves**, are types implementing [`map::Map`] where the input is
-//! [`unt::Val`] and the output is a [`Sample`](crate::prelude::Sample). One can create a sample
-//! curve from a plain curve by using [`CurvePlayer`](gen::CurvePlayer).
-
-pub mod interpolate;
+//! [`unt::Val`] and the output is a [`smp::Sample`]. One can create a sample curve from a plain
+//! curve by using [`CurvePlayer`](gen::CurvePlayer).
 
 use crate::prelude::*;
 
@@ -345,12 +343,12 @@ pub fn saw_tri(x: f64, shape: unt::Val) -> f64 {
         if shape < EPS {
             1.0
         } else {
-            interpolate::linear(-1.0, 1.0, unt::Val::new(x / shape))
+            int::linear(-1.0, 1.0, unt::Val::new(x / shape))
         }
     } else if 1.0 - shape < EPS {
         1.0
     } else {
-        interpolate::linear(-1.0, 1.0, unt::Val::new((1.0 - x) / (1.0 - shape)))
+        int::linear(-1.0, 1.0, unt::Val::new((1.0 - x) / (1.0 - shape)))
     }
 }
 
@@ -489,6 +487,6 @@ impl<C: map::Map<Input = unt::Val, Output = f64>, D: map::Map<Input = unt::Val, 
     type Output = f64;
 
     fn eval(&self, x: unt::Val) -> f64 {
-        self::interpolate::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
+        int::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
     }
 }

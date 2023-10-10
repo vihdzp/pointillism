@@ -84,15 +84,14 @@ impl<S: Signal<Sample = B::Item>, B: buf::Mut, F: map::Map<Input = B::Item, Outp
     }
 }
 
-impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>>
-    Delay<S, buf::Buffer<S::Sample>, F>
+impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>> Delay<S, buf::Dyn<S::Sample>, F>
 where
     S::Sample: smp::Audio,
 {
     /// Initializes a new delay that owns its buffer. The size of the buffer is determined by the
     /// delay time.
     pub fn new_owned(sgn: S, delay: unt::Time, feedback: F) -> Self {
-        Self::new(sgn, buf::Buffer::empty_time(delay), feedback)
+        Self::new(sgn, buf::Dyn::empty_time(delay), feedback)
     }
 }
 
@@ -185,7 +184,7 @@ impl<S: Signal<Sample = B::Item>, B: buf::Mut> SingleDelay<S, B> {
     }
 }
 
-impl<S: Signal> SingleDelay<S, buf::Buffer<S::Sample>>
+impl<S: Signal> SingleDelay<S, buf::Dyn<S::Sample>>
 where
     S::Sample: smp::Audio,
 {
@@ -221,7 +220,7 @@ impl<S: Signal<Sample = B::Item>, B: buf::Mut> ExpDelay<S, B> {
     }
 }
 
-impl<S: Signal> ExpDelay<S, buf::Buffer<S::Sample>>
+impl<S: Signal> ExpDelay<S, buf::Dyn<S::Sample>>
 where
     S::Sample: smp::Audio,
 {
@@ -260,7 +259,7 @@ impl<S: Signal<Sample = smp::Stereo>, B: buf::Mut<Item = smp::Stereo>> FlipDelay
     }
 }
 
-impl<S: Signal<Sample = smp::Stereo>> FlipDelay<S, buf::Buffer<S::Sample>> {
+impl<S: Signal<Sample = smp::Stereo>> FlipDelay<S, buf::Dyn<S::Sample>> {
     /// Initializes a ping-pong delay that owns its buffer. The size of the buffer is determined by
     /// the delay time.
     pub fn new_flip_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {

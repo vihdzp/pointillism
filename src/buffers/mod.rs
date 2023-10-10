@@ -16,6 +16,7 @@ use std::ops::{Index, IndexMut};
 
 use crate::prelude::*;
 
+pub mod interpolate;
 #[cfg(feature = "hound")]
 pub mod wav;
 
@@ -151,54 +152,54 @@ pub trait Mut: Ref + AsMut<[Self::Item]> + std::ops::IndexMut<usize, Output = Se
 
 /// A buffer that holds a reference to its data.
 #[derive(Clone, Debug)]
-pub struct BufRef<'a, A: smp::Audio> {
+pub struct Slice<'a, A: smp::Audio> {
     pub data: &'a [A],
 }
 
 /// A buffer that holds a mutable reference to its data.
 #[derive(Debug)]
-pub struct BufMut<'a, A: smp::Audio> {
+pub struct MutSlice<'a, A: smp::Audio> {
     pub data: &'a mut [A],
 }
 
-/// A sample buffer that owns its data.
+/// A dynamically allocated, owned sample buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Buffer<A: smp::Audio> {
+pub struct Dyn<A: smp::Audio> {
     /// The data stored by the buffer.
     data: Vec<A>,
 }
 
-impl<'a, A: smp::Audio> AsRef<[A]> for BufRef<'a, A> {
+impl<'a, A: smp::Audio> AsRef<[A]> for Slice<'a, A> {
     fn as_ref(&self) -> &[A] {
         self.data
     }
 }
 
-impl<'a, A: smp::Audio> AsRef<[A]> for BufMut<'a, A> {
+impl<'a, A: smp::Audio> AsRef<[A]> for MutSlice<'a, A> {
     fn as_ref(&self) -> &[A] {
         self.data
     }
 }
 
-impl<A: smp::Audio> AsRef<[A]> for Buffer<A> {
+impl<A: smp::Audio> AsRef<[A]> for Dyn<A> {
     fn as_ref(&self) -> &[A] {
         &self.data
     }
 }
 
-impl<'a, A: smp::Audio> AsMut<[A]> for BufMut<'a, A> {
+impl<'a, A: smp::Audio> AsMut<[A]> for MutSlice<'a, A> {
     fn as_mut(&mut self) -> &mut [A] {
         self.data
     }
 }
 
-impl<A: smp::Audio> AsMut<[A]> for Buffer<A> {
+impl<A: smp::Audio> AsMut<[A]> for Dyn<A> {
     fn as_mut(&mut self) -> &mut [A] {
         &mut self.data
     }
 }
 
-impl<'a, A: smp::Audio> Index<usize> for BufRef<'a, A> {
+impl<'a, A: smp::Audio> Index<usize> for Slice<'a, A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -206,7 +207,7 @@ impl<'a, A: smp::Audio> Index<usize> for BufRef<'a, A> {
     }
 }
 
-impl<'a, A: smp::Audio> Index<usize> for BufMut<'a, A> {
+impl<'a, A: smp::Audio> Index<usize> for MutSlice<'a, A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -214,7 +215,7 @@ impl<'a, A: smp::Audio> Index<usize> for BufMut<'a, A> {
     }
 }
 
-impl<A: smp::Audio> Index<usize> for Buffer<A> {
+impl<A: smp::Audio> Index<usize> for Dyn<A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -222,41 +223,41 @@ impl<A: smp::Audio> Index<usize> for Buffer<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IndexMut<usize> for BufMut<'a, A> {
+impl<'a, A: smp::Audio> IndexMut<usize> for MutSlice<'a, A> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
-impl<A: smp::Audio> IndexMut<usize> for Buffer<A> {
+impl<A: smp::Audio> IndexMut<usize> for Dyn<A> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
-impl<'a, A: smp::Audio> Ref for BufRef<'a, A> {
+impl<'a, A: smp::Audio> Ref for Slice<'a, A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Ref for BufMut<'a, A> {
+impl<'a, A: smp::Audio> Ref for MutSlice<'a, A> {
     type Item = A;
 }
 
-impl<A: smp::Audio> Ref for Buffer<A> {
+impl<A: smp::Audio> Ref for Dyn<A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Mut for BufMut<'a, A> {}
-impl<A: smp::Audio> Mut for Buffer<A> {}
+impl<'a, A: smp::Audio> Mut for MutSlice<'a, A> {}
+impl<A: smp::Audio> Mut for Dyn<A> {}
 
-impl<'a, A: smp::Audio> BufRef<'a, A> {
+impl<'a, A: smp::Audio> Slice<'a, A> {
     /// Initializes a new [`BufRef`].
     pub const fn new(data: &'a [A]) -> Self {
         Self { data }
     }
 }
 
-impl<'a, A: smp::Audio> BufMut<'a, A> {
+impl<'a, A: smp::Audio> MutSlice<'a, A> {
     /// Initializes a new [`BufMut`].
     pub fn new(data: &'a mut [A]) -> Self {
         Self { data }
@@ -266,12 +267,12 @@ impl<'a, A: smp::Audio> BufMut<'a, A> {
     ///
     /// Notes that this consumes the buffer, as mutable aliasing is prohibited.
     #[must_use]
-    pub const fn buf_ref(self) -> BufRef<'a, A> {
-        BufRef::new(self.data)
+    pub const fn buf_ref(self) -> Slice<'a, A> {
+        Slice::new(self.data)
     }
 }
 
-impl<A: smp::Audio> Buffer<A> {
+impl<A: smp::Audio> Dyn<A> {
     /// Initializes a new [`Buffer`] from data.
     #[must_use]
     pub const fn from_data(data: Vec<A>) -> Self {
@@ -302,14 +303,14 @@ impl<A: smp::Audio> Buffer<A> {
 
     /// Converts `self` into a `BufRef`.
     #[must_use]
-    pub fn buf_ref(&self) -> BufRef<A> {
-        BufRef::new(&self.data)
+    pub fn buf_ref(&self) -> Slice<A> {
+        Slice::new(&self.data)
     }
 
     /// Converts `self` into a `BufMut`.
     #[must_use]
-    pub fn buf_mut(&mut self) -> BufMut<A> {
-        BufMut::new(&mut self.data)
+    pub fn buf_mut(&mut self) -> MutSlice<A> {
+        MutSlice::new(&mut self.data)
     }
 
     /// Creates a buffer from the output of a song.
@@ -344,19 +345,19 @@ impl<A: smp::Audio> Buffer<A> {
     }
 }
 
-impl<A: smp::Audio> From<Vec<A>> for Buffer<A> {
+impl<A: smp::Audio> From<Vec<A>> for Dyn<A> {
     fn from(data: Vec<A>) -> Self {
         Self::from_data(data)
     }
 }
 
-impl<A: smp::Audio> FromIterator<A> for Buffer<A> {
+impl<A: smp::Audio> FromIterator<A> for Dyn<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self::from_data(FromIterator::from_iter(iter))
     }
 }
 
-impl<A: smp::Audio> IntoIterator for Buffer<A> {
+impl<A: smp::Audio> IntoIterator for Dyn<A> {
     type IntoIter = std::vec::IntoIter<A>;
     type Item = A;
 
@@ -365,7 +366,7 @@ impl<A: smp::Audio> IntoIterator for Buffer<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IntoIterator for &'a Buffer<A> {
+impl<'a, A: smp::Audio> IntoIterator for &'a Dyn<A> {
     type IntoIter = std::slice::Iter<'a, A>;
     type Item = &'a A;
 
@@ -374,7 +375,7 @@ impl<'a, A: smp::Audio> IntoIterator for &'a Buffer<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IntoIterator for &'a mut Buffer<A> {
+impl<'a, A: smp::Audio> IntoIterator for &'a mut Dyn<A> {
     type IntoIter = std::slice::IterMut<'a, A>;
     type Item = &'a mut A;
 

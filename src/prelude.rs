@@ -1,16 +1,12 @@
 //! Imports the most commmon traits and structures.
 
 #[cfg(feature = "hound")]
-pub use crate::buffer::wav::*;
+pub use crate::buffers::wav::*;
 
 pub use crate::{
-    buffer as buf, control as ctr,
-    curves::{
-        interpolate::{
-            CubicStretch, DropStretch, HermiteStretch, Interpolate, LinearStretch, Stretch,
-        },
-        *,
-    },
+    buf::interpolate as int,
+    buffers as buf, control as ctr,
+    curves::*,
     effects::{
         adsr::{Adsr, AdsrEnvelope},
         delay::*,

@@ -34,14 +34,16 @@ follows:
 
 | Namespace | Full Name | Contents |
 |-|-|-|
-| [`unt`] | `units` | Different units for musical measurement, and associated arithmetic boilerplate.
+| [`buf`] | `buffers` | Audio buffers and associated traits.
 | [`crv`] | `curves` | Basic oscillator shapes, and builder methods for more complex ones (in the future).
-| [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
-| [`eff`] | `effects` | For effects, meaning types that alter other signals.
 | [`ctr`] | `control` | Control structures, which allow for events to happen at specified time intervals.
-| [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
+| [`eff`] | `effects` | For effects, meaning types that alter other signals.
+| [`int`] | `interpolate` | Interpolation types and buffers.
+| [`map`] | `map` | Basic maps and associated traits.
+| [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
 | [`sgn`] | `signal` | Traits on signals, including the basic [`sgn::Ref`] and [`sgn::Mut`].
-| [`map`] | `map` | Basic functions.
+| [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
+| [`unt`] | `units` | Different units for musical measurement, and associated arithmetic boilerplate.
 
 ### Compile-time
 

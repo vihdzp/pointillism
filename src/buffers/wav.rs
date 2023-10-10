@@ -97,7 +97,7 @@ fn init_reader(path: &Path, expected_mono: bool) -> Result<WavFileReader, Error>
     Ok(reader)
 }
 
-impl buf::Buffer<smp::Mono> {
+impl buf::Dyn<smp::Mono> {
     /// Allocates memory in which to store a buffer of a given size. If `length = 0` is passed, the
     /// null pointer will be returned.
     ///
@@ -185,10 +185,10 @@ impl buf::Buffer<smp::Mono> {
     /// [`Mono`] samples) passed as an argument.
     unsafe fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
-            buf::Buffer::new()
+            buf::Dyn::new()
         } else {
             debug_assert_ne!(length, 0);
-            buf::Buffer::from_data(unsafe { Vec::from_raw_parts(ptr, length, length) })
+            buf::Dyn::from_data(unsafe { Vec::from_raw_parts(ptr, length, length) })
         }
     }
 
@@ -240,7 +240,7 @@ impl buf::Buffer<smp::Mono> {
     }
 }
 
-impl buf::Buffer<smp::Stereo> {
+impl buf::Dyn<smp::Stereo> {
     /// Creates a buffer from an initialized pointer, returned from either [`Buffer::write_ptr_gen`]
     /// or [`Buffer::write_ptr`].
     ///
@@ -255,12 +255,12 @@ impl buf::Buffer<smp::Stereo> {
     /// In particular, `length` must be even.
     fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
-            buf::Buffer::new()
+            buf::Dyn::new()
         } else {
             debug_assert_eq!(length % 2, 0);
             debug_assert_ne!(length, 0);
 
-            buf::Buffer::from_data(unsafe {
+            buf::Dyn::from_data(unsafe {
                 Vec::from_raw_parts(ptr.cast::<smp::Stereo>(), length / 2, length / 2)
             })
         }
@@ -281,11 +281,11 @@ impl buf::Buffer<smp::Stereo> {
     pub fn from_wav_gen<P: AsRef<Path>, S: WavSample>(path: P) -> Result<Self, Error> {
         let reader = init_reader(path.as_ref(), false)?;
         let length = reader.len() as usize;
-        let ptr = buf::Buffer::get_ptr(length);
+        let ptr = buf::Dyn::get_ptr(length);
 
         // Safety: the memory area has the correct length.
         unsafe {
-            buf::Buffer::write_ptr_gen::<S>(reader, ptr)?;
+            buf::Dyn::write_ptr_gen::<S>(reader, ptr)?;
             Ok(Self::from_ptr(length, ptr))
         }
     }
@@ -304,11 +304,11 @@ impl buf::Buffer<smp::Stereo> {
     pub fn from_wav<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let reader = init_reader(path.as_ref(), false)?;
         let length = reader.len() as usize;
-        let ptr = buf::Buffer::get_ptr(length);
+        let ptr = buf::Dyn::get_ptr(length);
 
         // Safety: the memory area has the correct length.
         unsafe {
-            buf::Buffer::write_ptr(reader, ptr)?;
+            buf::Dyn::write_ptr(reader, ptr)?;
             Ok(Self::from_ptr(length, ptr))
         }
     }
