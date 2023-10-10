@@ -43,7 +43,7 @@ fn main() {
     }
 
     let mut idx = 1;
-    let mut seq = ctr::Sequence::new(
+    let mut seq = ctr::Seq::new(
         vec![note_len; chords.len()],
         poly,
         map::Func::new(|poly: &mut ply::Polyphony<_, _>| {

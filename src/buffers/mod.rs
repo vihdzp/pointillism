@@ -17,6 +17,7 @@ use std::ops::{Index, IndexMut};
 use crate::prelude::*;
 
 pub mod interpolate;
+pub mod ring;
 #[cfg(feature = "hound")]
 pub mod wav;
 
@@ -160,15 +161,22 @@ pub struct Slice<'a, A: smp::Audio> {
 
 /// A buffer that holds a mutable reference to its data.
 #[derive(Debug)]
-pub struct MutSlice<'a, A: smp::Audio> {
+pub struct SliceMut<'a, A: smp::Audio> {
     pub data: &'a mut [A],
+}
+
+/// A statically allocated, owned sample buffer.
+#[derive(Clone, Debug)]
+pub struct Stc<A: smp::Audio, const N: usize> {
+    /// The data stored by the buffer.
+    pub data: [A; N],
 }
 
 /// A dynamically allocated, owned sample buffer.
 #[derive(Clone, Debug, Default)]
 pub struct Dyn<A: smp::Audio> {
     /// The data stored by the buffer.
-    data: Vec<A>,
+    pub data: Vec<A>,
 }
 
 impl<'a, A: smp::Audio> AsRef<[A]> for Slice<'a, A> {
@@ -177,7 +185,7 @@ impl<'a, A: smp::Audio> AsRef<[A]> for Slice<'a, A> {
     }
 }
 
-impl<'a, A: smp::Audio> AsRef<[A]> for MutSlice<'a, A> {
+impl<'a, A: smp::Audio> AsRef<[A]> for SliceMut<'a, A> {
     fn as_ref(&self) -> &[A] {
         self.data
     }
@@ -189,7 +197,7 @@ impl<A: smp::Audio> AsRef<[A]> for Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> AsMut<[A]> for MutSlice<'a, A> {
+impl<'a, A: smp::Audio> AsMut<[A]> for SliceMut<'a, A> {
     fn as_mut(&mut self) -> &mut [A] {
         self.data
     }
@@ -209,7 +217,7 @@ impl<'a, A: smp::Audio> Index<usize> for Slice<'a, A> {
     }
 }
 
-impl<'a, A: smp::Audio> Index<usize> for MutSlice<'a, A> {
+impl<'a, A: smp::Audio> Index<usize> for SliceMut<'a, A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -225,7 +233,7 @@ impl<A: smp::Audio> Index<usize> for Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IndexMut<usize> for MutSlice<'a, A> {
+impl<'a, A: smp::Audio> IndexMut<usize> for SliceMut<'a, A> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
@@ -241,7 +249,7 @@ impl<'a, A: smp::Audio> Ref for Slice<'a, A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Ref for MutSlice<'a, A> {
+impl<'a, A: smp::Audio> Ref for SliceMut<'a, A> {
     type Item = A;
 }
 
@@ -249,18 +257,18 @@ impl<A: smp::Audio> Ref for Dyn<A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Mut for MutSlice<'a, A> {}
+impl<'a, A: smp::Audio> Mut for SliceMut<'a, A> {}
 impl<A: smp::Audio> Mut for Dyn<A> {}
 
 impl<'a, A: smp::Audio> Slice<'a, A> {
-    /// Initializes a new [`BufRef`].
+    /// Initializes a new [`buf::Slice`].
     pub const fn new(data: &'a [A]) -> Self {
         Self { data }
     }
 }
 
-impl<'a, A: smp::Audio> MutSlice<'a, A> {
-    /// Initializes a new [`BufMut`].
+impl<'a, A: smp::Audio> SliceMut<'a, A> {
+    /// Initializes a new [`buf::MutSlice`].
     pub fn new(data: &'a mut [A]) -> Self {
         Self { data }
     }
@@ -274,22 +282,51 @@ impl<'a, A: smp::Audio> MutSlice<'a, A> {
     }
 }
 
+impl<A: smp::Audio, const N: usize> Stc<A, N> {
+    /// Initializes a new [`Stc`] from data.
+    pub const fn from_data(data: [A; N]) -> Self {
+        Self { data }
+    }
+
+    /// Initializes the zero [`Stc`].
+    pub const fn zero() -> Self {
+        Self::from_data([A::ZERO; N])
+    }
+
+    /// Converts `self` into a [`Slice`].
+    #[must_use]
+    pub fn slice(&self) -> Slice<A> {
+        Slice::new(&self.data)
+    }
+
+    /// Converts `self` into a [`SliceMut`].
+    #[must_use]
+    pub fn slice_mut(&mut self) -> SliceMut<A> {
+        SliceMut::new(&mut self.data)
+    }
+}
+
+impl<A: smp::Audio, const N: usize> Default for Stc<A, N> {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
 impl<A: smp::Audio> Dyn<A> {
-    /// Initializes a new [`Buffer`] from data.
+    /// Initializes a new [`Dyn`] from data.
     #[must_use]
     pub const fn from_data(data: Vec<A>) -> Self {
         Self { data }
     }
 
-    /// Initializes a new empty buffer.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self::from_data(Vec::new())
+    /// Initializes an empty buffer with a given size. All samples are initialized to zero.
+    pub fn new(samples: usize) -> Self {
+        Self::from_data(vec![A::ZERO; samples])
     }
 
-    /// Initializes an empty buffer with a given size. All samples are initialized to zero.
-    pub fn empty(samples: usize) -> Self {
-        Self::from_data(vec![A::ZERO; samples])
+    /// Initializes a buffer with zero initial capacity.
+    pub fn empty() -> Self {
+        Self::from_data(Vec::new())
     }
 
     /// Initializes an empty buffer with a given length, rounded down to the nearest sample. All
@@ -299,20 +336,20 @@ impl<A: smp::Audio> Dyn<A> {
     ///
     /// On a 32-bit machine, panics if the buffer is too large.
     #[must_use]
-    pub fn empty_time(time: unt::Time) -> Self {
-        Self::empty(time.samples.int().try_into().expect("buffer too large"))
+    pub fn zero(time: unt::Time) -> Self {
+        Self::new(time.samples.int().try_into().expect("buffer too large"))
     }
 
-    /// Converts `self` into a `BufRef`.
+    /// Converts `self` into a [`buf::Slice`].
     #[must_use]
-    pub fn buf_ref(&self) -> Slice<A> {
+    pub fn slice(&self) -> Slice<A> {
         Slice::new(&self.data)
     }
 
-    /// Converts `self` into a `BufMut`.
+    /// Converts `self` into a [`buf::SliceMut`].
     #[must_use]
-    pub fn buf_mut(&mut self) -> MutSlice<A> {
-        MutSlice::new(&mut self.data)
+    pub fn slice_mut(&mut self) -> SliceMut<A> {
+        SliceMut::new(&mut self.data)
     }
 
     /// Creates a buffer from the output of a song.

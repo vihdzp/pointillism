@@ -3,7 +3,7 @@
 use crate::prelude::*;
 
 /// The [Q factor](https://en.wikipedia.org/wiki/Q_factor) of a filter. Used in the construction of
-/// [`Biquad`] filters.
+/// [`eff::flt::Biquad`] filters.
 ///
 /// We provide convenience methods [`Self::from_bw`] and [`Self::from_slope`] which create this
 /// value from other units.

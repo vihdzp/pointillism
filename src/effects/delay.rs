@@ -91,7 +91,7 @@ where
     /// Initializes a new delay that owns its buffer. The size of the buffer is determined by the
     /// delay time.
     pub fn new_owned(sgn: S, delay: unt::Time, feedback: F) -> Self {
-        Self::new(sgn, buf::Dyn::empty_time(delay), feedback)
+        Self::new(sgn, buf::Dyn::zero(delay), feedback)
     }
 }
 

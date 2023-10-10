@@ -293,7 +293,7 @@ where
 
 /// A melody that plays from start to end.
 pub type MelodySeq<K, D, F> =
-    ctr::Sequence<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Seq<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
 pub type MelodyLoop<K, D, F> =
     ctr::Loop<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;

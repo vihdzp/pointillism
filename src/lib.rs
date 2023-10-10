@@ -61,7 +61,7 @@ mod with_hound {
     /// the file is exactly rounded down to the sample.
     ///
     /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    /// returns [`smp::Mono`] or [`smp::Stereo`].
     ///
     /// See the `examples` folder for example creations.
     ///
@@ -111,7 +111,7 @@ mod with_hound {
     /// A convenience function to [`create`] a song from a given signal. The signal is not consumed.
     ///
     /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`Mono`](crate::prelude::Mono) or [`Stereo`](crate::prelude::Stereo).
+    /// returns [`smp::Mono`] or [`smp::Stereo`].
     ///
     /// ## Errors
     ///

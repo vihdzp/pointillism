@@ -15,13 +15,12 @@ mod raw;
 pub use {interval::Interval, raw::RawFreq};
 
 use crate::prelude::*;
-
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 /// A frequency, measured in **samples<sup>–1</sup>**.
 ///
-/// Note that in order to convert between a [`RawFreq`] in hertz and this type, you must know the
-/// [`SampleRate`]. See [`Self::from_raw`].
+/// Note that in order to convert between a [`unt::RawFreq`] in hertz and this type, you must know the
+/// [`unt::SampleRate`]. See [`Self::from_raw`].
 ///
 /// ## Type invariant checking
 ///
@@ -132,7 +131,7 @@ impl Freq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    /// Panics if this frequency is outside of the range for a [`unt::MidiNote`].
     ///
     /// ## Example
     ///

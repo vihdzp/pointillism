@@ -14,8 +14,8 @@ use std::{
 
 /// Represents a frequency in **hertz**. Must be positive.
 ///
-/// Most methods will require a [`Freq`] instead, which is dependent on your sample rate. See
-/// [`Freq::from_raw`].
+/// Most methods will require a [`unt::Freq`] instead, which is dependent on your sample rate. See
+/// [`unt::Freq::from_raw`].
 ///
 /// Not to be confused with [`Frequency`](crate::signal::Frequency).
 ///
@@ -138,7 +138,7 @@ impl RawFreq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    /// Panics if this frequency is outside of the range for a [`unt::MidiNote`].
     ///
     /// ## Example
     /// ```
@@ -162,7 +162,7 @@ impl RawFreq {
     ///
     /// ## Panics
     ///
-    /// Panics if this frequency is outside of the range for a [`MidiNote`].
+    /// Panics if this frequency is outside of the range for a [`unt::MidiNote`].
     ///
     /// ## Example
     /// ```

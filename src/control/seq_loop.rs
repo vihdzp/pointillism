@@ -1,9 +1,9 @@
-//! Declares the [`Sequence`] and [`Loop`] types. These can be used to modify a [`Signal`] at
-//! regular time intervals.
+//! Declares the [`Seq`] and [`Loop`] types. These can be used to modify a [`Signal`] at regular
+//! time intervals.
 //!
-//! Note that the [`Signal`] won't be immediately modified when the [`Sequence`] or [`Loop`] is
+//! Note that the [`Signal`] won't be immediately modified when the [`Seq`] or [`Loop`] is
 //! initialized. It will only be modified after the first time interval transpires. You can call
-//! [`Sequence::skip`] or [`Loop::skip`] in order to immediately skip to and apply the first event.
+//! [`Seq::skip`] or [`Loop::skip`] in order to immediately skip to and apply the first event.
 //!
 //! Also note that the time interval between events can be zero. The effect of this is to execute
 //! these events simultaneously.
@@ -20,7 +20,7 @@ use crate::prelude::*;
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: SignalMut, F: map::Mut<S>> {
+pub struct Seq<S: SignalMut, F: map::Mut<S>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<unt::Time>,
     /// Time since last event.
@@ -34,7 +34,7 @@ pub struct Sequence<S: SignalMut, F: map::Mut<S>> {
     func: F,
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Seq<S, F> {
     /// Initializes a new sequence.
     pub const fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
         Self {
@@ -98,7 +98,7 @@ impl<S: SignalMut, F: map::Mut<S>> Sequence<S, F> {
 
     /// Skips to the next event and applies it, returns whether it was successful.
     ///
-    /// This can be used right after initializing a [`Sequence`] so that the first event is applied
+    /// This can be used right after initializing a [`Seq`] so that the first event is applied
     /// immediately.
     pub fn skip(&mut self) -> bool {
         let res = self.index < self.len();
@@ -140,7 +140,7 @@ impl<S: SignalMut, F: map::Mut<S>> Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Signal for Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Signal for Seq<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -148,7 +148,7 @@ impl<S: SignalMut, F: map::Mut<S>> Signal for Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> SignalMut for Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> SignalMut for Seq<S, F> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.since.advance();
@@ -171,7 +171,7 @@ impl<S: SignalMut, F: map::Mut<S>> SignalMut for Sequence<S, F> {
 #[derive(Clone, Debug)]
 pub struct Loop<S: SignalMut, F: map::Mut<S>> {
     /// The internal sequence.
-    seq: Sequence<S, F>,
+    seq: Seq<S, F>,
 }
 
 impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
@@ -180,7 +180,7 @@ impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
     /// ## Panics
     ///
     /// This method panics if the sequence is empty.
-    pub fn new_seq(seq: Sequence<S, F>) -> Self {
+    pub fn new_seq(seq: Seq<S, F>) -> Self {
         assert!(!seq.is_empty());
         Self { seq }
     }
@@ -191,7 +191,7 @@ impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
     ///
     /// This method panics if the `times` vector is empty.
     pub fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
-        Self::new_seq(Sequence::new(times, sgn, func))
+        Self::new_seq(Seq::new(times, sgn, func))
     }
 
     /// Time since last event.

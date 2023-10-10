@@ -37,7 +37,8 @@ const A4_MIDI: f64 = midi::MidiNote::A4.note as f64;
 /// This has two main uses throughout the code:
 ///
 /// - It's used as the input type for the maps that define [curves](crate::curves).
-/// - It's used as the input type for [`Interpolation`](crate::prelude::Interpolate) maps.
+/// - It's used as the input type for
+///   [`buf::int::Interpolate`](crate::prelude::buf::int::Interpolate) maps.
 ///
 /// ## Type invariant checking
 ///

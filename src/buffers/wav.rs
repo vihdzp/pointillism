@@ -185,7 +185,7 @@ impl buf::Dyn<smp::Mono> {
     /// [`Mono`] samples) passed as an argument.
     unsafe fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
-            buf::Dyn::new()
+            buf::Dyn::empty()
         } else {
             debug_assert_ne!(length, 0);
             buf::Dyn::from_data(unsafe { Vec::from_raw_parts(ptr, length, length) })
@@ -255,7 +255,7 @@ impl buf::Dyn<smp::Stereo> {
     /// In particular, `length` must be even.
     fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
-            buf::Dyn::new()
+            buf::Dyn::empty()
         } else {
             debug_assert_eq!(length % 2, 0);
             debug_assert_ne!(length, 0);

@@ -10,8 +10,8 @@ use std::{
 ///
 /// We use a 16-bit unsigned integer to store the MIDI note index. This is much larger than the MIDI
 /// specification, which only uses values from 0-127. The main reason is so that methods that
-/// convert [`RawFreq`](crate::prelude::RawFreq) into [`MidiNote`] and viceversa don't run out of
-/// range.
+/// convert [`unt::RawFreq`](super::RawFreq) into [`unt::MidiNote`](MidiNote) and viceversa don't
+/// run out of range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MidiNote {
     /// The MIDI note index.

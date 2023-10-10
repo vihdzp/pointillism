@@ -44,7 +44,7 @@ use crate::{sample::Sample, units::Freq};
 ///
 /// Most signals will implement the stronger trait [`SignalMut`], meaning that the state of the
 /// signal can be advanced. The main use case for this weaker trait is signal routing. For instance,
-/// you can create two references to a [`SignalMut`] via [`Ref`](crate::prelude::Ref), and apply
+/// you can create two references to a [`SignalMut`] via [`sgn::Ref`], and apply
 /// separate effects to them.
 ///
 /// ## Implementing the trait
@@ -153,8 +153,8 @@ pub(crate) use impl_base;
 
 /// Represents a signal that ends.
 ///
-/// Is used in [`Polyphony`](crate::prelude::Polyphony) so that a synth can be cleared from memory
-/// when it stops.
+/// Is used in [polyphonic](gen::ply) signals, so that a synth can be cleared from memory when it
+/// stops.
 ///
 /// If a signal never ends, it should not implement this trait. If you really want to use such a
 /// signal within a `Polyphony` object, wrap it in the [`Trailing`](crate::prelude::Trailing)
