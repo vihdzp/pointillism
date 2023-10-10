@@ -119,7 +119,7 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> MutEnv<Volume<S>> for Trem<S> {
+impl<S: Signal> map::MutEnv<Volume<S>> for Trem<S> {
     fn modify_env(&mut self, sgn: &mut Volume<S>, gain: Env) {
         sgn.vol_mut().gain = gain.0;
     }

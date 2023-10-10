@@ -18,7 +18,7 @@ use crate::prelude::*;
 pub struct Delay<
     S: Signal<Sample = B::Item>,
     B: BufMutTrait,
-    F: Map<Input = B::Item, Output = B::Item>,
+    F: map::Map<Input = B::Item, Output = B::Item>,
 > {
     /// The played signal.
     pub sgn: S,
@@ -38,8 +38,11 @@ pub struct Delay<
     pub feedback: F,
 }
 
-impl<S: Signal<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>>
-    Delay<S, B, F>
+impl<
+        S: Signal<Sample = B::Item>,
+        B: BufMutTrait,
+        F: map::Map<Input = B::Item, Output = B::Item>,
+    > Delay<S, B, F>
 {
     /// Initializes a new delay.
     ///    
@@ -84,7 +87,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output
     }
 }
 
-impl<S: Signal, F: Map<Input = S::Sample, Output = S::Sample>> Delay<S, Buffer<S::Sample>, F>
+impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>> Delay<S, Buffer<S::Sample>, F>
 where
     S::Sample: Audio,
 {
@@ -95,8 +98,11 @@ where
     }
 }
 
-impl<S: Signal<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>> Signal
-    for Delay<S, B, F>
+impl<
+        S: Signal<Sample = B::Item>,
+        B: BufMutTrait,
+        F: map::Map<Input = B::Item, Output = B::Item>,
+    > Signal for Delay<S, B, F>
 {
     type Sample = S::Sample;
 
@@ -105,7 +111,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output
     }
 }
 
-impl<S: SignalMut<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>>
+impl<S: SignalMut<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>>
     SignalMut for Delay<S, B, F>
 {
     fn advance(&mut self) {
@@ -123,8 +129,11 @@ impl<S: SignalMut<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Out
     }
 }
 
-impl<S: Frequency<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>>
-    Frequency for Delay<S, B, F>
+impl<
+        S: Frequency<Sample = B::Item>,
+        B: BufMutTrait,
+        F: map::Map<Input = B::Item, Output = B::Item>,
+    > Frequency for Delay<S, B, F>
 {
     fn freq(&self) -> unt::Freq {
         self.sgn.freq()
@@ -135,7 +144,7 @@ impl<S: Frequency<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Out
     }
 }
 
-impl<S: Base<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>> Base
+impl<S: Base<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>> Base
     for Delay<S, B, F>
 {
     type Base = S::Base;
@@ -149,7 +158,7 @@ impl<S: Base<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output =
     }
 }
 
-impl<S: Stop<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>> Stop
+impl<S: Stop<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>> Stop
     for Delay<S, B, F>
 {
     fn stop(&mut self) {
@@ -157,8 +166,11 @@ impl<S: Stop<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output =
     }
 }
 
-impl<S: Panic<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output = B::Item>> Panic
-    for Delay<S, B, F>
+impl<
+        S: Panic<Sample = B::Item>,
+        B: BufMutTrait,
+        F: map::Map<Input = B::Item, Output = B::Item>,
+    > Panic for Delay<S, B, F>
 {
     fn panic(&mut self) {
         self.sgn.panic();
@@ -167,14 +179,14 @@ impl<S: Panic<Sample = B::Item>, B: BufMutTrait, F: Map<Input = B::Item, Output 
 }
 
 /// A delay that only plays once.
-pub type SingleDelay<S, B> = Delay<S, B, Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
+pub type SingleDelay<S, B> = Delay<S, B, map::Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
 
 impl<S: Signal<Sample = B::Item>, B: BufMutTrait> SingleDelay<S, B> {
     /// Initializes a delay that only plays once.
     ///
     /// To use an empty, owned buffer, see [`Self::new_single_owned`].
     pub const fn new_single(sgn: S, buffer: B) -> Self {
-        Self::new(sgn, buffer, Zero::new())
+        Self::new(sgn, buffer, map::Zero::new())
     }
 }
 
@@ -185,7 +197,7 @@ where
     /// Initializes a delay that only plays once and owns its buffer. The size of the buffer is
     /// determined by the delay time.
     pub fn new_single_owned(sgn: S, delay: unt::Time) -> Self {
-        Self::new_owned(sgn, delay, Zero::new())
+        Self::new_owned(sgn, delay, map::Zero::new())
     }
 }
 
@@ -226,11 +238,11 @@ where
 }
 
 /// An exponential delay with a ping-pong effect.
-pub type FlipDelay<S, B> = Delay<S, B, Comp<Pw<Stereo, unt::Vol>, Flip>>;
+pub type FlipDelay<S, B> = Delay<S, B, map::Comp<Pw<Stereo, unt::Vol>, map::Flip>>;
 
 /// Simple auxiliary function.
-const fn comp_flip(vol: unt::Vol) -> Comp<Pw<Stereo, unt::Vol>, Flip> {
-    Comp::new(Pw::new(vol), Flip)
+const fn comp_flip(vol: unt::Vol) -> map::Comp<Pw<Stereo, unt::Vol>, map::Flip> {
+    map::Comp::new(Pw::new(vol), map::Flip)
 }
 
 impl<S: Signal<Sample = Stereo>, B: BufMutTrait<Item = Stereo>> FlipDelay<S, B> {

@@ -10,7 +10,7 @@
 //! (standard) MIDI note, and anything higher is too high-pitched to be practical. This range
 //! well-covers the human hearing range.
 //!
-//! This will hopefully be replaced with some macro code eventually.
+//! This will hopefully be replaced with some macro code someday.
 
 use super::{freq::RawFreq, midi::MidiNote};
 

@@ -21,16 +21,13 @@
 pub mod buffer;
 pub mod interpolate;
 
-use crate::{
-    map::{Comp, Map},
-    prelude::Val,
-};
+use crate::{map, prelude::Val};
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Pos;
 
-impl Map for Pos {
+impl map::Map for Pos {
     type Input = f64;
     type Output = f64;
 
@@ -39,7 +36,7 @@ impl Map for Pos {
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Pos> {
+impl<F: map::Map<Output = f64>> map::Comp<F, Pos> {
     /// Composes a function with [`Pos`].
     pub const fn pos(f: F) -> Self {
         Self::new(f, Pos)
@@ -50,7 +47,7 @@ impl<F: Map<Output = f64>> Comp<F, Pos> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sgn;
 
-impl Map for Sgn {
+impl map::Map for Sgn {
     type Input = f64;
     type Output = f64;
 
@@ -59,7 +56,7 @@ impl Map for Sgn {
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Sgn> {
+impl<F: map::Map<Output = f64>> map::Comp<F, Sgn> {
     /// Composes a function with [`Sgn`].
     pub const fn sgn(f: F) -> Self {
         Self::new(f, Sgn)
@@ -78,7 +75,7 @@ impl Neg {
     }
 }
 
-impl Map for Neg {
+impl map::Map for Neg {
     type Input = f64;
     type Output = f64;
 
@@ -87,7 +84,7 @@ impl Map for Neg {
     }
 }
 
-impl<F: Map<Output = f64>> Comp<F, Neg> {
+impl<F: map::Map<Output = f64>> map::Comp<F, Neg> {
     /// Composes a function with [`Neg`].
     pub const fn neg(f: F) -> Self {
         Self::new(f, Neg)
@@ -133,7 +130,7 @@ impl Linear {
     }
 }
 
-impl Map for Linear {
+impl map::Map for Linear {
     type Input = f64;
     type Output = f64;
 
@@ -154,7 +151,7 @@ impl Map for Linear {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Saw;
 
-impl Map for Saw {
+impl map::Map for Saw {
     type Input = Val;
     type Output = f64;
 
@@ -175,7 +172,7 @@ impl Map for Saw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InvSaw;
 
-impl Map for InvSaw {
+impl map::Map for InvSaw {
     type Input = Val;
     type Output = f64;
 
@@ -196,7 +193,7 @@ impl Map for InvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PosSaw;
 
-impl Map for PosSaw {
+impl map::Map for PosSaw {
     type Input = Val;
     type Output = f64;
 
@@ -217,7 +214,7 @@ impl Map for PosSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PosInvSaw;
 
-impl Map for PosInvSaw {
+impl map::Map for PosInvSaw {
     type Input = Val;
     type Output = f64;
 
@@ -232,7 +229,7 @@ impl Map for PosInvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sin;
 
-impl Map for Sin {
+impl map::Map for Sin {
     type Input = Val;
     type Output = f64;
 
@@ -255,7 +252,7 @@ impl Cos {
     }
 }
 
-impl Map for Cos {
+impl map::Map for Cos {
     type Input = Val;
     type Output = f64;
 
@@ -288,7 +285,7 @@ pub fn pulse(x: f64, shape: f64) -> f64 {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sq;
 
-impl Map for Sq {
+impl map::Map for Sq {
     type Input = Val;
     type Output = f64;
 
@@ -328,7 +325,7 @@ impl Default for Pulse {
     }
 }
 
-impl Map for Pulse {
+impl map::Map for Pulse {
     type Input = Val;
     type Output = f64;
 
@@ -373,7 +370,7 @@ pub fn saw_tri(x: f64, shape: Val) -> f64 {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Tri;
 
-impl Map for Tri {
+impl map::Map for Tri {
     type Input = Val;
     type Output = f64;
 
@@ -438,7 +435,7 @@ impl Default for SawTri {
     }
 }
 
-impl Map for SawTri {
+impl map::Map for SawTri {
     type Input = Val;
     type Output = f64;
 
@@ -451,7 +448,7 @@ impl Map for SawTri {
 ///
 /// Take note of [phase cancellation](https://en.wikipedia.org/wiki/Wave_interference)! Adding two
 /// waves won't always result in an "average" sound.
-pub struct Morph<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> {
+pub struct Morph<C: map::Map<Input = Val, Output = f64>, D: map::Map<Input = Val, Output = f64>> {
     /// The first curve.
     pub fst: C,
     /// The second curve.
@@ -460,7 +457,7 @@ pub struct Morph<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output =
     pub morph: Val,
 }
 
-impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Morph<C, D> {
+impl<C: map::Map<Input = Val, Output = f64>, D: map::Map<Input = Val, Output = f64>> Morph<C, D> {
     /// Morphs between two curves.
     pub const fn new(fst: C, snd: D, morph: Val) -> Self {
         Self { fst, snd, morph }
@@ -482,7 +479,9 @@ impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Morph
     }
 }
 
-impl<C: Map<Input = Val, Output = f64>, D: Map<Input = Val, Output = f64>> Map for Morph<C, D> {
+impl<C: map::Map<Input = Val, Output = f64>, D: map::Map<Input = Val, Output = f64>> map::Map
+    for Morph<C, D>
+{
     type Input = Val;
     type Output = f64;
 

@@ -26,13 +26,21 @@ structs, giving you vast control over the samples you're producing.
 
 ### Naming scheme
 
-The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because of this, we rely on the `prelude` to categorize things neatly.
+The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because of
+this, we rely on the `prelude` to categorize things neatly.
 
-Every type has a three-letter namespace which helps categorizes it. The namespaces are as follows:
+Every type has a three-letter namespace which helps categorizes it. The main namespaces are as
+follows:
 
-| Namespace | Contents |
-|-|-|
-| [`unt`]()
+| Namespace | Full Name | Contents |
+|-|-|-|
+| [`unt`] | `units` | Different units for musical measurement, and associated arithmetic boilerplate.
+| [`crv`] | `curves` | Basic oscillator shapes, and builder methods for more complex ones (in the future).
+| [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
+| [`eff`] | `effects` | For effects, meaning types that alter other signals.
+| [`ctr`] | `control` | Control structures, which allow for events to happen at specified time intervals.
+| [`sgn`] | `signal` | Traits on signals, including the basic [`sgn::Ref`] and [`sgn::Mut`].
+| [`map`] | `map` | Basic functions.
 
 ### Compile-time
 
@@ -58,15 +66,7 @@ The project uses the following features:
 
 \* Features marked with an asterisk are enabled by default.
 
-## Versions
-
-The following versions of pointillism exist:
-
-- 0.1.0 - 0.1.7: very early versions, have been yanked from `crates`.
-- 0.2.0 - 0.2.10: more stable versions, but still subject to drastic change.
-- 0.3.0 - 0.3.7: stable versions, tracked by a changelog.
-
-### Goals
+## Goals
 
 Future goals of pointillism are:
 

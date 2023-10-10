@@ -1,5 +1,5 @@
-//! Declares [`Sequences`](Sequence) and [`Loops`](Loop). These can be used to modify a [`Signal`]
-//! at regular time intervals.
+//! Declares the [`Sequence`] and [`Loop`] types. These can be used to modify a [`Signal`] at
+//! regular time intervals.
 //!
 //! Note that the [`Signal`] won't be immediately modified when the [`Sequence`] or [`Loop`] is
 //! initialized. It will only be modified after the first time interval transpires. You can call
@@ -14,16 +14,13 @@
 //! by changing its frequency in periodic intervals. [`MelodySeq`] and [`MelodyLoop`] both
 //! functionally serve as piano rolls for a polyphonic signal.
 
-mod melody;
-pub use melody::*;
-
 use crate::prelude::*;
 
 /// Changes a signal according to a specified function, at specified times.
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Sequence<S: SignalMut, F: Mut<S>> {
+pub struct Sequence<S: SignalMut, F: map::Mut<S>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<unt::Time>,
     /// Time since last event.
@@ -37,7 +34,7 @@ pub struct Sequence<S: SignalMut, F: Mut<S>> {
     func: F,
 }
 
-impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Sequence<S, F> {
     /// Initializes a new sequence.
     pub const fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
         Self {
@@ -143,7 +140,7 @@ impl<S: SignalMut, F: Mut<S>> Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S>> Signal for Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Signal for Sequence<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -151,7 +148,7 @@ impl<S: SignalMut, F: Mut<S>> Signal for Sequence<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> SignalMut for Sequence<S, F> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.since.advance();
@@ -172,12 +169,12 @@ impl<S: SignalMut, F: Mut<S>> SignalMut for Sequence<S, F> {
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Loop<S: SignalMut, F: Mut<S>> {
+pub struct Loop<S: SignalMut, F: map::Mut<S>> {
     /// The internal sequence.
     seq: Sequence<S, F>,
 }
 
-impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
     /// Turns a sequence into a loop.
     ///
     /// ## Panics
@@ -278,7 +275,7 @@ impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S>> Signal for Loop<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {
@@ -286,7 +283,7 @@ impl<S: SignalMut, F: Mut<S>> Signal for Loop<S, F> {
     }
 }
 
-impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
+impl<S: SignalMut, F: map::Mut<S>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
@@ -340,7 +337,7 @@ impl Arp {
     }
 }
 
-impl<S: Frequency> Mut<S> for Arp {
+impl<S: Frequency>map:: Mut<S> for Arp {
     fn modify(&mut self, sgn: &mut S) {
         *sgn.freq_mut() = self.current();
         crate::mod_inc(self.len(), &mut self.index);

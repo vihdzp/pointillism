@@ -58,7 +58,7 @@ pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
 /// anything larger, it might be more computationally efficient to make larger buffers. That way, we
 /// can write from the signal "in one go", instead of having to constantly read values and shift
 /// them.
-pub trait Interpolate: Map<Input = Val, Output = Self::Sample> + Sized {
+pub trait Interpolate: map::Map<Input = Val, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
     type Sample: Sample;
 
@@ -100,7 +100,7 @@ impl<S: Sample> Drop<S> {
     }
 }
 
-impl<S: Sample> Map for Drop<S> {
+impl<S: Sample> map::Map for Drop<S> {
     type Input = Val;
     type Output = S;
 
@@ -149,7 +149,7 @@ impl<S: Sample> Linear<S> {
     }
 }
 
-impl<S: Sample> Map for Linear<S> {
+impl<S: Sample> map::Map for Linear<S> {
     type Input = Val;
     type Output = S;
 
@@ -240,7 +240,7 @@ impl<S: Sample> Cubic<S> {
     }
 }
 
-impl<S: Sample> Map for Cubic<S> {
+impl<S: Sample> map::Map for Cubic<S> {
     type Input = Val;
     type Output = S;
 
@@ -280,7 +280,7 @@ impl<S: Sample> Hermite<S> {
     }
 }
 
-impl<S: Sample> Map for Hermite<S> {
+impl<S: Sample> map::Map for Hermite<S> {
     type Input = Val;
     type Output = S;
 

@@ -35,7 +35,7 @@
 //!     Note::new(11u8 * q, q, RawFreq::E3),       // der
 //!     Note::new(12u8 * q, q, RawFreq::D3),       // what
 //!     Note::new(13u8 * q, q, RawFreq::D3),       // you
-//!     Note::new(14u8 * q, 2u8 * q, RawFreq::C3), // are.
+//!     Note::new(14u8 * q, 2u8 * q, RawFreq::C3), // are!
 //!     Note::new(14u8 * q, 2u8 * q, RawFreq::G3),
 //! ]
 //! .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)));
@@ -212,7 +212,7 @@ impl MidiNoteData {
 ///
 /// This is used to implement [`MelodySeq`] and [`MelodyLoop`].
 #[derive(Clone, Debug)]
-pub struct NoteReader<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>>
+pub struct NoteReader<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -226,7 +226,7 @@ where
     pub func: F,
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> NoteReader<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -273,12 +273,12 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> Mut<Polyphony<K, F::Output>>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<poly::Polyphony<K, F::Output>>
     for NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
-    fn modify(&mut self, sgn: &mut Polyphony<K, F::Output>) {
+    fn modify(&mut self, sgn: &mut ply::Polyphony<K, F::Output>) {
         match self.current() {
             NoteEvent::Add { key, data } => sgn.add(key.clone(), self.func.eval(data.clone())),
             NoteEvent::Stop { key } => {
@@ -292,9 +292,11 @@ where
 }
 
 /// A melody that plays from start to end.
-pub type MelodySeq<K, D, F> = Sequence<Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
+pub type MelodySeq<K, D, F> =
+    ctr::Sequence<poly::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
-pub type MelodyLoop<K, D, F> = Loop<Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
+pub type MelodyLoop<K, D, F> =
+    ctr::Loop<poly::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 
 /// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`MelodySeq`] or a
 /// [`MelodyLoop`].
@@ -302,7 +304,7 @@ pub type MelodyLoop<K, D, F> = Loop<Polyphony<K, <F as Map>::Output>, NoteReader
 /// There's two main ways to build a [`Melody`]. You can provide the times and
 /// [`NoteEvents`](NoteEvent) explicitly through [`Self::new`], though this is not very intuitive.
 /// Alternatively, you can provide an (unordered) list of [`Notes`](Note) through
-/// [`Self::piano_roll`] or [`Self::piano_roll_loop`]. This is slower but resembles the
+/// [`Self::piano_roll`] or [`Self::piano_roll_loop`]. This has some overhead, but resembles the
 /// functionality of a piano roll much more closely.
 #[derive(Clone, Debug)]
 pub struct Melody<K: Eq + Hash + Clone, D: Clone> {
@@ -543,13 +545,13 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodySeq<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> MelodySeq<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
     /// Turns a [`NoteReader`] into a [`MelodySeq`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
-        Self::new(times, Polyphony::new(), note_reader)
+        Self::new(times, ply::Polyphony::new(), note_reader)
     }
 
     /// Initializes a new [`MelodySeq`] from a [`Melody`].
@@ -570,13 +572,13 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodyLoop<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> MelodyLoop<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
     /// Turns a [`NoteReader`] into a [`MelodyLoop`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
-        Self::new(times, Polyphony::new(), note_reader)
+        Self::new(times, ply::Polyphony::new(), note_reader)
     }
 
     /// Initializes a new [`MelodyLoop`] from a [`Melody`].

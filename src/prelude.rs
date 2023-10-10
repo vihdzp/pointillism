@@ -4,6 +4,7 @@
 pub use crate::curves::buffer::wav::*;
 
 pub use crate::{
+    control as ctr,
     curves::{
         buffer::*,
         interpolate::{
@@ -22,14 +23,10 @@ pub use crate::{
         vol::*,
         *,
     },
-    generators::{
-        poly::Polyphony,
-        sequence::*,
-        unison::{DetuneCurveSgn, DetuneSgn, Unison, UnisonCurve, UnisonRef},
-        Val, *,
-    },
-    map::*,
-    pos,
+    gen::poly as ply,
+    generators as gen,
+    generators::{Val, *},
+    map, pos,
     sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
     sgn,
     signal::*,

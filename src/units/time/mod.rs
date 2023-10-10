@@ -188,64 +188,6 @@ impl Div<Time> for Time {
     }
 }
 
-/// A helper struct that can be used to do an event once after a certain time duration.
-///
-/// ## Example
-///
-/// ```
-/// # use pointillism::prelude::*;
-/// let mut timer = unt::Timer::new(unt::Time::from_samples(10));
-///
-/// for i in 0..20 {
-///     if timer.tick() {
-///         println!("The timer ticked on frame {i}!");
-///         assert_eq!(i, 10);
-///     }
-/// }
-/// ```
-#[derive(Clone, Copy, Debug)]
-pub struct Timer {
-    /// Length of the timer.
-    length: Time,
-    /// Whether the timer is active.
-    active: bool,
-}
-
-impl Timer {
-    /// Initializes a new timer with the given length.
-    #[must_use]
-    pub const fn new(length: Time) -> Self {
-        Self {
-            length,
-            active: true,
-        }
-    }
-
-    /// Whether the timer should activate, given the current time elapsed. A timer can only activate
-    /// once.
-    pub fn tick(&mut self, time: Time) -> bool {
-        if !self.active {
-            return false;
-        }
-
-        let done = time >= self.length;
-        if done {
-            self.active = false;
-        }
-        done
-    }
-
-    /// Resets the timer, allowing it to activate again.
-    pub fn reset(&mut self) {
-        self.active = true;
-    }
-}
-
-impl From<Time> for Timer {
-    fn from(length: Time) -> Self {
-        Timer::new(length)
-    }
-}
 
 #[cfg(test)]
 mod test {

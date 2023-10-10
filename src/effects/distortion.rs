@@ -11,7 +11,7 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InfClip;
 
-impl Map for InfClip {
+impl map::Map for InfClip {
     type Input = f64;
     type Output = f64;
 
@@ -50,7 +50,7 @@ impl Default for Clip {
     }
 }
 
-impl Map for Clip {
+impl map:: Map for Clip {
     type Input = f64;
     type Output = f64;
 
@@ -89,7 +89,7 @@ impl Default for Atan {
     }
 }
 
-impl Map for Atan {
+impl map::Map for Atan {
     type Input = f64;
     type Output = f64;
 
@@ -138,7 +138,7 @@ impl Default for Pow {
     }
 }
 
-impl Map for Pow {
+impl map::Map for Pow {
     type Input = f64;
     type Output = f64;
 

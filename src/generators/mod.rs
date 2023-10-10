@@ -7,12 +7,11 @@
 //! from a curve. See the [curves module docs](../curves/index.html#terminology) for an explanation
 //! on different kinds of curves.
 
+use crate::prelude::*;
+
 use std::{fmt::Display, marker::PhantomData};
 
-pub use crate::prelude::*;
-
 pub mod poly;
-pub mod sequence;
 pub mod unison;
 
 /// A floating point value, guaranteed to be between `0.0` and `1.0`.
@@ -91,7 +90,7 @@ impl rand::prelude::Distribution<Val> for rand::distributions::Standard {
 
 /// Converts a plain curve into a sample curve that outputs a signal of the specified type.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct CurvePlayer<S: Sample, C: Map<Input = Val, Output = f64>> {
+pub struct CurvePlayer<S: Sample, C: map::Map<Input = Val, Output = f64>> {
     /// The inner plain curve.
     pub curve: C,
 
@@ -99,7 +98,7 @@ pub struct CurvePlayer<S: Sample, C: Map<Input = Val, Output = f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, C: Map<Input = Val, Output = f64>> CurvePlayer<S, C> {
+impl<S: Sample, C: map::Map<Input = Val, Output = f64>> CurvePlayer<S, C> {
     /// Initializes a new [`CurvePlayer`].
     ///
     /// You might need to explicitly specify the type of sample you want to play the curve as, via
@@ -112,7 +111,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> CurvePlayer<S, C> {
     }
 }
 
-impl<S: Sample, C: Map<Input = Val, Output = f64>> Map for CurvePlayer<S, C> {
+impl<S: Sample, C:map:: Map<Input = Val, Output = f64>> map::Map for CurvePlayer<S, C> {
     type Input = Val;
     type Output = S;
 
@@ -127,7 +126,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> Map for CurvePlayer<S, C> {
 ///
 /// See also [`LoopCurveGen`].
 #[derive(Clone, Debug)]
-pub struct OnceCurveGen<C: Map<Input = Val>>
+pub struct OnceCurveGen<C: map::Map<Input = Val>>
 where
     C::Output: Sample,
 {
@@ -139,7 +138,7 @@ where
     time: unt::Time,
 }
 
-impl<C: Map<Input = Val>> OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -181,7 +180,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Signal for OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> Signal for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -192,7 +191,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> SignalMut for OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> SignalMut for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -208,14 +207,14 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Base for OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> Base for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
     impl_base!();
 }
 
-impl<C: Map<Input = Val>> Done for OnceCurveGen<C>
+impl<C:map:: Map<Input = Val>> Done for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -224,7 +223,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Stop for OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> Stop for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -233,7 +232,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Panic for OnceCurveGen<C>
+impl<C: map::Map<Input = Val>> Panic for OnceCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -245,7 +244,7 @@ where
 /// Plays a given curve by reading its output as values of a given sample type.
 pub type OnceGen<S, C> = OnceCurveGen<CurvePlayer<S, C>>;
 
-impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
+impl<S: Sample, C:map:: Map<Input = Val, Output = f64>> OnceGen<S, C> {
     /// Initializes a new [`OnceGen`].
     ///
     /// You might need to explicitly specify the type of sample this curve will produce, via
@@ -274,7 +273,7 @@ impl<S: Sample, C: Map<Input = Val, Output = f64>> OnceGen<S, C> {
 ///
 /// See also [`OnceCurveGen`].
 #[derive(Clone, Debug, Default)]
-pub struct LoopCurveGen<C: Map<Input = Val>>
+pub struct LoopCurveGen<C:map:: Map<Input = Val>>
 where
     C::Output: Sample,
 {
@@ -286,7 +285,7 @@ where
     freq: unt::Freq,
 }
 
-impl<C: Map<Input = Val>> LoopCurveGen<C>
+impl<C: map::Map<Input = Val>> LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -338,7 +337,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Signal for LoopCurveGen<C>
+impl<C: map::Map<Input = Val>> Signal for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -349,7 +348,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> SignalMut for LoopCurveGen<C>
+impl<C: map::Map<Input = Val>> SignalMut for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -362,7 +361,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Frequency for LoopCurveGen<C>
+impl<C: map::Map<Input = Val>> Frequency for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -375,7 +374,7 @@ where
     }
 }
 
-impl<C: Map<Input = Val>> Base for LoopCurveGen<C>
+impl<C:map:: Map<Input = Val>> Base for LoopCurveGen<C>
 where
     C::Output: Sample,
 {
@@ -385,7 +384,7 @@ where
 /// Loops a given curve by reading its output as values of a given sample type.
 pub type LoopGen<S, C> = LoopCurveGen<CurvePlayer<S, C>>;
 
-impl<S: Sample, C: Map<Input = Val, Output = f64>> LoopGen<S, C> {
+impl<S: Sample, C: map::Map<Input = Val, Output = f64>> LoopGen<S, C> {
     /// Initializes a new [`LoopGen`] with a given phase.
     pub const fn new_phase(curve: C, freq: unt::Freq, phase: Val) -> Self {
         Self::new_curve_phase(CurvePlayer::new(curve), freq, phase)

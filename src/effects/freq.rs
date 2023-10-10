@@ -30,7 +30,7 @@ impl<S: Frequency> Default for Vib<S> {
     }
 }
 
-impl<S: Frequency> MutEnv<S> for Vib<S> {
+impl<S: Frequency> map::MutEnv<S> for Vib<S> {
     fn modify_env(&mut self, sgn: &mut S, bend: Env) {
         *sgn.freq_mut() = self.base * bend.0;
     }

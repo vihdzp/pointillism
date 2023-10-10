@@ -17,7 +17,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    generators::Sample,
+    Sample,
     prelude::{Env, Signal, Stereo},
 };
 
@@ -228,7 +228,7 @@ impl<F: Map, G: Map<Input = F::Output>> Map for Comp<F, G> {
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Flip;
 
-impl crate::Map for Flip {
+impl Map for Flip {
     type Input = Stereo;
     type Output = Stereo;
 

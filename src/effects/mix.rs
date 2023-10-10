@@ -116,7 +116,7 @@ impl<X: Panic, Y: Panic<Sample = X::Sample>> Panic for Mix<X, Y> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Dup;
 
-impl Map for Dup {
+impl map::Map for Dup {
     type Input = Mono;
     type Output = Stereo;
 

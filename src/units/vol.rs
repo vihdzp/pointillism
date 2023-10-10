@@ -85,7 +85,7 @@ impl Default for Vol {
     }
 }
 
-impl Map for Vol {
+impl map::Map for Vol {
     type Input = f64;
     type Output = f64;
 

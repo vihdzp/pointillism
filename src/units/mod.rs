@@ -26,7 +26,7 @@ pub use freq::{Freq, Interval, RawFreq};
 pub use midi::MidiNote;
 pub use q_factor::QFactor;
 pub use sample_rate::SampleRate;
-pub use time::{FracInt, RawTime, Time, Timer};
+pub use time::{FracInt, RawTime, Time};
 pub use vol::Vol;
 
 /// This magic number `69.0` corresponds to the MIDI index of A4.
