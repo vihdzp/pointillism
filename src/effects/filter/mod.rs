@@ -99,7 +99,7 @@ fn shift<T: Copy>(array: &mut [T], val: T) {
 /// A filter defined by a given difference equation, determined by some [`Coefficients`].
 ///
 /// At least for the moment being, this uses a Direct Form 1 architecture.
-pub struct Filter<S: Sample, const T: usize, const U: usize> {
+pub struct Filter<S: smp::Sample, const T: usize, const U: usize> {
     /// The coefficients which determine the difference equation.
     pub coefficients: Coefficients<T, U>,
 
@@ -109,7 +109,7 @@ pub struct Filter<S: Sample, const T: usize, const U: usize> {
     prev_outputs: [S; U],
 }
 
-impl<S: Sample, const T: usize, const U: usize> Filter<S, T, U> {
+impl<S: smp::Sample, const T: usize, const U: usize> Filter<S, T, U> {
     /// Initializes a filter with given preconditions.
     pub const fn new_prev(
         coefficients: Coefficients<T, U>,

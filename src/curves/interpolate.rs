@@ -1,11 +1,15 @@
 //! Implements functions for interpolating between samples.
 //!
 //! The main trait defined in this file is [`Interpolate`]. See the docs there for more information.
+//!
+//! ## Todo
+//!
+//! Replace the buffers by more general ring buffers.
 
 use crate::prelude::*;
 
 /// Linearly interpolates two samples `x0` and `x1`.
-pub fn linear<S: SampleLike>(x0: S, x1: S, t: Val) -> S {
+pub fn linear<S: smp::SampleLike>(x0: S, x1: S, t: unt::Val) -> S {
     let t = t.inner();
     x0 * (1.0 - t) + x1 * t
 }
@@ -14,7 +18,7 @@ pub fn linear<S: SampleLike>(x0: S, x1: S, t: Val) -> S {
 /// sample `x3`.
 ///
 /// Adapted from <https://stackoverflow.com/a/1126113/12419072>.
-pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
+pub fn cubic<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
     let t = t.inner();
     let a0 = x3 - x2 - x0 + x1;
     let a1 = x0 - x1 - a0;
@@ -28,7 +32,7 @@ pub fn cubic<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
 /// the next sample `x3`.
 ///
 /// Adapted from <https://stackoverflow.com/a/72122178/12419072>.
-pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
+pub fn hermite<S: smp::SampleLike>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
     let t = t.inner();
     let diff = x1 - x2;
     let c1 = x2 - x0;
@@ -58,9 +62,9 @@ pub fn hermite<S: SampleLike>(x0: S, x1: S, x2: S, x3: S, t: Val) -> S {
 /// anything larger, it might be more computationally efficient to make larger buffers. That way, we
 /// can write from the signal "in one go", instead of having to constantly read values and shift
 /// them.
-pub trait Interpolate: map::Map<Input = Val, Output = Self::Sample> + Sized {
+pub trait Interpolate: map::Map<Input = unt::Val, Output = Self::Sample> + Sized {
     /// The type of sample stored in the buffer.
-    type Sample: Sample;
+    type Sample:  smp::Sample;
 
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -91,25 +95,25 @@ pub trait Interpolate: map::Map<Input = Val, Output = Self::Sample> + Sized {
 /// Drop-sample interpolation simply consists on taking the previously read sample. This is terrible
 /// for audio fidelity, but can create some interesting bit-crush effects.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Drop<S: Sample>(pub S);
+pub struct Drop<S: smp::Sample>(pub S);
 
-impl<S: Sample> Drop<S> {
+impl<S: smp::Sample> Drop<S> {
     /// Initializes a new buffer for [`Drop`] interpolation.
     pub const fn new(sample: S) -> Self {
         Self(sample)
     }
 }
 
-impl<S: Sample> map::Map for Drop<S> {
-    type Input = Val;
+impl<S: smp::Sample> map::Map for Drop<S> {
+    type Input = unt::Val;
     type Output = S;
 
-    fn eval(&self, _: Val) -> S {
+    fn eval(&self, _: unt::Val) -> S {
         self.0
     }
 }
 
-impl<S: Sample> Interpolate for Drop<S> {
+impl<S: smp::Sample> Interpolate for Drop<S> {
     type Sample = S;
 
     const LOOK_AHEAD: u8 = 0;
@@ -135,30 +139,30 @@ impl<S: Sample> Interpolate for Drop<S> {
 /// Linear interpolation consists of drawing a straight line between consecutive samples. Although
 /// better than [`Drop`] interpolation, both [`Cubic`] and [`Hermite`] interpolation will generally
 /// give "cleaner" results.
-pub struct Linear<S: Sample> {
+pub struct Linear<S: smp::Sample> {
     /// The current sample.
     pub cur: S,
     /// The next sample.
     pub next: S,
 }
 
-impl<S: Sample> Linear<S> {
+impl<S: smp::Sample> Linear<S> {
     /// Initializes a new buffer for [`Linear`] interpolation.
     pub const fn new(cur: S, next: S) -> Self {
         Self { cur, next }
     }
 }
 
-impl<S: Sample> map::Map for Linear<S> {
-    type Input = Val;
+impl<S: smp::Sample> map::Map for Linear<S> {
+    type Input = unt::Val;
     type Output = S;
 
-    fn eval(&self, t: Val) -> S {
+    fn eval(&self, t: unt::Val) -> S {
         linear(self.cur, self.next, t)
     }
 }
 
-impl<S: Sample> Interpolate for Linear<S> {
+impl<S: smp::Sample> Interpolate for Linear<S> {
     type Sample = S;
 
     const LOOK_AHEAD: u8 = 1;
@@ -231,25 +235,25 @@ fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usi
 /// Cubic interpolation uses the cubic [Lagrange
 /// polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous, current, next,
 /// and next next samples. This will often yield good results, along with [`Hermite`] interpolation.
-pub struct Cubic<S: Sample>(pub [S; 4]);
+pub struct Cubic<S: smp::Sample>(pub [S; 4]);
 
-impl<S: Sample> Cubic<S> {
+impl<S: smp::Sample> Cubic<S> {
     /// Initializes a new buffer for [`Cubic`] interpolation.
     pub const fn new(x0: S, x1: S, x2: S, x3: S) -> Self {
         Self([x0, x1, x2, x3])
     }
 }
 
-impl<S: Sample> map::Map for Cubic<S> {
-    type Input = Val;
+impl<S: smp::Sample> map::Map for Cubic<S> {
+    type Input = unt::Val;
     type Output = S;
 
-    fn eval(&self, t: Val) -> S {
+    fn eval(&self, t: unt::Val) -> S {
         cubic(self.0[0], self.0[1], self.0[2], self.0[3], t)
     }
 }
 
-impl<S: Sample> Interpolate for Cubic<S> {
+impl<S: smp::Sample> Interpolate for Cubic<S> {
     type Sample = S;
 
     const LOOK_AHEAD: u8 = 2;
@@ -271,25 +275,25 @@ impl<S: Sample> Interpolate for Cubic<S> {
 /// spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the cubic Hermite
 /// spline) for interpolation. This will often yield good results, along with [`Cubic`]
 /// interpolation.
-pub struct Hermite<S: Sample>(pub [S; 4]);
+pub struct Hermite<S: smp::Sample>(pub [S; 4]);
 
-impl<S: Sample> Hermite<S> {
+impl<S: smp::Sample> Hermite<S> {
     /// Initializes a new buffer for [`Hermite`] interpolation.
     pub const fn new(x0: S, x1: S, x2: S, x3: S) -> Self {
         Self([x0, x1, x2, x3])
     }
 }
 
-impl<S: Sample> map::Map for Hermite<S> {
-    type Input = Val;
+impl<S: smp::Sample> map::Map for Hermite<S> {
+    type Input = unt::Val;
     type Output = S;
 
-    fn eval(&self, t: Val) -> S {
+    fn eval(&self, t: unt::Val) -> S {
         hermite(self.0[0], self.0[1], self.0[2], self.0[3], t)
     }
 }
 
-impl<S: Sample> Interpolate for Hermite<S> {
+impl<S: smp::Sample> Interpolate for Hermite<S> {
     type Sample = S;
 
     const LOOK_AHEAD: u8 = 2;
@@ -319,7 +323,7 @@ pub struct Stretch<S: SignalMut, I: Interpolate<Sample = S::Sample>> {
     inter: I,
 
     /// The fractional position between this sample and the next.
-    val: Val,
+    val: unt::Val,
 }
 
 impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
@@ -333,7 +337,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
             inter: I::init(&mut sgn),
             sgn,
             factor,
-            val: Val::ZERO,
+            val: unt::Val::ZERO,
         }
     }
 
@@ -359,7 +363,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
     }
 
     /// The fractional position between the current and next samples.
-    pub const fn val(&self) -> Val {
+    pub const fn val(&self) -> unt::Val {
         self.val
     }
 }
@@ -421,7 +425,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, 
         #[allow(clippy::cast_sign_loss)]
         #[allow(clippy::cast_possible_truncation)]
         let count = pos.floor() as usize;
-        let val = Val::fract(pos);
+        let val = unt::Val::fract(pos);
 
         self.inter.load_many(&mut self.sgn, count);
         self.val = val;

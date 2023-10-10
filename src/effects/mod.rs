@@ -22,7 +22,7 @@ use crate::prelude::*;
 
 /// Converts a function into one applied pointwise to the entries of a [`Sample`].
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Pw<S: Sample, F: map::Map<Input = f64, Output = f64>> {
+pub struct Pw<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> {
     /// The function to apply.
     pub func: F,
 
@@ -30,7 +30,7 @@ pub struct Pw<S: Sample, F: map::Map<Input = f64, Output = f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
+impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
     /// Initializes a new [`Pw`] function.
     pub const fn new(func: F) -> Self {
         Self {
@@ -40,7 +40,7 @@ impl<S: Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
     }
 }
 
-impl<S: Sample, F: map::Map<Input = f64, Output = f64>> map::Map for Pw<S, F> {
+impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> map::Map for Pw<S, F> {
     type Input = S;
     type Output = S;
 
@@ -59,7 +59,7 @@ impl<S: Sample, F: map::Map<Input = f64, Output = f64>> map::Map for Pw<S, F> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MapSgn<S: Signal, F: map::Map<Input = S::Sample>>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     /// The signal being mapped.
     sgn: S,
@@ -69,7 +69,7 @@ where
 
 impl<S: Signal, F: map::Map<Input = S::Sample>> MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     /// Initializes a generic [`MapSgn`].
     ///
@@ -110,7 +110,7 @@ where
 
 impl<S: Signal, F: map::Map<Input = S::Sample>> Signal for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     type Sample = F::Output;
 
@@ -121,7 +121,7 @@ where
 
 impl<S: SignalMut, F: map::Map<Input = S::Sample>> SignalMut for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     fn advance(&mut self) {
         self.sgn_mut().advance();
@@ -134,7 +134,7 @@ where
 
 impl<S: Frequency, F: map::Map<Input = S::Sample>> Frequency for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     fn freq(&self) -> unt::Freq {
         self.sgn().freq()
@@ -147,7 +147,7 @@ where
 
 impl<S: Base, F: map::Map<Input = S::Sample>> Base for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     type Base = S::Base;
 
@@ -162,7 +162,7 @@ where
 
 impl<S: Stop, F: map::Map<Input = S::Sample>> Stop for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     fn stop(&mut self) {
         self.sgn_mut().stop();
@@ -171,7 +171,7 @@ where
 
 impl<S: Done, F: map::Map<Input = S::Sample>> Done for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     fn is_done(&self) -> bool {
         self.sgn().is_done()
@@ -180,7 +180,7 @@ where
 
 impl<S: Panic, F: map::Map<Input = S::Sample>> Panic for MapSgn<S, F>
 where
-    F::Output: Sample,
+    F::Output: smp::Sample,
 {
     fn panic(&mut self) {
         self.sgn_mut().panic();
@@ -390,8 +390,7 @@ impl<S: SignalMut, E: Stop<Sample = smp::Env>, F: map::Env<S>> Signal for ModSgn
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        // We need to call it like this or `rust-analyzer` gets tripped up.
-        Signal::get(&self.inner)
+        self.inner._get()
     }
 }
 

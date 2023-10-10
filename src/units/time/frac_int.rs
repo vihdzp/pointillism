@@ -62,6 +62,11 @@ impl FracInt {
         Self::from_parts(x, 0)
     }
 
+    /// Compares this number to `0`.
+    pub const fn is_zero(self) -> bool {
+        self.0 == 0
+    }
+
     /// The integer part of this number.
     #[must_use]
     pub const fn int(self) -> u64 {

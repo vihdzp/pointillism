@@ -54,7 +54,7 @@ fn main() {
                 // Smoothly interpolates between a saw and a triangle wave.
                 map::Func::new(
                     |sgn: &mut AdsrEnvelope<LoopGen<smp::Stereo, SawTri>>, val: smp::Env| {
-                        sgn.sgn_mut().curve_mut().shape = Val::new(val.0);
+                        sgn.sgn_mut().curve_mut().shape = unt::Val::new(val.0);
                     },
                 ),
             ),

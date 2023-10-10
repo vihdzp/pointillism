@@ -131,7 +131,7 @@ impl Law for Mixed {
 
 /// A wrapper for a pan [`Law`] which converts it into a [`Map`].
 #[derive(Clone, Copy, Debug)]
-pub struct Wrapper<A: Audio, P: Law> {
+pub struct Wrapper<A: smp::Audio, P: Law> {
     /// Dummy value.
     phantom: PhantomData<A>,
 
@@ -139,7 +139,7 @@ pub struct Wrapper<A: Audio, P: Law> {
     pub pan_law: P,
 }
 
-impl<A: Audio, P: Law> Wrapper<A, P> {
+impl<A: smp::Audio, P: Law> Wrapper<A, P> {
     /// Initializes a new [`Wrapper`].
     pub const fn new(pan_law: P) -> Self {
         Self {
@@ -149,7 +149,7 @@ impl<A: Audio, P: Law> Wrapper<A, P> {
     }
 }
 
-impl<A: Audio, P: Law> map::Map for Wrapper<A, P> {
+impl<A: smp::Audio, P: Law> map::Map for Wrapper<A, P> {
     type Input = A;
     type Output = smp::Stereo;
 
@@ -165,7 +165,7 @@ pub type Panner<S, P> = MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
 
 impl<S: Signal, P: Law> Panner<S, P>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a new [`Panner`] for a given signal and pan law.
     pub const fn new_pan_law(sgn: S, pan_law: P) -> Self {
@@ -193,7 +193,7 @@ pub type LinearPanner<S> = Panner<S, Linear>;
 
 impl<S: Signal> LinearPanner<S>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a [`LinearPanner`] with the specified angle.
     pub const fn linear(sgn: S, angle: f64) -> Self {
@@ -206,7 +206,7 @@ pub type PowerPanner<S> = Panner<S, Power>;
 
 impl<S: Signal> Panner<S, Power>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a [`PowerPanner`] with the specified angle.
     pub const fn power(sgn: S, angle: f64) -> Self {
@@ -219,7 +219,7 @@ pub type MixedPanner<S> = Panner<S, Mixed>;
 
 impl<S: Signal> Panner<S, Mixed>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a [`MixedPanner`] with the specified angle.
     pub const fn mixed(sgn: S, angle: f64) -> Self {

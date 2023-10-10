@@ -123,7 +123,7 @@ impl map::Map for Dup {
     type Output = smp::Stereo;
 
     fn eval(&self, x: smp::Mono) -> smp::Stereo {
-        x.duplicate()
+        smp::Audio::duplicate(&x)
     }
 }
 

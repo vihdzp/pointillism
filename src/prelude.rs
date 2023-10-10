@@ -1,12 +1,12 @@
 //! Imports the most commmon traits and structures.
 
 #[cfg(feature = "hound")]
-pub use crate::curves::buffer::wav::*;
+pub use crate::buffer::wav::*;
 
 pub use crate::{
+    buffer::*,
     control as ctr,
     curves::{
-        buffer::*,
         interpolate::{
             CubicStretch, DropStretch, HermiteStretch, Interpolate, LinearStretch, Stretch,
         },
@@ -25,9 +25,8 @@ pub use crate::{
     },
     gen::poly as ply,
     generators as gen,
-    generators::{Val, *},
+    generators::*,
     map, pos, sample as smp, sgn,
     signal::*,
-    smp::{ArrayLike, Audio, Sample, SampleLike, WavSample},
     units as unt,
 };

@@ -82,7 +82,7 @@ impl From<cpal::SampleRate> for SampleRate {
 /// See the [module docs](self) for an example.
 #[allow(clippy::missing_errors_doc)]
 pub fn build_output_stream<
-    A: Audio,
+    A: smp::Audio,
     F: Send + 'static + FnMut(Time) -> A,
     E: FnMut(cpal::StreamError) + Send + 'static,
 >(
@@ -143,7 +143,7 @@ pub fn build_output_stream_from_sgn<
     mut sgn: S,
 ) -> CpalResult
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     build_output_stream(
         device,

@@ -9,6 +9,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
 
+pub mod buffer;
 pub mod control;
 pub mod curves;
 pub mod effects;
@@ -101,7 +102,7 @@ mod with_hound {
     /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
     ///     .expect("IO error");
     /// ```
-    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(unt::Time) -> A>(
+    pub fn create<P: AsRef<std::path::Path>, A: smp::Audio, F: FnMut(unt::Time) -> A>(
         filename: P,
         length: unt::Time,
         sample_rate: unt::SampleRate,
@@ -138,7 +139,7 @@ mod with_hound {
         sgn: &mut S,
     ) -> hound::Result<()>
     where
-        S::Sample: Audio,
+        S::Sample: smp::Audio,
     {
         create(filename, length, sample_rate, |_| sgn.next())
     }

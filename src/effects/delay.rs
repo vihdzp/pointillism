@@ -89,7 +89,7 @@ impl<
 
 impl<S: Signal, F: map::Map<Input = S::Sample, Output = S::Sample>> Delay<S, Buffer<S::Sample>, F>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a new delay that owns its buffer. The size of the buffer is determined by the
     /// delay time.
@@ -195,7 +195,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait> SingleDelay<S, B> {
 
 impl<S: Signal> SingleDelay<S, Buffer<S::Sample>>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a delay that only plays once and owns its buffer. The size of the buffer is
     /// determined by the delay time.
@@ -231,7 +231,7 @@ impl<S: Signal<Sample = B::Item>, B: BufMutTrait> ExpDelay<S, B> {
 
 impl<S: Signal> ExpDelay<S, Buffer<S::Sample>>
 where
-    S::Sample: Audio,
+    S::Sample: smp::Audio,
 {
     /// Initializes a delay with exponential decay that owns its buffer. The size of the buffer is
     /// determined by the delay time.

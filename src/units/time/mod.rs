@@ -66,6 +66,11 @@ impl Time {
         Self { samples }
     }
 
+    /// Compares this time to `0`.
+    pub const fn is_zero(self) -> bool {
+        self.samples.is_zero()
+    }
+
     /// Initializes a time from an integral amount of **samples**.
     #[must_use]
     pub const fn from_samples(samples: u64) -> Self {

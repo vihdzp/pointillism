@@ -71,9 +71,9 @@ impl Iterator for DetuneIter {
 }
 
 /// Plays multiple copies of a curve in unison.
-pub struct UnisonCurve<C: map::Map<Input = Val>>
+pub struct UnisonCurve<C: map::Map<Input = unt::Val>>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     /// The curve being played.
     map: C,
@@ -86,12 +86,12 @@ where
     /// These two are needed in order to play curves in unison. By bundling data like this, we save
     /// on allocations. More importantly, we guarantee that there aren't mismatches between the
     /// number of these values.
-    val_inters: Vec<(Val, unt::Interval)>,
+    val_inters: Vec<(unt::Val, unt::Interval)>,
 }
 
-impl<C: map::Map<Input = Val>> UnisonCurve<C>
+impl<C: map::Map<Input = unt::Val>> UnisonCurve<C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     /// Initializes a new [`UnisonCurve`].
     ///
@@ -100,7 +100,7 @@ where
     pub const fn new_curve_phases(
         map: C,
         base: unt::Freq,
-        val_inters: Vec<(Val, unt::Interval)>,
+        val_inters: Vec<(unt::Val, unt::Interval)>,
     ) -> Self {
         Self {
             map,
@@ -121,7 +121,7 @@ where
         Self {
             map,
             base,
-            val_inters: intervals.into_iter().map(|x| (Val::ZERO, x)).collect(),
+            val_inters: intervals.into_iter().map(|x| (unt::Val::ZERO, x)).collect(),
         }
     }
 
@@ -165,12 +165,12 @@ where
     }
 
     /// Returns an iterator over the values for the different curves.
-    pub fn val(&self) -> impl Iterator<Item = Val> + '_ {
+    pub fn val(&self) -> impl Iterator<Item = unt::Val> + '_ {
         self.val_inters.iter().map(|&(val, _)| val)
     }
 
     /// Returns an iterator over the mutable references to the values for the different curves.
-    pub fn val_mut(&mut self) -> impl Iterator<Item = &mut Val> {
+    pub fn val_mut(&mut self) -> impl Iterator<Item = &mut unt::Val> {
         self.val_inters.iter_mut().map(|(val, _)| val)
     }
 
@@ -190,9 +190,9 @@ where
     }
 }
 
-impl<C: map::Map<Input = Val>> Signal for UnisonCurve<C>
+impl<C: map::Map<Input = unt::Val>> Signal for UnisonCurve<C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     type Sample = C::Output;
 
@@ -204,9 +204,9 @@ where
     }
 }
 
-impl<C: map::Map<Input = Val>> SignalMut for UnisonCurve<C>
+impl<C: map::Map<Input = unt::Val>> SignalMut for UnisonCurve<C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     fn advance(&mut self) {
         for (val, interval) in &mut self.val_inters {
@@ -216,21 +216,21 @@ where
 
     fn retrigger(&mut self) {
         for vf in &mut self.val_inters {
-            vf.0 = Val::ZERO;
+            vf.0 = unt::Val::ZERO;
         }
     }
 }
 
-impl<C: map::Map<Input = Val>> Base for UnisonCurve<C>
+impl<C: map::Map<Input = unt::Val>> Base for UnisonCurve<C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     impl_base!();
 }
 
-impl<C: map::Map<Input = Val>> Frequency for UnisonCurve<C>
+impl<C: map::Map<Input = unt::Val>> Frequency for UnisonCurve<C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     fn freq(&self) -> unt::Freq {
         self.base
@@ -247,7 +247,7 @@ where
 /// concerns, many methods don't support this.
 pub type Unison<S, C> = UnisonCurve<CurvePlayer<S, C>>;
 
-impl<S: Sample, C: map::Map<Input = Val, Output = f64>> Unison<S, C> {
+impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
     /// Initializes a new [`Unison`].
     ///
     /// This will play multiple copies of a curve at the specified frequency multipliers, with the
@@ -255,7 +255,7 @@ impl<S: Sample, C: map::Map<Input = Val, Output = f64>> Unison<S, C> {
     pub fn new_phases<I: IntoIterator<Item = f64>>(
         map: C,
         base: unt::Freq,
-        val_inters: Vec<(Val, unt::Interval)>,
+        val_inters: Vec<(unt::Val, unt::Interval)>,
     ) -> Self {
         Self::new_curve_phases(CurvePlayer::new(map), base, val_inters)
     }
@@ -288,9 +288,9 @@ impl<S: Sample, C: map::Map<Input = Val, Output = f64>> Unison<S, C> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detune;
 
-impl<C: map::Map<Input = Val>> map::Env<UnisonCurve<C>> for Detune
+impl<C: map::Map<Input = unt::Val>> map::Env<UnisonCurve<C>> for Detune
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: smp::Env) {
         // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
@@ -323,9 +323,9 @@ pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 /// The curves within the [`Unison`] struct are indexed from highest to lowest pitched.
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 
-impl<C: map::Map<Input = Val>, E: SignalMut<Sample = smp::Env>> DetuneCurveSgn<C, E>
+impl<C: map::Map<Input = unt::Val>, E: SignalMut<Sample = smp::Env>> DetuneCurveSgn<C, E>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     /// Initializes a [`DetuneCurveSgn`].
     pub fn new_detune_curve(map: C, base: unt::Freq, num: u8, env: E) -> Self {
@@ -341,8 +341,11 @@ where
     }
 }
 
-impl<S: Sample, C: map::Map<Input = Val, Output = f64>, E: SignalMut<Sample = smp::Env>>
-    DetuneSgn<S, C, E>
+impl<
+        S: smp::Sample,
+        C: map::Map<Input = unt::Val, Output = f64>,
+        E: SignalMut<Sample = smp::Env>,
+    > DetuneSgn<S, C, E>
 {
     /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: unt::Freq, num: u8, env: E) -> Self {
@@ -400,9 +403,9 @@ impl<S: Sample, C: map::Map<Input = Val, Output = f64>, E: SignalMut<Sample = sm
 /// })
 /// .expect("IO error!");
 /// ```
-pub struct UnisonRef<'a, C: map::Map<Input = Val>>
+pub struct UnisonRef<'a, C: map::Map<Input = unt::Val>>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     /// The underlying [`UnisonCurve`].
     pub unison: &'a UnisonCurve<C>,
@@ -411,9 +414,9 @@ where
     pub index: u8,
 }
 
-impl<'a, C: map::Map<Input = Val>> UnisonRef<'a, C>
+impl<'a, C: map::Map<Input = unt::Val>> UnisonRef<'a, C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     /// Initializes a new [`UnisonRef`].
     pub const fn new(unison: &'a UnisonCurve<C>, index: u8) -> Self {
@@ -421,9 +424,9 @@ where
     }
 }
 
-impl<'a, C: map::Map<Input = Val>> Signal for UnisonRef<'a, C>
+impl<'a, C: map::Map<Input = unt::Val>> Signal for UnisonRef<'a, C>
 where
-    C::Output: Sample,
+    C::Output: smp::Sample,
 {
     type Sample = C::Output;
 

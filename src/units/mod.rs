@@ -32,6 +32,80 @@ pub use vol::Vol;
 /// This magic number `69.0` corresponds to the MIDI index of A4.
 const A4_MIDI: f64 = midi::MidiNote::A4.note as f64;
 
+/// A floating point value, guaranteed to be between `0.0` and `1.0`.
+///
+/// This has two main uses throughout the code:
+///
+/// - It's used as the input type for the maps that define [curves](crate::curves).
+/// - It's used as the input type for [`Interpolation`](crate::prelude::Interpolate) maps.
+///
+/// ## Type invariant checking
+///
+/// Since this is a type in which a lot of arithmetic is expected, we only check the invariant in
+/// debug mode. You should make sure that the range is valid regardless!
+#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+pub struct Val(f64);
+
+impl Val {
+    /// The zero value.
+    pub const ZERO: Self = Val(0.0);
+    /// One half.
+    pub const HALF: Self = Val(0.5);
+    /// The one value.
+    pub const ONE: Self = Val(1.0);
+
+    /// Initializes a [`Val`].
+    ///
+    /// ## Panics
+    ///
+    /// In debug mode, panics if the passed value isn't between `0.0` and `1.0`.
+    #[must_use]
+    pub fn new(value: f64) -> Self {
+        debug_assert!((0.0..=1.0).contains(&value));
+        Self(value)
+    }
+
+    /// Returns the inner value.
+    #[must_use]
+    pub const fn inner(&self) -> f64 {
+        self.0
+    }
+
+    /// Converts a positive value into a [`Val`] by taking its fractional part.
+    ///
+    /// ## Panics
+    ///
+    /// Panics in debug mode if the `value` isn't positive (including `+0.0`).
+    #[must_use]
+    pub fn fract(value: f64) -> Self {
+        debug_assert!(value.is_sign_positive());
+        Self(value.fract())
+    }
+
+    /// Advances the inner value in order to play a wave with the specified frequency.
+    pub fn advance_freq(&mut self, freq: Freq) {
+        *self = Self::fract(self.inner() + freq.samples);
+    }
+}
+
+impl From<Val> for f64 {
+    fn from(value: Val) -> Self {
+        value.inner()
+    }
+}
+
+impl std::fmt::Display for Val {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl rand::prelude::Distribution<Val> for rand::distributions::Standard {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Val {
+        Val(rng.gen())
+    }
+}
+
 // Boilerplate arithmetic implementations:
 
 impl Mul<RawFreq> for RawTime {

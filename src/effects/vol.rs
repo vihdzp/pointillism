@@ -41,8 +41,7 @@ impl<S: Signal> Signal for Volume<S> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        // We need to call it like this or `rust-analyzer` gets tripped up.
-        Signal::get(&self.inner)
+        self.inner._get()
     }
 }
 
@@ -173,8 +172,7 @@ impl<S: Signal, E: Signal<Sample = smp::Env>> Signal for Tremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        // We need to call it like this or `rust-analyzer` gets tripped up.
-        Signal::get(&self.inner)
+        self.inner._get()
     }
 }
 
@@ -287,7 +285,7 @@ impl<S: SignalMut> ArEnvelope<S> {
     pub fn new_ar(sgn: S, attack: unt::Time, release: unt::Time) -> Self {
         let time = attack + release;
         let shape = attack / time;
-        Self::new(sgn, OnceGen::new(SawTri::new(Val::new(shape)), time))
+        Self::new(sgn, OnceGen::new(SawTri::new(unt::Val::new(shape)), time))
     }
 }
 
@@ -295,8 +293,7 @@ impl<S: SignalMut, E: Stop<Sample = smp::Env>> Signal for StopTremolo<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
-        // We need to call it like this or `rust-analyzer` gets tripped up.
-        Signal::get(&self.inner)
+        self.inner._get()
     }
 }
 
@@ -413,7 +410,7 @@ impl<S: Signal, E: Signal<Sample = smp::Env>> Signal for Gate<S, E> {
         if self.env.get().0 >= self.threshold {
             self.sgn.get()
         } else {
-            S::Sample::ZERO
+            smp::SampleLike::ZERO
         }
     }
 }

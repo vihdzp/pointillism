@@ -67,7 +67,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
             wave(freq),
             OnceGen::new(PosSaw, unt::Time::from_sec_default(5.0)),
             map::Func::new(|sgn: &mut LoopGen<_, SawTri>, val: smp::Env| {
-                sgn.curve_mut().shape = Val::new(1.0 - val.0.powf(0.2) / 2.0);
+                sgn.curve_mut().shape = unt::Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
         )
     };
@@ -112,10 +112,9 @@ fn main() {
 
             // The triangle waves start playing 2 minutes in.
             if time > melody_time {
-                sample += (melody.next()
-                    * fade(time - melody_time, length - melody_time, fade_time))
-                .duplicate()
-                    / 10.0;
+                sample += smp::Audio::duplicate(
+                    &(melody.next() * fade(time - melody_time, length - melody_time, fade_time)),
+                ) / 10.0;
             }
 
             sample / 2.0
