@@ -93,7 +93,7 @@ impl<X, Y: Clone> Const<X, Y> {
     }
 }
 
-impl<X, Y: Clone>map:: Map for Const<X, Y> {
+impl<X, Y: Clone> map::Map for Const<X, Y> {
     type Input = X;
     type Output = Y;
 
@@ -111,7 +111,7 @@ pub struct Comp<F: map::Map, G: map::Map<Input = F::Output>> {
     pub outer: G,
 }
 
-impl<F: map::Map, G:map:: Map<Input = F::Output>> Comp<F, G> {
+impl<F: map::Map, G: map::Map<Input = F::Output>> Comp<F, G> {
     /// Composes two functions.
     pub const fn new(inner: F, outer: G) -> Self {
         Self { inner, outer }

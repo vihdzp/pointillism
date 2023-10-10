@@ -1,4 +1,4 @@
-//! Signal envelopes, notably including the [`AdsrEnv`].
+//! Signal envelopes, notably including the [`ArEnv`] and [`AdsrEnv`].
 
 use crate::prelude::*;
 

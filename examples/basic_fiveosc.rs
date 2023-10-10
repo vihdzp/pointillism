@@ -20,7 +20,7 @@ fn main() {
 
     // Each of our oscillators is a function of phase.
     let osc = |phase| {
-      eff::  MutSgn::new(
+        eff::MutSgn::new(
             // A triangle wave with a placeholder frequency.
             gen::Loop::new(Tri, base),
             // A sine wave, which controls the pitch of the triangle wave.
