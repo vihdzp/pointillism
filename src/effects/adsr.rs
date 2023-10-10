@@ -103,12 +103,12 @@ impl Adsr {
 }
 
 impl Signal for Adsr {
-    type Sample = Env;
+    type Sample = smp::Env;
 
-    fn get(&self) -> Env {
+    fn get(&self) -> smp::Env {
         // Division by zero should not be possible, as phases with length zero are immediately
         // skipped.
-        Env(match self.stage() {
+        smp::Env(match self.stage() {
             Stage::Attack => self.phase_time / self.attack,
             Stage::Decay => 1.0 + (self.sustain.gain - 1.0) * (self.phase_time / self.decay),
             Stage::Sustain => self.sustain.gain,

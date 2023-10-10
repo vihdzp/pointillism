@@ -151,12 +151,12 @@ impl<A: Audio, P: Law> Wrapper<A, P> {
 
 impl<A: Audio, P: Law> map::Map for Wrapper<A, P> {
     type Input = A;
-    type Output = Stereo;
+    type Output = smp::Stereo;
 
-    fn eval(&self, sample: A) -> Stereo {
-        let Stereo(sl, sr) = sample.duplicate();
+    fn eval(&self, sample: A) -> smp::Stereo {
+        let smp::Stereo(sl, sr) = sample.duplicate();
         let (gl, gr) = self.pan_law.gain();
-        Stereo(sl * gl, sr * gr)
+        smp::Stereo(sl * gl, sr * gr)
     }
 }
 

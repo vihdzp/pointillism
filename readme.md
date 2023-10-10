@@ -39,6 +39,7 @@ follows:
 | [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
 | [`eff`] | `effects` | For effects, meaning types that alter other signals.
 | [`ctr`] | `control` | Control structures, which allow for events to happen at specified time intervals.
+| [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
 | [`sgn`] | `signal` | Traits on signals, including the basic [`sgn::Ref`] and [`sgn::Mut`].
 | [`map`] | `map` | Basic functions.
 

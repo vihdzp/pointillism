@@ -27,7 +27,7 @@ fn main() {
             LoopGen::new_phase(Sin, (NUM_OSC * time).freq(), phase),
             // The frequency of the triangle wave is a function of the sine wave
             // envelope value.
-            Func::new(|sgn: &mut LoopGen<_, _>, val: Env| {
+            map::Func::new(|sgn: &mut LoopGen<_, _>, val: smp::Env| {
                 *sgn.freq_mut() = base * (val.0 / 2.0 + 1.0);
             }),
         )
@@ -38,7 +38,11 @@ fn main() {
         std::array::from_fn(|i| osc(Val::new(i as f64 / NUM_OSC as f64)));
 
     pointillism::create("examples/fiveosc.wav", 2u8 * time, SAMPLE_RATE, |_| {
-        oscillators.iter_mut().map(|osc| osc.next()).sum::<Mono>() / NUM_OSC as f64
+        oscillators
+            .iter_mut()
+            .map(|osc| osc.next())
+            .sum::<smp::Mono>()
+            / NUM_OSC as f64
     })
     .unwrap();
 }

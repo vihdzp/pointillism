@@ -14,7 +14,7 @@
 //!
 //! impl Signal for NoiseGen {
 //!     // This signal produces envelope data.
-//!     type Sample = Env;
+//!     type Sample = smp::Env;
 //!
 //!     // Returns the current value.
 //!     fn get(&self) -> Env {

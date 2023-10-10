@@ -188,7 +188,6 @@ impl Div<Time> for Time {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;

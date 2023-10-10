@@ -97,7 +97,7 @@ fn init_reader(path: &Path, expected_mono: bool) -> Result<WavFileReader, Error>
     Ok(reader)
 }
 
-impl Buffer<Mono> {
+impl Buffer<smp::Mono> {
     /// Allocates memory in which to store a buffer of a given size. If `length = 0` is passed, the
     /// null pointer will be returned.
     ///
@@ -107,17 +107,17 @@ impl Buffer<Mono> {
     ///   change in size.
     /// - It allows us to transmute an interleaved array of `Mono` samples into an array of `Stereo`
     ///   samples.
-    fn get_ptr(length: usize) -> *mut Mono {
+    fn get_ptr(length: usize) -> *mut smp::Mono {
         // This must be handled separately, as `alloc::alloc` doesn't allow for an empty layout.
         if length == 0 {
             return std::ptr::null_mut();
         }
 
-        let layout = std::alloc::Layout::array::<Mono>(length).unwrap();
+        let layout = std::alloc::Layout::array::<smp::Mono>(length).unwrap();
 
         // Safety: the layout is nonempty, the alignment is set explicitly.
         #[allow(clippy::cast_ptr_alignment)]
-        let ptr = unsafe { std::alloc::alloc(layout) }.cast::<Mono>();
+        let ptr = unsafe { std::alloc::alloc(layout) }.cast::<smp::Mono>();
 
         if ptr.is_null() {
             std::alloc::handle_alloc_error(layout)
@@ -139,7 +139,7 @@ impl Buffer<Mono> {
     /// Will return an error if a sample can't be turned into the specified type `S`.
     unsafe fn write_ptr_gen<S: WavSample>(
         reader: WavFileReader,
-        ptr: *mut Mono,
+        ptr: *mut smp::Mono,
     ) -> hound::Result<()> {
         let length = reader.len() as usize;
 
@@ -164,7 +164,7 @@ impl Buffer<Mono> {
     ///
     /// This should not error as long as the WAV file is in a supported format. See the [module
     /// docs](self) for a list.
-    unsafe fn write_ptr(reader: WavFileReader, ptr: *mut Mono) -> hound::Result<()> {
+    unsafe fn write_ptr(reader: WavFileReader, ptr: *mut smp::Mono) -> hound::Result<()> {
         match reader.spec().sample_format {
             hound::SampleFormat::Float => Self::write_ptr_gen::<f32>(reader, ptr),
             hound::SampleFormat::Int => match reader.spec().bits_per_sample {
@@ -183,7 +183,7 @@ impl Buffer<Mono> {
     ///
     /// If `ptr` is not null, the memory area must be initialized, and have the exact length (in
     /// [`Mono`] samples) passed as an argument.
-    unsafe fn from_ptr(length: usize, ptr: *mut Mono) -> Self {
+    unsafe fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
             Buffer::new()
         } else {
@@ -240,7 +240,7 @@ impl Buffer<Mono> {
     }
 }
 
-impl Buffer<Stereo> {
+impl Buffer<smp::Stereo> {
     /// Creates a buffer from an initialized pointer, returned from either [`Buffer::write_ptr_gen`]
     /// or [`Buffer::write_ptr`].
     ///
@@ -253,7 +253,7 @@ impl Buffer<Stereo> {
     /// [`Mono`] samples) passed as an argument.
     ///
     /// In particular, `length` must be even.
-    fn from_ptr(length: usize, ptr: *mut Mono) -> Self {
+    fn from_ptr(length: usize, ptr: *mut smp::Mono) -> Self {
         if ptr.is_null() {
             Buffer::new()
         } else {
@@ -261,7 +261,7 @@ impl Buffer<Stereo> {
             debug_assert_ne!(length, 0);
 
             Buffer::from_data(unsafe {
-                Vec::from_raw_parts(ptr.cast::<Stereo>(), length / 2, length / 2)
+                Vec::from_raw_parts(ptr.cast::<smp::Stereo>(), length / 2, length / 2)
             })
         }
     }

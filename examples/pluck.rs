@@ -12,7 +12,7 @@ const NOTES: u16 = 8;
 fn main() {
     // Saw wave with random phase.
     let saw = |freq: unt::RawFreq| {
-        LoopGen::<Stereo, _>::new_rand_phase(Saw, unt::Freq::from_raw(freq, SAMPLE_RATE))
+        LoopGen::<smp::Stereo, _>::new_rand_phase(Saw, unt::Freq::from_raw(freq, SAMPLE_RATE))
     };
 
     // Play a C major chord.
@@ -33,7 +33,7 @@ fn main() {
     let env = MutSgn::new(
         filter,
         OnceGen::new(PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
-        Func::new(|filter: &mut Filtered<_, 3, 2>, env: Env| {
+        map::Func::new(|filter: &mut Filtered<_, 3, 2>, env: smp::Env| {
             let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
             *filter.coefficients_mut() =
                 Biquad::low_pass(unt::Freq::from_hz(hz, SAMPLE_RATE), unt::QFactor(1.0));
@@ -42,10 +42,10 @@ fn main() {
 
     // Retrigger the pluck in a loop.
     let note_time = unt::Time::from_sec(NOTE_TIME, SAMPLE_RATE);
-    let mut env_loop = Loop::new(
+    let mut env_loop = ctr::Loop::new(
         vec![note_time],
         env,
-        Func::new(|sgn: &mut MutSgn<_, _, _>| sgn.retrigger()),
+        map::Func::new(|sgn: &mut MutSgn<_, _, _>| sgn.retrigger()),
     );
 
     pointillism::create_from_sgn(

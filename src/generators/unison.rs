@@ -288,11 +288,11 @@ impl<S: Sample, C: map::Map<Input = Val, Output = f64>> Unison<S, C> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detune;
 
-impl<C: map::Map<Input = Val>> map::MutEnv<UnisonCurve<C>> for Detune
+impl<C: map::Map<Input = Val>> map::Env<UnisonCurve<C>> for Detune
 where
     C::Output: Sample,
 {
-    fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: Env) {
+    fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: smp::Env) {
         // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
         // truncation.
         #[allow(clippy::cast_possible_truncation)]
@@ -323,7 +323,7 @@ pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 /// The curves within the [`Unison`] struct are indexed from highest to lowest pitched.
 pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
 
-impl<C: map::Map<Input = Val>, E: SignalMut<Sample = Env>> DetuneCurveSgn<C, E>
+impl<C: map::Map<Input = Val>, E: SignalMut<Sample = smp::Env>> DetuneCurveSgn<C, E>
 where
     C::Output: Sample,
 {
@@ -341,7 +341,7 @@ where
     }
 }
 
-impl<S: Sample, C: map::Map<Input = Val, Output = f64>, E: SignalMut<Sample = Env>>
+impl<S: Sample, C: map::Map<Input = Val, Output = f64>, E: SignalMut<Sample = smp::Env>>
     DetuneSgn<S, C, E>
 {
     /// Initializes a [`DetuneSgn`].

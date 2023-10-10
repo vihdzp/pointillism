@@ -17,7 +17,7 @@ const HARMONICS: [f64; 10] = [
 #[derive(Default)]
 pub struct EPiano {
     /// Oscillators at the fundamental frequency, twice that, etc.
-    oscs: [LoopGen<Mono, Sin>; 10],
+    oscs: [LoopGen<smp::Mono, Sin>; 10],
 }
 
 impl EPiano {
@@ -42,15 +42,15 @@ impl EPiano {
 }
 
 impl Signal for EPiano {
-    type Sample = Mono;
+    type Sample = smp::Mono;
 
     /// Adds up the values from the inner oscillators, rescaled by the harmonic volumes.
-    fn get(&self) -> Mono {
+    fn get(&self) -> smp::Mono {
         self.oscs
             .iter()
             .enumerate()
             .map(|(i, osc)| osc.get() * HARMONICS[i])
-            .sum::<Mono>()
+            .sum::<smp::Mono>()
             / 10.0
     }
 }
@@ -73,9 +73,9 @@ impl SignalMut for EPiano {
 }
 
 /// An electric piano with a slight tremolo effect applied.
-fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = Mono> {
+fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = smp::Mono> {
     // The volume follows a rescaled sine wave curve.
-    let env = LoopGen::new(Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
+    let env = LoopGen::new(map::Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
 
     // Some subtle ADSR.
     let adsr = Adsr::new(
@@ -99,7 +99,7 @@ fn main() {
         trem_piano(3.0 / 2.0 * c3, unt::Freq::from_hz_default(6.0)),
     );
 
-    let mut timer = unt::Timer::new(5.0 * sec);
+    let mut timer = ctr::Timer::new(5.0 * sec);
     pointillism::create("examples/epiano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
         let mut sgn = p1.next();
 

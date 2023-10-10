@@ -337,7 +337,7 @@ impl Arp {
     }
 }
 
-impl<S: Frequency>map:: Mut<S> for Arp {
+impl<S: Frequency> map::Mut<S> for Arp {
     fn modify(&mut self, sgn: &mut S) {
         *sgn.freq_mut() = self.current();
         crate::mod_inc(self.len(), &mut self.index);

@@ -14,7 +14,7 @@ fn main() {
     let base = unt::Freq::from_raw(unt::RawFreq::A3, SAMPLE_RATE);
     let sgn = |freq| {
         AdsrEnvelope::new(
-            LoopGen::<Stereo, _>::new(Tri, freq),
+            LoopGen::<smp::Stereo, _>::new(Tri, freq),
             Adsr::new(
                 unt::Time::from_sec(4.0, SAMPLE_RATE),
                 unt::Time::from_sec(6.0, SAMPLE_RATE),
@@ -37,16 +37,16 @@ fn main() {
     ];
 
     // Initialize the first chord.
-    let mut poly = Polyphony::new();
+    let mut poly = ply::Polyphony::new();
     for (i, &c) in chords[0].iter().enumerate() {
         poly.add(i, sgn(c * base));
     }
 
     let mut idx = 1;
-    let mut seq = Sequence::new(
+    let mut seq = ctr::Sequence::new(
         vec![note_len; chords.len()],
         poly,
-        Func::new(|poly: &mut Polyphony<_, _>| {
+        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
             // Add next notes.
             if idx != chords.len() {
                 for (i, &c) in chords[idx].iter().enumerate() {

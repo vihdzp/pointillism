@@ -31,7 +31,7 @@ fn fade(time: unt::Time, length: unt::Time, fade: unt::Time) -> f64 {
 }
 
 /// Binaural beat generator.
-fn binaural() -> impl SignalMut<Sample = Stereo> {
+fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
     let base = unt::Freq::from_raw_default(BASE);
     let vib_freq = unt::Freq::from_raw_default(VIB_FREQ);
 
@@ -52,7 +52,7 @@ fn binaural() -> impl SignalMut<Sample = Stereo> {
 }
 
 /// The melody that starts two minutes in.
-fn melody() -> impl SignalMut<Sample = Mono> {
+fn melody() -> impl SignalMut<Sample = smp::Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
     let mut freq = 2.0 * unt::Freq::from_raw_default(unt::RawFreq::A4);
     let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
@@ -66,7 +66,7 @@ fn melody() -> impl SignalMut<Sample = Mono> {
         MutSgn::new(
             wave(freq),
             OnceGen::new(PosSaw, unt::Time::from_sec_default(5.0)),
-            Func::new(|sgn: &mut LoopGen<_, SawTri>, val: Env| {
+            map::Func::new(|sgn: &mut LoopGen<_, SawTri>, val: smp::Env| {
                 sgn.curve_mut().shape = Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
         )
@@ -80,14 +80,14 @@ fn melody() -> impl SignalMut<Sample = Mono> {
         )
     };
 
-    let poly = Polyphony::new();
+    let poly = ply::Polyphony::new();
     let mut index = 0;
 
     // Play a new note every four seconds.
-    Loop::new(
+    ctr::Loop::new(
         vec![unt::Time::from_sec_default(4.0)],
         poly,
-        Func::new(move |poly: &mut Polyphony<_, _>| {
+        map::Func::new(move |poly: &mut ply::Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];
             poly.add(index, trem(freq));
             index += 1;

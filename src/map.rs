@@ -16,10 +16,7 @@
 
 use std::marker::PhantomData;
 
-use crate::{
-    Sample,
-    prelude::{Env, Signal, Stereo},
-};
+use crate::prelude::*;
 
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
@@ -49,9 +46,9 @@ pub trait Mut<S: Signal> {
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
 /// must wrap your function in a [`Func`].
-pub trait MutEnv<S: Signal> {
+pub trait Env<S: Signal> {
     /// Modifies `sgn` according to `val`.
-    fn modify_env(&mut self, sgn: &mut S, val: Env);
+    fn modify_env(&mut self, sgn: &mut S, val: smp::Env);
 }
 
 /// A wrapper for a Rust function which converts it into a [`Map`] or [`Mut`].
@@ -86,8 +83,8 @@ impl<X, Y, F: Fn(X) -> Y> Map for Func<X, Y, F> {
     }
 }
 
-impl<S: Signal, F: FnMut(&mut S, Env)> MutEnv<S> for Func<S, Env, F> {
-    fn modify_env(&mut self, x: &mut S, y: Env) {
+impl<S: Signal, F: FnMut(&mut S, smp::Env)> Env<S> for Func<S, smp::Env, F> {
+    fn modify_env(&mut self, x: &mut S, y: smp::Env) {
         (self.func)(x, y);
     }
 }
@@ -229,10 +226,10 @@ impl<F: Map, G: Map<Input = F::Output>> Map for Comp<F, G> {
 pub struct Flip;
 
 impl Map for Flip {
-    type Input = Stereo;
-    type Output = Stereo;
+    type Input = smp::Stereo;
+    type Output = smp::Stereo;
 
-    fn eval(&self, x: Stereo) -> Stereo {
+    fn eval(&self, x: smp::Stereo) -> smp::Stereo {
         x.flip()
     }
 }

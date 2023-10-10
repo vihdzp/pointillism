@@ -26,9 +26,8 @@ pub use crate::{
     gen::poly as ply,
     generators as gen,
     generators::{Val, *},
-    map, pos,
-    sample::{ArrayLike, Audio, Env, Mono, Sample, SampleLike, Stereo},
-    sgn,
+    map, pos, sample as smp, sgn,
     signal::*,
+    smp::{ArrayLike, Audio, Sample, SampleLike, WavSample},
     units as unt,
 };

@@ -24,7 +24,7 @@ fn main() {
     let osc = |freq| {
         AdsrEnvelope::new(
             // Sine wave with specified frequency.
-            LoopGen::<Stereo, _>::new(Sin, freq),
+            LoopGen::<smp::Stereo, _>::new(Sin, freq),
             // ADSR envelope with long attack, long release.
             Adsr::new(
                 0.8 * note_len,
@@ -36,17 +36,17 @@ fn main() {
     };
 
     // Initializes a new `Polyphony` object, plays a single note.
-    let mut poly = Polyphony::new();
+    let mut poly = ply::Polyphony::new();
     let mut index = 0;
     poly.add(index, osc(base));
 
     // The song loop.
-    let poly_loop = Loop::new(
+    let poly_loop = ctr::Loop::new(
         // Every NOTE_LEN seconds,
         vec![note_len],
         // we modify the signal `poly`,
         poly,
-        Func::new(|poly: &mut Polyphony<_, _>| {
+        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
             // by stopping the note we just played,
             poly.stop(&index);
             index += 1;

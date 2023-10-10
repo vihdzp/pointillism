@@ -3,31 +3,33 @@
 use crate::prelude::*;
 
 /// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on each channel.
-pub struct StereoMix<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>>(pub X, pub Y);
+pub struct StereoMix<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>>(pub X, pub Y);
 
-impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> StereoMix<X, Y> {
+impl<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>> StereoMix<X, Y> {
     /// Initializes a new [`StereoMix`].
     pub const fn new(sgn1: X, sgn2: Y) -> Self {
         Self(sgn1, sgn2)
     }
 }
 
-impl<Z: Signal<Sample = Mono> + Clone> StereoMix<Z, Z> {
+impl<Z: Signal<Sample = smp::Mono> + Clone> StereoMix<Z, Z> {
     /// Duplicates a [`Mono`] signal.
     pub fn dup(sgn: Z) -> Self {
         Self(sgn.clone(), sgn)
     }
 }
 
-impl<X: Signal<Sample = Mono>, Y: Signal<Sample = Mono>> Signal for StereoMix<X, Y> {
-    type Sample = Stereo;
+impl<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>> Signal for StereoMix<X, Y> {
+    type Sample = smp::Stereo;
 
     fn get(&self) -> Self::Sample {
-        Stereo(self.0.get().0, self.1.get().0)
+        smp::Stereo(self.0.get().0, self.1.get().0)
     }
 }
 
-impl<X: SignalMut<Sample = Mono>, Y: SignalMut<Sample = Mono>> SignalMut for StereoMix<X, Y> {
+impl<X: SignalMut<Sample = smp::Mono>, Y: SignalMut<Sample = smp::Mono>> SignalMut
+    for StereoMix<X, Y>
+{
     fn advance(&mut self) {
         self.0.advance();
         self.1.advance();
@@ -39,20 +41,20 @@ impl<X: SignalMut<Sample = Mono>, Y: SignalMut<Sample = Mono>> SignalMut for Ste
     }
 }
 
-impl<X: Done<Sample = Mono>, Y: Done<Sample = Mono>> Done for StereoMix<X, Y> {
+impl<X: Done<Sample = smp::Mono>, Y: Done<Sample = smp::Mono>> Done for StereoMix<X, Y> {
     fn is_done(&self) -> bool {
         self.0.is_done() && self.1.is_done()
     }
 }
 
-impl<X: Stop<Sample = Mono>, Y: Stop<Sample = Mono>> Stop for StereoMix<X, Y> {
+impl<X: Stop<Sample = smp::Mono>, Y: Stop<Sample = smp::Mono>> Stop for StereoMix<X, Y> {
     fn stop(&mut self) {
         self.0.stop();
         self.1.stop();
     }
 }
 
-impl<X: Panic<Sample = Mono>, Y: Panic<Sample = Mono>> Panic for StereoMix<X, Y> {
+impl<X: Panic<Sample = smp::Mono>, Y: Panic<Sample = smp::Mono>> Panic for StereoMix<X, Y> {
     fn panic(&mut self) {
         self.0.panic();
         self.1.panic();
@@ -117,10 +119,10 @@ impl<X: Panic, Y: Panic<Sample = X::Sample>> Panic for Mix<X, Y> {
 pub struct Dup;
 
 impl map::Map for Dup {
-    type Input = Mono;
-    type Output = Stereo;
+    type Input = smp::Mono;
+    type Output = smp::Stereo;
 
-    fn eval(&self, x: Mono) -> Stereo {
+    fn eval(&self, x: smp::Mono) -> smp::Stereo {
         x.duplicate()
     }
 }
@@ -128,7 +130,7 @@ impl map::Map for Dup {
 /// Duplicates a [`Mono`] signal to create a [`Stereo`] signal.
 pub type Duplicate<S> = MapSgn<S, Dup>;
 
-impl<S: Signal<Sample = Mono>> Duplicate<S> {
+impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
     /// Duplicates a [`Mono`] signal in both channels.
     pub const fn new_dup(sgn: S) -> Self {
         Self::new(sgn, Dup)

@@ -50,7 +50,7 @@ impl Default for Clip {
     }
 }
 
-impl map:: Map for Clip {
+impl map::Map for Clip {
     type Input = f64;
     type Output = f64;
 

@@ -30,19 +30,19 @@ impl<S: Frequency> Default for Vib<S> {
     }
 }
 
-impl<S: Frequency> map::MutEnv<S> for Vib<S> {
-    fn modify_env(&mut self, sgn: &mut S, bend: Env) {
+impl<S: Frequency> map::Env<S> for Vib<S> {
+    fn modify_env(&mut self, sgn: &mut S, bend: smp::Env) {
         *sgn.freq_mut() = self.base * bend.0;
     }
 }
 
 /// Applies vibrato (change in pitch) to a signal according to an envelope.
-pub struct Vibrato<S: Frequency, E: SignalMut<Sample = Env>> {
+pub struct Vibrato<S: Frequency, E: SignalMut<Sample = smp::Env>> {
     /// Inner data.
     inner: MutSgn<S, E, Vib<S>>,
 }
 
-impl<S: Frequency, E: SignalMut<Sample = Env>> Vibrato<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = smp::Env>> Vibrato<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, base: unt::Freq, env: E) -> Self {
         Self {
@@ -71,7 +71,7 @@ impl<S: Frequency, E: SignalMut<Sample = Env>> Vibrato<S, E> {
     }
 }
 
-impl<S: Frequency, E: SignalMut<Sample = Env>> Signal for Vibrato<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = smp::Env>> Signal for Vibrato<S, E> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -79,7 +79,7 @@ impl<S: Frequency, E: SignalMut<Sample = Env>> Signal for Vibrato<S, E> {
     }
 }
 
-impl<S: Frequency, E: SignalMut<Sample = Env>> SignalMut for Vibrato<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = smp::Env>> SignalMut for Vibrato<S, E> {
     fn advance(&mut self) {
         self.inner.advance();
     }
@@ -89,7 +89,7 @@ impl<S: Frequency, E: SignalMut<Sample = Env>> SignalMut for Vibrato<S, E> {
     }
 }
 
-impl<S: Frequency + Base, E: SignalMut<Sample = Env>> Base for Vibrato<S, E> {
+impl<S: Frequency + Base, E: SignalMut<Sample = smp::Env>> Base for Vibrato<S, E> {
     type Base = S::Base;
 
     fn base(&self) -> &Self::Base {
@@ -101,7 +101,7 @@ impl<S: Frequency + Base, E: SignalMut<Sample = Env>> Base for Vibrato<S, E> {
     }
 }
 
-impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Vibrato<S, E> {
+impl<S: Frequency, E: SignalMut<Sample = smp::Env>> Frequency for Vibrato<S, E> {
     fn freq(&self) -> unt::Freq {
         self.inner.func().base
     }
@@ -111,13 +111,13 @@ impl<S: Frequency, E: SignalMut<Sample = Env>> Frequency for Vibrato<S, E> {
     }
 }
 
-impl<S: Frequency + Done, E: SignalMut<Sample = Env>> Done for Vibrato<S, E> {
+impl<S: Frequency + Done, E: SignalMut<Sample = smp::Env>> Done for Vibrato<S, E> {
     fn is_done(&self) -> bool {
         self.inner.is_done()
     }
 }
 
-impl<S: Frequency + Stop, E: SignalMut<Sample = Env>> Stop for Vibrato<S, E> {
+impl<S: Frequency + Stop, E: SignalMut<Sample = smp::Env>> Stop for Vibrato<S, E> {
     fn stop(&mut self) {
         self.inner.stop();
     }

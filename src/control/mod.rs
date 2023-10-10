@@ -47,7 +47,7 @@ impl Timer {
 
     /// Whether the timer should activate, given the current time elapsed. A timer can only activate
     /// once.
-    pub fn tick(&mut self, time:unt:: Time) -> bool {
+    pub fn tick(&mut self, time: unt::Time) -> bool {
         if !self.active {
             return false;
         }

@@ -35,7 +35,7 @@ fn main() {
     let note_len = unt::Time::from_raw_default(NOTE_LEN);
 
     // Envelope for the wave shape.
-    let shape_env = Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
+    let shape_env = map::Comp::new(Saw, Linear::rescale_sgn(0.75, 0.5));
 
     // Each oscillator is a function of frequency and panning angle.
     let osc = |freq, angle| {
@@ -52,8 +52,8 @@ fn main() {
                 ),
                 OnceGen::new(shape_env, note_len),
                 // Smoothly interpolates between a saw and a triangle wave.
-                Func::new(
-                    |sgn: &mut AdsrEnvelope<LoopGen<Stereo, SawTri>>, val: Env| {
+                map::Func::new(
+                    |sgn: &mut AdsrEnvelope<LoopGen<smp::Stereo, SawTri>>, val: smp::Env| {
                         sgn.sgn_mut().curve_mut().shape = Val::new(val.0);
                     },
                 ),
@@ -68,17 +68,17 @@ fn main() {
     let mut freq = base;
 
     // Initializes a new `Polyphony` object, plays a single note, centered.
-    let mut poly = Polyphony::new();
+    let mut poly = ply::Polyphony::new();
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
     let note_len = unt::Time::from_raw_default(NOTE_LEN);
 
     // The song loop.
-    let poly_loop = Loop::new(
+    let poly_loop = ctr::Loop::new(
         vec![note_len],
         poly,
-        Func::new(|poly: &mut Polyphony<_, _>| {
+        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
             // Stops the previous note.
             poly.stop(&index);
             index += 1;

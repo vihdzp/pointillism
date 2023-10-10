@@ -111,8 +111,11 @@ impl<
     }
 }
 
-impl<S: SignalMut<Sample = B::Item>, B: BufMutTrait, F: map::Map<Input = B::Item, Output = B::Item>>
-    SignalMut for Delay<S, B, F>
+impl<
+        S: SignalMut<Sample = B::Item>,
+        B: BufMutTrait,
+        F: map::Map<Input = B::Item, Output = B::Item>,
+    > SignalMut for Delay<S, B, F>
 {
     fn advance(&mut self) {
         self.read_sgn();
@@ -238,14 +241,14 @@ where
 }
 
 /// An exponential delay with a ping-pong effect.
-pub type FlipDelay<S, B> = Delay<S, B, map::Comp<Pw<Stereo, unt::Vol>, map::Flip>>;
+pub type FlipDelay<S, B> = Delay<S, B, map::Comp<Pw<smp::Stereo, unt::Vol>, map::Flip>>;
 
 /// Simple auxiliary function.
-const fn comp_flip(vol: unt::Vol) -> map::Comp<Pw<Stereo, unt::Vol>, map::Flip> {
+const fn comp_flip(vol: unt::Vol) -> map::Comp<Pw<smp::Stereo, unt::Vol>, map::Flip> {
     map::Comp::new(Pw::new(vol), map::Flip)
 }
 
-impl<S: Signal<Sample = Stereo>, B: BufMutTrait<Item = Stereo>> FlipDelay<S, B> {
+impl<S: Signal<Sample = smp::Stereo>, B: BufMutTrait<Item = smp::Stereo>> FlipDelay<S, B> {
     /// Initializes a new [`FlipDelay`].
     ///
     /// You can set the volume to `1.0` for an infinite delay, but other than that, you'll probably
@@ -265,7 +268,7 @@ impl<S: Signal<Sample = Stereo>, B: BufMutTrait<Item = Stereo>> FlipDelay<S, B> 
     }
 }
 
-impl<S: Signal<Sample = Stereo>> FlipDelay<S, Buffer<S::Sample>> {
+impl<S: Signal<Sample = smp::Stereo>> FlipDelay<S, Buffer<S::Sample>> {
     /// Initializes a ping-pong delay that owns its buffer. The size of the buffer is determined by
     /// the delay time.
     pub fn new_flip_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {
