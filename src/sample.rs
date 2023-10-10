@@ -4,26 +4,52 @@
 //! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
 //! [`Adsr`](crate::effects::adsr::Adsr).
 
-use std::{
-    fmt::Debug,
-    iter::Sum,
-    ops::{
-        Add, AddAssign, Div, DivAssign, FnMut, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
-    },
-};
+use std::{fmt::Debug, iter::Sum};
 
 /// A sample of mono audio, typically holding a value between `-1.0` and `1.0`.
 ///
 /// This is distinguished from [`Env`], as they have different uses. There shouldn't be much reason
 /// to convert one to the other.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Neg,
+    derive_more::Mul,
+    derive_more::MulAssign,
+    derive_more::Div,
+    derive_more::DivAssign,
+    derive_more::Sum,
+)]
 #[repr(C)]
 pub struct Mono(pub f64);
 
 /// A sample of stereo audio, typically holding values between `-1.0` and `1.0`.
 ///
 /// The left channel is stored in `.0`, the right channel is stored in `.1`.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Neg,
+    derive_more::Mul,
+    derive_more::MulAssign,
+    derive_more::Div,
+    derive_more::DivAssign,
+    derive_more::Sum,
+)]
 #[repr(C)]
 pub struct Stereo(pub f64, pub f64);
 
@@ -31,7 +57,23 @@ pub struct Stereo(pub f64, pub f64);
 ///
 /// This is distinguished from [`Mono`], as they have different uses. There shouldn't be much reason
 /// to convert one to the other.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    derive_more::Add,
+    derive_more::AddAssign,
+    derive_more::Sub,
+    derive_more::SubAssign,
+    derive_more::Neg,
+    derive_more::Mul,
+    derive_more::MulAssign,
+    derive_more::Div,
+    derive_more::DivAssign,
+    derive_more::Sum,
+)]
 #[repr(C)]
 pub struct Env(pub f64);
 
@@ -45,15 +87,15 @@ pub trait Base:
     Copy
     + Default
     + Debug
-    + Add<Output = Self>
-    + AddAssign
-    + Neg<Output = Self>
-    + Sub<Output = Self>
-    + SubAssign
-    + Mul<f64, Output = Self>
-    + MulAssign<f64>
-    + Div<f64, Output = Self>
-    + DivAssign<f64>
+    + std::ops::Add<Output = Self>
+    + std::ops::AddAssign
+    + std::ops::Neg<Output = Self>
+    + std::ops::Sub<Output = Self>
+    + std::ops::SubAssign
+    + std::ops::Mul<f64, Output = Self>
+    + std::ops::MulAssign<f64>
+    + std::ops::Div<f64, Output = Self>
+    + std::ops::DivAssign<f64>
     + Sum
 {
     /// The zero value.
@@ -79,8 +121,8 @@ impl Base for f64 {
 pub unsafe trait Array:
     AsRef<[Self::Item]>
     + AsMut<[Self::Item]>
-    + Index<usize, Output = Self::Item>
-    + IndexMut<usize>
+    + std::ops::Index<usize, Output = Self::Item>
+    + std::ops::IndexMut<usize>
     + Sized
 {
     /// The type of items this array stores.
@@ -247,7 +289,7 @@ pub trait Sample: Base + Array<Item = f64> {
     /// individually.
     #[must_use]
     fn rand_with<R: rand::Rng + ?Sized>(rng: &mut R) -> Self {
-        Self::from_fn(|_| crate::sgn(rng.gen::<f64>()))
+        Self::from_fn(|_| crate::map::sgn(rng.gen::<f64>()))
     }
 
     /// Generates a random sample.
@@ -397,91 +439,10 @@ unsafe impl<T, const N: usize> Array for [T; N] {
     }
 }
 
-/// Implements traits [`Add`], [`Sub`].
-macro_rules! impl_op {
-    ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op for $ty {
-            type Output = Self;
-            fn $fn(self, rhs: Self) -> Self {
-                self.pairwise(rhs, |x, y| std::ops::$op::$fn(x, y))
-            }
-        })*
-    };
-}
-
-/// Implements traits [`AddAssign`], [`SubAssign`].
-macro_rules! impl_op_assign {
-    ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op for $ty {
-            fn $fn(&mut self, rhs: Self) {
-                self.pairwise_mut(rhs, |x, y| std::ops::$op::$fn(x, y));
-            }
-        })*
-    };
-}
-
-/// Implements traits [`Mul`] and [`Div`].
-macro_rules! impl_op_f64 {
-    ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op<f64> for $ty {
-            type Output = Self;
-            fn $fn(self, rhs: f64) -> Self {
-                self.map(|x| std::ops::$op::$fn(x, rhs))
-            }
-        })*
-    };
-}
-
-/// Implements [`Mul`] on the other side.
-macro_rules! impl_mul_left {
-    ($ty: ty) => {
-        impl Mul<$ty> for f64 {
-            type Output = $ty;
-            fn mul(self, rhs: $ty) -> $ty {
-                rhs * self
-            }
-        }
-    };
-}
-
-/// Implements traits [`MulAssign<f64>`](MulAssign), [`DivAssign<f64>`](DivAssign).
-macro_rules! impl_op_assign_f64 {
-    ($ty: ty; $($op: ident, $fn: ident),*) => {
-        $(impl $op<f64> for $ty {
-            fn $fn(&mut self, rhs: f64) {
-                self.map_mut(|x| std::ops::$op::$fn(x, rhs))
-            }
-        })*
-    };
-}
-
-/// Implements trait [`Neg`].
-macro_rules! impl_neg {
-    ($ty: ty) => {
-        impl Neg for $ty {
-            type Output = Self;
-            fn neg(self) -> Self {
-                self.map(|x| -x)
-            }
-        }
-    };
-}
-
-/// Implements trait [`Sum`].
-macro_rules! impl_sum {
-    ($ty: ty) => {
-        impl Sum for $ty {
-            fn sum<I: IntoIterator<Item = Self>>(iter: I) -> Self {
-                Self::_sum(iter)
-            }
-        }
-    };
-}
-
 /// Implements trait [`Index`].
 macro_rules! impl_index {
     ($ty: ty) => {
-        impl Index<usize> for $ty {
+        impl std::ops::Index<usize> for $ty {
             type Output = f64;
 
             fn index(&self, index: usize) -> &f64 {
@@ -489,7 +450,7 @@ macro_rules! impl_index {
             }
         }
 
-        impl IndexMut<usize> for $ty {
+        impl std::ops::IndexMut<usize> for $ty {
             fn index_mut(&mut self, index: usize) -> &mut f64 {
                 self.get_mut(index).unwrap()
             }
@@ -529,13 +490,6 @@ macro_rules! impl_rand {
 macro_rules! impl_all {
     ($($ty: ty),*) => {
         $(
-            impl_op!($ty; Add, add, Sub, sub);
-            impl_op_assign!($ty; AddAssign, add_assign, SubAssign, sub_assign);
-            impl_op_f64!($ty; Mul, mul, Div, div);
-            impl_op_assign_f64!($ty; MulAssign, mul_assign, DivAssign, div_assign);
-            impl_mul_left!($ty);
-            impl_neg!($ty);
-            impl_sum!($ty);
             impl_index!($ty);
             impl_rand!($ty);
             impl_as!($ty);

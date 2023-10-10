@@ -41,18 +41,6 @@ pub(crate) fn mod_inc(len: usize, value: &mut usize) {
     }
 }
 
-/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
-#[must_use]
-pub fn pos(x: f64) -> f64 {
-    (x + 1.0) / 2.0
-}
-
-/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
-#[must_use]
-pub fn sgn(x: f64) -> f64 {
-    2.0 * x - 1.0
-}
-
 /// Methods that require [`hound`].
 #[cfg(feature = "hound")]
 mod with_hound {

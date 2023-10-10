@@ -18,6 +18,18 @@ use std::marker::PhantomData;
 
 use crate::prelude::*;
 
+/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
+#[must_use]
+pub fn pos(x: f64) -> f64 {
+    (x + 1.0) / 2.0
+}
+
+/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
+#[must_use]
+pub fn sgn(x: f64) -> f64 {
+    2.0 * x - 1.0
+}
+
 /// An abstract trait for a structure representing a function `X → Y`.
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you

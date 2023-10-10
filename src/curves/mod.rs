@@ -28,7 +28,7 @@ impl map::Map for Pos {
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        crate::pos(x)
+        map::pos(x)
     }
 }
 
@@ -48,7 +48,7 @@ impl map::Map for Sgn {
     type Output = f64;
 
     fn eval(&self, x: f64) -> f64 {
-        crate::sgn(x)
+        map::sgn(x)
     }
 }
 
@@ -152,7 +152,7 @@ impl map::Map for Saw {
     type Output = f64;
 
     fn eval(&self, x: unt::Val) -> f64 {
-        crate::sgn(x.inner())
+        map::sgn(x.inner())
     }
 }
 
@@ -173,7 +173,7 @@ impl map::Map for InvSaw {
     type Output = f64;
 
     fn eval(&self, x: unt::Val) -> f64 {
-        -crate::sgn(x.inner())
+        -map::sgn(x.inner())
     }
 }
 

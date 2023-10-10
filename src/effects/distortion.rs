@@ -146,7 +146,7 @@ impl map::Map for Pow {
         let res = x.powi(i32::from(self.exponent));
 
         if self.exponent % 2 == 0 {
-            crate::sgn(res)
+            map::sgn(res)
         } else {
             res
         }
