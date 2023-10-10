@@ -18,7 +18,7 @@ fn main() {
         let mut raw = RawFreq::new_midi(data.key.into()).bend(0.5);
         raw.hz = raw.hz.powf(0.995);
 
-        AdsrEnvelope::new_adsr(
+        AdsrEnv::new_adsr(
             gen::Loop::<Stereo, _>::new(Morph::half(Sin, Tri), Freq::from_raw_default(raw)),
             Time::from_sec_default(0.05),
             Time::from_sec_default(2.5),

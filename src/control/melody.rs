@@ -42,7 +42,7 @@
 //!
 //! // Each note is a triangle wave, with a simple ADSR envelope, playing the corresponding note.
 //! let func = |freq: Freq| {
-//!     AdsrEnvelope::new_adsr(
+//!     AdsrEnv::new_adsr(
 //!         gen::Loop::<Mono, _>::new(Tri, freq),
 //!         Time::from_sec(0.1, SAMPLE_RATE),
 //!         q,

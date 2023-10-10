@@ -75,17 +75,17 @@ impl SignalMut for EPiano {
 /// An electric piano with a slight tremolo effect applied.
 fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = smp::Mono> {
     // The volume follows a rescaled sine wave curve.
-    let env = gen::Loop::new(map::Comp::new(Sin, Linear::rescale_sgn(0.8, 1.0)), vib_freq);
+    let env = gen::Loop::new(map::Comp::new(Sin, map::Linear::rescale_sgn(0.8, 1.0)), vib_freq);
 
     // Some subtle ADSR.
-    let adsr = Adsr::new(
+    let adsr = eff::env::Adsr::new(
         unt::Time::from_sec(0.1, SAMPLE_RATE),
         unt::Time::from_sec(0.2, SAMPLE_RATE),
         unt::Vol::new(0.7),
         unt::Time::from_sec(0.1, SAMPLE_RATE),
     );
 
-    AdsrEnvelope::new(Tremolo::new(EPiano::new(freq), env), adsr)
+    eff::env::AdsrEnv::new_adsr(eff::Tremolo::new(EPiano::new(freq), env), adsr)
 }
 
 fn main() {

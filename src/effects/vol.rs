@@ -5,14 +5,14 @@ use std::marker::PhantomData;
 #[derive(Clone, Debug, Default)]
 pub struct Volume<S: Signal> {
     /// Inner data.
-    inner: PwMapSgn<S, unt::Vol>,
+    inner: eff::PwMapSgn<S, unt::Vol>,
 }
 
 impl<S: Signal> Volume<S> {
     /// Initializes a new signal with a given [`unt::Vol`].
     pub const fn new(sgn: S, vol: unt::Vol) -> Self {
         Self {
-            inner: PwMapSgn::new_pw(sgn, vol),
+            inner: eff::PwMapSgn::new_pw(sgn, vol),
         }
     }
 
@@ -128,14 +128,14 @@ impl<S: Signal> map::Env<Volume<S>> for Trem<S> {
 ///
 /// Note that "tremolo" here just means a **change** in volume controlled by an envelope. This is
 /// more general than the usual meaning of tremolo, this being **oscillation** in volume. For
-/// instance, [`AdsrEnvelope`] is a special case of [`Tremolo`] (technically [`StopTremolo`]).
+/// instance, [`AdsrEnv`] is a special case of [`Tremolo`] (technically [`StopTremolo`]).
 ///
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`StopTremolo`].
 #[derive(Clone, Debug)]
 pub struct Tremolo<S: Signal, E: Signal<Sample = smp::Env>> {
     /// Inner data.
-    inner: MutSgn<Volume<S>, E, Trem<S>>,
+    inner: eff::MutSgn<Volume<S>, E, Trem<S>>,
 }
 
 impl<S: Signal, E: Signal<Sample = smp::Env>> Tremolo<S, E> {
@@ -143,7 +143,7 @@ impl<S: Signal, E: Signal<Sample = smp::Env>> Tremolo<S, E> {
     pub fn new(sgn: S, env: E) -> Self {
         Self {
             // The volume is unimportant, as it immediately gets rewritten.
-            inner: MutSgn::new(Volume::new(sgn, unt::Vol::FULL), env, Trem::new()),
+            inner: eff::MutSgn::new(Volume::new(sgn, unt::Vol::FULL), env, Trem::new()),
         }
     }
 
@@ -235,7 +235,7 @@ impl<S: Panic, E: SignalMut<Sample = smp::Env>> Panic for Tremolo<S, E> {
 #[derive(Clone, Debug)]
 pub struct StopTremolo<S: SignalMut, E: Stop<Sample = smp::Env>> {
     /// Inner data.
-    inner: ModSgn<Volume<S>, E, Trem<S>>,
+    inner: eff::ModSgn<Volume<S>, E, Trem<S>>,
 }
 
 /// Turns a [`Tremolo`] into a [`StopTremolo`]. This changes the functionality of the signal when
@@ -247,11 +247,6 @@ impl<S: SignalMut, E: Stop<Sample = smp::Env>> From<Tremolo<S, E>> for StopTremo
         }
     }
 }
-
-/// An envelope with attack and release.
-///
-/// Initialize with [`Self::new_ar`].
-pub type ArEnvelope<S> = StopTremolo<S, gen::Once<smp::Env, SawTri>>;
 
 impl<S: SignalMut, E: Stop<Sample = smp::Env>> StopTremolo<S, E> {
     /// Initializes a new [`StopTremolo`].
@@ -277,15 +272,6 @@ impl<S: SignalMut, E: Stop<Sample = smp::Env>> StopTremolo<S, E> {
     /// Returns a mutable reference to the envelope controlling the volume.
     pub fn env_mut(&mut self) -> &mut E {
         self.inner.env_mut()
-    }
-}
-
-impl<S: SignalMut> ArEnvelope<S> {
-    /// Initializes a new [`ArEnvelope`].
-    pub fn new_ar(sgn: S, attack: unt::Time, release: unt::Time) -> Self {
-        let time = attack + release;
-        let shape = attack / time;
-        Self::new(sgn, gen::Once::new(SawTri::new(unt::Val::new(shape)), time))
     }
 }
 

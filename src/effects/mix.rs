@@ -128,7 +128,7 @@ impl map::Map for Dup {
 }
 
 /// Duplicates a [`Mono`] signal to create a [`Stereo`] signal.
-pub type Duplicate<S> = MapSgn<S, Dup>;
+pub type Duplicate<S> = eff::MapSgn<S, Dup>;
 
 impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
     /// Duplicates a [`Mono`] signal in both channels.

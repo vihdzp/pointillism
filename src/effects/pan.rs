@@ -161,7 +161,7 @@ impl<A: smp::Audio, P: Law> map::Map for Wrapper<A, P> {
 }
 
 /// Applies a pan effect, using the specified pan [`Law`].
-pub type Panner<S, P> = MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
+pub type Panner<S, P> = eff::MapSgn<S, Wrapper<<S as Signal>::Sample, P>>;
 
 impl<S: Signal, P: Law> Panner<S, P>
 where
@@ -169,7 +169,7 @@ where
 {
     /// Initializes a new [`Panner`] for a given signal and pan law.
     pub const fn new_pan_law(sgn: S, pan_law: P) -> Self {
-        MapSgn::new(sgn, Wrapper::new(pan_law))
+        eff::MapSgn::new(sgn, Wrapper::new(pan_law))
     }
 
     /// Initializes a new [`Panner`] for a given signal and angle.

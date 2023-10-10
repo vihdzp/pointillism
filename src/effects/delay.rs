@@ -199,14 +199,14 @@ where
 ///
 /// This causes the signal to decay exponentially. You can set the volume to `1.0` for an infinite
 /// delay, but other than that, you'll probably want a value between `0.0` and `1.0`, exclusively.
-pub type ExpDelay<S, B> = Delay<S, B, Pw<<S as Signal>::Sample, unt::Vol>>;
+pub type ExpDelay<S, B> = Delay<S, B, map::Pw<<S as Signal>::Sample, unt::Vol>>;
 
 impl<S: Signal<Sample = B::Item>, B: buf::Mut> ExpDelay<S, B> {
     /// Initializes a new [`ExpDelay`].
     ///
     /// To use an empty, owned buffer, see [`Self::new_exp_owned`].
     pub const fn new_exp(sgn: S, buffer: B, vol: unt::Vol) -> Self {
-        Self::new(sgn, buffer, Pw::new(vol))
+        Self::new(sgn, buffer, map::Pw::new(vol))
     }
 
     /// Returns the feedback volume.
@@ -227,16 +227,16 @@ where
     /// Initializes a delay with exponential decay that owns its buffer. The size of the buffer is
     /// determined by the delay time.
     pub fn new_exp_owned(sgn: S, delay: unt::Time, vol: unt::Vol) -> Self {
-        Self::new_owned(sgn, delay, Pw::new(vol))
+        Self::new_owned(sgn, delay, map::Pw::new(vol))
     }
 }
 
 /// An exponential delay with a ping-pong effect.
-pub type FlipDelay<S, B> = Delay<S, B, map::Comp<Pw<smp::Stereo, unt::Vol>, map::Flip>>;
+pub type FlipDelay<S, B> = Delay<S, B, map::Comp<map::Pw<smp::Stereo, unt::Vol>, map::Flip>>;
 
 /// Simple auxiliary function.
-const fn comp_flip(vol: unt::Vol) -> map::Comp<Pw<smp::Stereo, unt::Vol>, map::Flip> {
-    map::Comp::new(Pw::new(vol), map::Flip)
+const fn comp_flip(vol: unt::Vol) -> map::Comp<map::Pw<smp::Stereo, unt::Vol>, map::Flip> {
+    map::Comp::new(map::Pw::new(vol), map::Flip)
 }
 
 impl<S: Signal<Sample = smp::Stereo>, B: buf::Mut<Item = smp::Stereo>> FlipDelay<S, B> {

@@ -6,48 +6,25 @@
 //! The module file implements the most basic structures for transforming a signal, including
 //! [`MapSgn`], [`MutSgn`], and [`ModSgn`].
 
-pub mod adsr;
 pub mod delay;
 pub mod distortion;
+pub mod envelopes;
 pub mod filter;
-pub mod freq;
+mod freq;
 pub mod mix;
 pub mod pan;
 pub mod trailing;
-pub mod vol;
+mod vol;
 
-use std::marker::PhantomData;
+pub use delay as dly;
+pub use distortion as dst;
+pub use envelopes as env;
+pub use filter as flt;
+pub use freq::{Vib, Vibrato};
+pub use trailing as trt;
+pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
 use crate::prelude::*;
-
-/// Converts a function into one applied pointwise to the entries of a [`Sample`].
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Pw<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> {
-    /// The function to apply.
-    pub func: F,
-
-    /// Dummy value.
-    phantom: PhantomData<S>,
-}
-
-impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
-    /// Initializes a new [`Pw`] function.
-    pub const fn new(func: F) -> Self {
-        Self {
-            func,
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> map::Map for Pw<S, F> {
-    type Input = S;
-    type Output = S;
-
-    fn eval(&self, x: S) -> S {
-        x.map(|y| self.func.eval(*y))
-    }
-}
 
 /// Maps a signal to another via a specified map.
 ///
@@ -188,12 +165,12 @@ where
 }
 
 /// A [`MapSgn`] taking in a [`Pw`] function.
-pub type PwMapSgn<S, F> = MapSgn<S, Pw<<S as Signal>::Sample, F>>;
+pub type PwMapSgn<S, F> = MapSgn<S, map::Pw<<S as Signal>::Sample, F>>;
 
 impl<S: Signal, F: map::Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
     /// Initializes a [`MapSgn`] from a pointwise function.
     pub const fn new_pw(sgn: S, map: F) -> Self {
-        Self::new(sgn, Pw::new(map))
+        Self::new(sgn, map::Pw::new(map))
     }
 
     /// Returns a reference to the pointwise map modifying the signal.

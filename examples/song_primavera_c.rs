@@ -40,18 +40,18 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
 
     // Vibrato sine wave.
     let vib = |freq| {
-        Vibrato::new(
+        eff::Vibrato::new(
             wave(freq),
             freq,
-            PwMapSgn::new_pw(
+            eff::PwMapSgn::new_pw(
                 gen::Loop::new(Sin, vib_freq),
-                Linear::rescale_sgn(0.99, 1.01),
+                map::Linear::rescale_sgn(0.99, 1.01),
             ),
         )
     };
 
     // Binaural beats.
-    StereoMix::new(wave(base * 0.985), vib(base))
+    eff::mix::StereoMix::new(wave(base * 0.985), vib(base))
 }
 
 /// The melody that starts two minutes in.
@@ -66,7 +66,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     // Their shape is abruptly turned from a saw into a triangle, which results in a rudimentary
     // "pluck" sound.
     let shape = move |freq| {
-        MutSgn::new(
+        eff::MutSgn::new(
             wave(freq),
             gen::Once::new(PosSaw, unt::Time::from_sec_default(5.0)),
             map::Func::new(|sgn: &mut gen::Loop<_, SawTri>, val: smp::Env| {
@@ -77,7 +77,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
 
     // Make each note fade out.
     let trem = move |freq| {
-        StopTremolo::new(
+        eff::StopTremolo::new(
             shape(freq),
             gen::Once::new(PosInvSaw, unt::Time::from_sec_default(10.0)),
         )

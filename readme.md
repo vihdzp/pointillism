@@ -45,6 +45,9 @@ follows:
 | [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
 | [`unt`] | `units` | Different units for musical measurement, and associated arithmetic boilerplate.
 
+Some of these also contain further namespaces, almost always three letters. See the documentation
+for the full breakdown.
+
 ### Compile-time
 
 You can think of pointillism as a compile-time modular synthesizer, where every new struct is its

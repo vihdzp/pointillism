@@ -39,14 +39,14 @@ impl<S: Frequency> map::Env<S> for Vib<S> {
 /// Applies vibrato (change in pitch) to a signal according to an envelope.
 pub struct Vibrato<S: Frequency, E: SignalMut<Sample = smp::Env>> {
     /// Inner data.
-    inner: MutSgn<S, E, Vib<S>>,
+    inner: eff::MutSgn<S, E, Vib<S>>,
 }
 
 impl<S: Frequency, E: SignalMut<Sample = smp::Env>> Vibrato<S, E> {
     /// Initializes a new [`Tremolo`].
     pub fn new(sgn: S, base: unt::Freq, env: E) -> Self {
         Self {
-            inner: MutSgn::new(sgn, env, Vib::new(base)),
+            inner: eff::MutSgn::new(sgn, env, Vib::new(base)),
         }
     }
 

@@ -19,122 +19,6 @@
 
 use crate::prelude::*;
 
-/// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Pos;
-
-impl map::Map for Pos {
-    type Input = f64;
-    type Output = f64;
-
-    fn eval(&self, x: f64) -> f64 {
-        map::pos(x)
-    }
-}
-
-impl<F: map::Map<Output = f64>> map::Comp<F, Pos> {
-    /// Composes a function with [`Pos`].
-    pub const fn pos(f: F) -> Self {
-        Self::new(f, Pos)
-    }
-}
-
-/// Rescales a value from `0.0` to `1.0`, into a value from `-1.0` to `1.0`.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Sgn;
-
-impl map::Map for Sgn {
-    type Input = f64;
-    type Output = f64;
-
-    fn eval(&self, x: f64) -> f64 {
-        map::sgn(x)
-    }
-}
-
-impl<F: map::Map<Output = f64>> map::Comp<F, Sgn> {
-    /// Composes a function with [`Sgn`].
-    pub const fn sgn(f: F) -> Self {
-        Self::new(f, Sgn)
-    }
-}
-
-/// Negates a floating point value.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Neg;
-
-impl Neg {
-    /// The negation function.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl map::Map for Neg {
-    type Input = f64;
-    type Output = f64;
-
-    fn eval(&self, x: f64) -> f64 {
-        -x
-    }
-}
-
-impl<F: map::Map<Output = f64>> map::Comp<F, Neg> {
-    /// Composes a function with [`Neg`].
-    pub const fn neg(f: F) -> Self {
-        Self::new(f, Neg)
-    }
-}
-
-/// A linear map `y = mx + b`.
-#[derive(Clone, Copy, Debug)]
-pub struct Linear {
-    /// Slope of the map.
-    pub slope: f64,
-
-    /// y-intercept of the map.
-    pub intercept: f64,
-}
-
-impl Linear {
-    /// Initializes a new linear map.
-    #[must_use]
-    pub const fn new(slope: f64, intercept: f64) -> Self {
-        Self { slope, intercept }
-    }
-
-    /// Initializes the linear map that rescales an interval `[init_lo, init_hi]` to another
-    /// `[end_lo, end_hi]`.
-    #[must_use]
-    pub fn rescale(init_lo: f64, init_hi: f64, end_lo: f64, end_hi: f64) -> Self {
-        let slope = (end_hi - end_lo) / (init_hi - init_lo);
-        Self::new(slope, end_lo - slope * init_lo)
-    }
-
-    /// Initializes the linear map that rescales the unit interval `[0.0, 1.0]` to another `[lo,
-    /// hi]`.
-    #[must_use]
-    pub fn rescale_unit(lo: f64, hi: f64) -> Self {
-        Self::rescale(0.0, 1.0, lo, hi)
-    }
-
-    /// Initializes the linear map that rescales the interval `[-1.0, 1.0]` to another `[lo, hi]`.
-    #[must_use]
-    pub fn rescale_sgn(lo: f64, hi: f64) -> Self {
-        Self::rescale(-1.0, 1.0, lo, hi)
-    }
-}
-
-impl map::Map for Linear {
-    type Input = f64;
-    type Output = f64;
-
-    fn eval(&self, x: f64) -> f64 {
-        x * self.slope + self.intercept
-    }
-}
-
 /// A left-to-right saw wave, taking values from `-1.0` to `1.0`.
 ///
 /// ```txt
@@ -343,12 +227,12 @@ pub fn saw_tri(x: f64, shape: unt::Val) -> f64 {
         if shape < EPS {
             1.0
         } else {
-            int::linear(-1.0, 1.0, unt::Val::new(x / shape))
+            buf::int::linear(-1.0, 1.0, unt::Val::new(x / shape))
         }
     } else if 1.0 - shape < EPS {
         1.0
     } else {
-        int::linear(-1.0, 1.0, unt::Val::new((1.0 - x) / (1.0 - shape)))
+        buf::int::linear(-1.0, 1.0, unt::Val::new((1.0 - x) / (1.0 - shape)))
     }
 }
 
@@ -487,6 +371,6 @@ impl<C: map::Map<Input = unt::Val, Output = f64>, D: map::Map<Input = unt::Val, 
     type Output = f64;
 
     fn eval(&self, x: unt::Val) -> f64 {
-        int::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
+        buf::int::linear(self.fst.eval(x), self.snd.eval(x), self.morph)
     }
 }

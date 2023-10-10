@@ -20,6 +20,8 @@ pub mod interpolate;
 #[cfg(feature = "hound")]
 pub mod wav;
 
+pub use interpolate as int;
+
 /// A trait for readable buffers.
 pub trait Ref: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
     /// The type of sample stored in the buffer.

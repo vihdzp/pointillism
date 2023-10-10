@@ -13,9 +13,9 @@ fn main() {
 
     let base = unt::Freq::from_raw(unt::RawFreq::A3, SAMPLE_RATE);
     let sgn = |freq| {
-        AdsrEnvelope::new(
+        eff::env::AdsrEnv::new(
             gen::Loop::<smp::Stereo, _>::new(Tri, freq),
-            Adsr::new(
+            eff::env::Adsr::new(
                 unt::Time::from_sec(4.0, SAMPLE_RATE),
                 unt::Time::from_sec(6.0, SAMPLE_RATE),
                 unt::Vol::new(0.25),

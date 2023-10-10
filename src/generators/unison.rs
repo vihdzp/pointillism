@@ -313,7 +313,7 @@ where
 /// means an octave detuning.
 ///
 /// The curves within the [`UnisonCurve`] struct are indexed from highest to lowest pitched.
-pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
+pub type DetuneCurveSgn<C, E> = eff::MutSgn<UnisonCurve<C>, E, Detune>;
 
 /// Detunes various copies of a curve according to an envelope.
 ///
@@ -321,7 +321,7 @@ pub type DetuneCurveSgn<C, E> = MutSgn<UnisonCurve<C>, E, Detune>;
 /// means an octave detuning.
 ///
 /// The curves within the [`Unison`] struct are indexed from highest to lowest pitched.
-pub type DetuneSgn<S, C, E> = MutSgn<Unison<S, C>, E, Detune>;
+pub type DetuneSgn<S, C, E> = eff::MutSgn<Unison<S, C>, E, Detune>;
 
 impl<C: map::Map<Input = unt::Val>, E: SignalMut<Sample = smp::Env>> DetuneCurveSgn<C, E>
 where

@@ -16,9 +16,9 @@ fn main() {
     };
 
     // Play a C major chord.
-    let chord = Volume::new(
-        Mix::new(
-            Mix::new(saw(unt::RawFreq::C4), saw(unt::RawFreq::E4)),
+    let chord = eff::Volume::new(
+        eff::mix::Mix::new(
+            eff::mix::Mix::new(saw(unt::RawFreq::C4), saw(unt::RawFreq::E4)),
             saw(unt::RawFreq::G4),
         ),
         unt::Vol::MDB10,
@@ -27,16 +27,16 @@ fn main() {
     // Low-pass filter the chord.
     //
     // The zero coefficients are dummy values that get replaced by the envelope.
-    let filter = Filtered::new(chord, Biquad::zero());
+    let filter = eff::flt::Filtered::new(chord, eff::flt::Biquad::zero());
 
     // An envelope that closes the filter.
-    let env = MutSgn::new(
+    let env = eff::MutSgn::new(
         filter,
         gen::Once::new(PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
-        map::Func::new(|filter: &mut Filtered<_, 3, 2>, env: smp::Env| {
+        map::Func::new(|filter: &mut eff::flt::Filtered<_, 3, 2>, env: smp::Env| {
             let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
             *filter.coefficients_mut() =
-                Biquad::low_pass(unt::Freq::from_hz(hz, SAMPLE_RATE), unt::QFactor(1.0));
+                eff::flt::Biquad::low_pass(unt::Freq::from_hz(hz, SAMPLE_RATE), unt::QFactor(1.0));
         }),
     );
 
@@ -45,7 +45,7 @@ fn main() {
     let mut env_loop = ctr::Loop::new(
         vec![note_time],
         env,
-        map::Func::new(|sgn: &mut MutSgn<_, _, _>| sgn.retrigger()),
+        map::Func::new(|sgn: &mut eff::MutSgn<_, _, _>| sgn.retrigger()),
     );
 
     pointillism::create_from_sgn(

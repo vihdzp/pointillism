@@ -22,11 +22,11 @@ fn main() {
 
     // Each oscillator is a function of frequency.
     let osc = |freq| {
-        AdsrEnvelope::new(
+        eff::env::AdsrEnv::new(
             // Sine wave with specified frequency.
             gen::Loop::<smp::Stereo, _>::new(Sin, freq),
             // ADSR envelope with long attack, long release.
-            Adsr::new(
+            eff::env::Adsr::new(
                 0.8 * note_len,
                 0.2 * note_len,
                 unt::Vol::new(0.8),
@@ -60,7 +60,7 @@ fn main() {
     );
 
     // This gives a really weird effect.
-    let mut dist = PwMapSgn::cubic(poly_loop);
+    let mut dist = eff::PwMapSgn::cubic(poly_loop);
     pointillism::create_from_sgn(
         "examples/distortion.wav",
         10u8 * note_len,
