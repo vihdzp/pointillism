@@ -3,7 +3,7 @@
 mod frac_int;
 mod raw;
 
-use super::SampleRate;
+use crate::prelude::*;
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 pub use frac_int::FracInt;
@@ -12,7 +12,7 @@ pub use raw::RawTime;
 /// A time, measured in **samples**.
 ///
 /// Note that in order to convert between a [`RawTime`] in seconds and this type, you must know the
-/// [`SampleRate`]. See [`Self::from_raw`].
+/// [`unt::SampleRate`]. See [`Self::from_raw`].
 ///
 /// ## Inner representation
 ///
@@ -78,38 +78,38 @@ impl Time {
 
     /// Converts [`RawTime`] into [`Time`], using the specified sample rate.
     #[must_use]
-    pub fn from_raw(raw: RawTime, sample_rate: SampleRate) -> Self {
+    pub fn from_raw(raw: RawTime, sample_rate: unt::SampleRate) -> Self {
         raw * sample_rate
     }
 
     /// Converts [`RawTime`] into [`Time`], using the default sample rate.
     #[must_use]
     pub fn from_raw_default(raw: RawTime) -> Self {
-        Self::from_raw(raw, SampleRate::default())
+        Self::from_raw(raw, unt::SampleRate::default())
     }
 
     /// Initializes a [`Time`] from the value in seconds, and a sample rate.
     #[must_use]
-    pub fn from_sec(seconds: f64, sample_rate: SampleRate) -> Self {
+    pub fn from_sec(seconds: f64, sample_rate: unt::SampleRate) -> Self {
         Self::from_raw(RawTime::new(seconds), sample_rate)
     }
 
     /// Initializes a [`Time`] from the value in seconds, using the default sample rate.
     #[must_use]
     pub fn from_sec_default(seconds: f64) -> Self {
-        Self::from_sec(seconds, SampleRate::default())
+        Self::from_sec(seconds, unt::SampleRate::default())
     }
 
     /// Converts [`Time`] into [`RawTime`], using the specified sample rate.
     #[must_use]
-    pub fn into_raw(self, sample_rate: SampleRate) -> RawTime {
+    pub fn into_raw(self, sample_rate: unt::SampleRate) -> RawTime {
         self / sample_rate
     }
 
     /// Converts [`Time`] into [`RawTime`], using the default sample rate.
     #[must_use]
     pub fn into_raw_default(self) -> RawTime {
-        self.into_raw(SampleRate::default())
+        self.into_raw(unt::SampleRate::default())
     }
 
     /// Advances the time by one sample.

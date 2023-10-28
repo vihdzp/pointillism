@@ -56,6 +56,8 @@ pub trait Ref: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item>
         self.as_ref().get(index).copied()
     }
 
+    // TODO: move these elsewhere?
+
     /// Returns the sample corresponding to peak amplitude on all channels.
     #[must_use]
     fn peak(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
@@ -166,7 +168,7 @@ pub struct SliceMut<'a, A: smp::Audio> {
 }
 
 /// A statically allocated, owned sample buffer.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Stc<A: smp::Audio, const N: usize> {
     /// The data stored by the buffer.
     pub data: [A; N],
@@ -191,6 +193,12 @@ impl<'a, A: smp::Audio> AsRef<[A]> for SliceMut<'a, A> {
     }
 }
 
+impl<A: smp::Audio, const N: usize> AsRef<[A]> for Stc<A, N> {
+    fn as_ref(&self) -> &[A] {
+        &self.data
+    }
+}
+
 impl<A: smp::Audio> AsRef<[A]> for Dyn<A> {
     fn as_ref(&self) -> &[A] {
         &self.data
@@ -200,6 +208,12 @@ impl<A: smp::Audio> AsRef<[A]> for Dyn<A> {
 impl<'a, A: smp::Audio> AsMut<[A]> for SliceMut<'a, A> {
     fn as_mut(&mut self) -> &mut [A] {
         self.data
+    }
+}
+
+impl<A: smp::Audio, const N: usize> AsMut<[A]> for Stc<A, N> {
+    fn as_mut(&mut self) -> &mut [A] {
+        &mut self.data
     }
 }
 
@@ -225,6 +239,14 @@ impl<'a, A: smp::Audio> Index<usize> for SliceMut<'a, A> {
     }
 }
 
+impl<A: smp::Audio, const N: usize> Index<usize> for Stc<A, N> {
+    type Output = A;
+
+    fn index(&self, index: usize) -> &A {
+        &self.as_ref()[index]
+    }
+}
+
 impl<A: smp::Audio> Index<usize> for Dyn<A> {
     type Output = A;
 
@@ -234,6 +256,12 @@ impl<A: smp::Audio> Index<usize> for Dyn<A> {
 }
 
 impl<'a, A: smp::Audio> IndexMut<usize> for SliceMut<'a, A> {
+    fn index_mut(&mut self, index: usize) -> &mut A {
+        &mut self.as_mut()[index]
+    }
+}
+
+impl<A: smp::Audio, const N: usize> IndexMut<usize> for Stc<A, N> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
@@ -253,12 +281,23 @@ impl<'a, A: smp::Audio> Ref for SliceMut<'a, A> {
     type Item = A;
 }
 
+impl<A: smp::Audio, const N: usize> Ref for Stc<A, N> {
+    type Item = A;
+}
+
 impl<A: smp::Audio> Ref for Dyn<A> {
     type Item = A;
 }
 
 impl<'a, A: smp::Audio> Mut for SliceMut<'a, A> {}
+impl<A: smp::Audio, const N: usize> Mut for Stc<A, N> {}
 impl<A: smp::Audio> Mut for Dyn<A> {}
+
+impl<A: smp::Audio, const N: usize> Default for Stc<A, N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<'a, A: smp::Audio> Slice<'a, A> {
     /// Initializes a new [`buf::Slice`].
@@ -289,7 +328,9 @@ impl<A: smp::Audio, const N: usize> Stc<A, N> {
     }
 
     /// Initializes the zero [`Stc`].
-    pub const fn zero() -> Self {
+    ///
+    /// Use [`Self::from_data`] to initialize this with pre-existing data.
+    pub const fn new() -> Self {
         Self::from_data([A::ZERO; N])
     }
 
@@ -306,12 +347,6 @@ impl<A: smp::Audio, const N: usize> Stc<A, N> {
     }
 }
 
-impl<A: smp::Audio, const N: usize> Default for Stc<A, N> {
-    fn default() -> Self {
-        Self::zero()
-    }
-}
-
 impl<A: smp::Audio> Dyn<A> {
     /// Initializes a new [`Dyn`] from data.
     #[must_use]
@@ -320,13 +355,10 @@ impl<A: smp::Audio> Dyn<A> {
     }
 
     /// Initializes an empty buffer with a given size. All samples are initialized to zero.
+    ///
+    /// Use [`Self::from_data`] to initialize this with pre-existing data.
     pub fn new(samples: usize) -> Self {
         Self::from_data(vec![A::ZERO; samples])
-    }
-
-    /// Initializes a buffer with zero initial capacity.
-    pub fn empty() -> Self {
-        Self::from_data(Vec::new())
     }
 
     /// Initializes an empty buffer with a given length, rounded down to the nearest sample. All
@@ -336,8 +368,13 @@ impl<A: smp::Audio> Dyn<A> {
     ///
     /// On a 32-bit machine, panics if the buffer is too large.
     #[must_use]
-    pub fn zero(time: unt::Time) -> Self {
+    pub fn new_time(time: unt::Time) -> Self {
         Self::new(time.samples.int().try_into().expect("buffer too large"))
+    }
+
+    /// Initializes a buffer with zero initial capacity.
+    pub const fn empty() -> Self {
+        Self::from_data(Vec::new())
     }
 
     /// Converts `self` into a [`buf::Slice`].

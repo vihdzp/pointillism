@@ -538,10 +538,50 @@ impl WavSample for f32 {
     }
 }
 
+impl Mono {
+    /// Initializes a new [`Mono`] sample.
+    ///
+    /// You can just use `Mono(x)` to the same effect.
+    pub const fn new(x: f64) -> Self {
+        Self(x)
+    }
+
+    /// A convenience function to create an array of [`Mono`] samples.
+    pub fn array<const N: usize>(array: [f64; N]) -> [Self; N] {
+        array.map_array(|&x| Self(x))
+    }
+}
+
+impl Env {
+    /// Initializes a new [`Env`] sample.
+    ///
+    /// You can just use `Env(x)` to the same effect.
+    pub const fn new(x: f64) -> Self {
+        Self(x)
+    }
+
+    /// A convenience function to create an array of [`Env`] samples.
+    pub fn array<const N: usize>(array: [f64; N]) -> [Self; N] {
+        array.map_array(|&x| Self(x))
+    }
+}
+
 impl Stereo {
+    /// Initializes a new [`Stereo`] sample.
+    ///
+    /// You can just use `Stereo(x, y)` to the same effect.
+    pub const fn new(x: f64, y: f64) -> Self {
+        Self(x, y)
+    }
+
+    /// A convenience function to create an array of [`Stereo`] samples.
+    pub fn array<const N: usize>(array: [(f64, f64); N]) -> [Self; N] {
+        array.map_array(|&(x, y)| Self(x, y))
+    }
+
     /// Flips the channels of a stereo sample.
     #[must_use]
-    pub fn flip(self) -> Self {
+    pub const fn flip(self) -> Self {
         Self(self.1, self.0)
     }
 }
@@ -566,8 +606,7 @@ mod test {
     /// for reading a stereo [`Buffer`](crate::curves::buffer::Buffer).
     #[test]
     fn transmute_test() {
-        let stereo: [Stereo; 2] =
-            unsafe { std::mem::transmute([Mono(1.0), Mono(2.0), Mono(3.0), Mono(4.0)]) };
-        assert_eq!(stereo, [Stereo(1.0, 2.0), Stereo(3.0, 4.0)]);
+        let stereo: [Stereo; 2] = unsafe { std::mem::transmute(Mono::array([1.0, 2.0, 3.0, 4.0])) };
+        assert_eq!(stereo, Stereo::array([(1.0, 2.0), (3.0, 4.0)]));
     }
 }

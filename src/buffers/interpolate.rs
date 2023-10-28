@@ -6,6 +6,7 @@
 //!
 //! Replace the buffers by more general ring buffers.
 
+use crate::buffers::ring::Ring;
 use crate::prelude::*;
 
 /// Linearly interpolates two samples `x0` and `x1`.
@@ -42,30 +43,16 @@ pub fn hermite<S: smp::Base>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
     ((c3 * t + c2) * t + c1) * t * 0.5 + x1
 }
 
-/// A trait for a buffer, which is used in order to apply some interpolation algorithm.
+/// A trait for a ring buffer, which is used in order to apply some interpolation algorithm.
 ///
 /// By interpolation, we mean a process of creating new [`Samples`](Sample) between two others. We
 /// refer to the first of these samples as the "current" sample, and the second as the "next"
 /// sample.
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
-///
-/// ## Implementing the trait
-///
-/// The current design doesn't really lend itself to generality, unless you want to implement more
-/// "experimental" interpolation methods that work with small buffers. As such, we don't recommend
-/// implementing this trait for custom types. See also the to-do section below.
-///
-/// ## Todo
-///
-/// Having a rolling window probably works well enough for the sample sizes we currently use. For
-/// anything larger, it might be more computationally efficient to make larger buffers. That way, we
-/// can write from the signal "in one go", instead of having to constantly read values and shift
-/// them.
-pub trait Interpolate: map::Map<Input = unt::Val, Output = Self::Sample> + Sized {
-    /// The type of sample stored in the buffer.
-    type Sample: smp::Sample;
-
+pub trait Interpolate:
+    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Ref>::Item> + buf::ring::Ring + Sized
+{
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
     /// The size of the buffer.
@@ -73,21 +60,45 @@ pub trait Interpolate: map::Map<Input = unt::Val, Output = Self::Sample> + Sized
     /// An empty buffer.
     const EMPTY: Self;
 
-    /// Loads a new sample into the buffer, phasing out the first one.
-    fn load(&mut self, sample: Self::Sample);
-
-    /// Loads `count` samples from a signal, phasing out the old ones.
-    fn load_many<S: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut S, count: usize);
-
     /// Initializes a buffer from a signal.
     ///
     /// This will advance the signal once for the current frame, and once for every
     /// [`Self::LOOK_AHEAD`] frame.
-    fn init<S: SignalMut<Sample = Self::Sample>>(sgn: &mut S) -> Self {
+    fn init<S: SignalMut<Sample = <Self::Buf as buf::Ref>::Item>>(sgn: &mut S) -> Self {
         let mut inter = Self::EMPTY;
-        inter.load_many(sgn, Self::LOOK_AHEAD as usize + 1);
+        inter.push_many(sgn, Self::LOOK_AHEAD as usize + 1);
         inter
     }
+}
+
+macro_rules! ring_boilerplate {
+    () => {
+        fn buffer(&self) -> &Self::Buf {
+            self.0.buffer()
+        }
+
+        fn buffer_mut(&mut self) -> &mut Self::Buf {
+            self.0.buffer_mut()
+        }
+
+        fn get(&self, index: usize) -> <Self::Buf as buf::Ref>::Item {
+            self.0.get(index)
+        }
+
+        fn push(&mut self, sample: A) {
+            self.0.push(sample)
+        }
+
+        fn push_many<T: SignalMut<Sample = A>>(&mut self, sgn: &mut T, count: usize) {
+            self.0.push_many(sgn, count)
+        }
+    };
+}
+
+const fn shift_from<A: smp::Audio, const N: usize>(
+    array: [A; N],
+) -> buf::ring::Shift<buf::Stc<A, N>> {
+    buf::ring::Shift::new(buf::Stc::from_data(array))
 }
 
 /// A buffer for drop-sample [interpolation](Interpolate).
@@ -95,43 +106,48 @@ pub trait Interpolate: map::Map<Input = unt::Val, Output = Self::Sample> + Sized
 /// Drop-sample interpolation simply consists on taking the previously read sample. This is terrible
 /// for audio fidelity, but can create some interesting bit-crush effects.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Drop<S: smp::Sample>(pub S);
+pub struct Drop<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 1>>);
 
-impl<S: smp::Sample> Drop<S> {
+impl<A: smp::Audio> Drop<A> {
     /// Initializes a new buffer for [`Drop`] interpolation.
-    pub const fn new(sample: S) -> Self {
-        Self(sample)
+    pub const fn new(sample: A) -> Self {
+        Self(shift_from([sample]))
+    }
+
+    /// The zero buffer.
+    pub const fn zero() -> Self {
+        Self::new(A::ZERO)
+    }
+
+    /// The backing array.
+    pub const fn array(&self) -> [A; 1] {
+        self.0.inner().data
+    }
+
+    /// The stored sample.
+    pub const fn sample(&self) -> A {
+        self.array()[0]
     }
 }
 
-impl<S: smp::Sample> map::Map for Drop<S> {
+impl<A: smp::Audio> map::Map for Drop<A> {
     type Input = unt::Val;
-    type Output = S;
+    type Output = A;
 
-    fn eval(&self, _: unt::Val) -> S {
-        self.0
+    fn eval(&self, _: unt::Val) -> A {
+        self.0.fst()
     }
 }
 
-impl<S: smp::Sample> Interpolate for Drop<S> {
-    type Sample = S;
+impl<A: smp::Audio> buf::ring::Ring for Drop<A> {
+    type Buf = buf::Stc<A, 1>;
+    ring_boilerplate!();
+}
 
+impl<A: smp::Audio> Interpolate for Drop<A> {
     const LOOK_AHEAD: u8 = 0;
     const SIZE: usize = 1;
-    const EMPTY: Self = Self::new(S::ZERO);
-
-    fn load(&mut self, sample: S) {
-        self.0 = sample;
-    }
-
-    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        if count > 0 {
-            for _ in 0..(count - 1) {
-                sgn.advance();
-            }
-            self.0 = sgn.next();
-        }
-    }
+    const EMPTY: Self = Self::zero();
 }
 
 /// A buffer for linear [interpolation](Interpolate).
@@ -139,95 +155,45 @@ impl<S: smp::Sample> Interpolate for Drop<S> {
 /// Linear interpolation consists of drawing a straight line between consecutive samples. Although
 /// better than [`Drop`] interpolation, both [`Cubic`] and [`Hermite`] interpolation will generally
 /// give "cleaner" results.
-pub struct Linear<S: smp::Sample> {
-    /// The current sample.
-    pub cur: S,
-    /// The next sample.
-    pub next: S,
-}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Linear<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 2>>);
 
-impl<S: smp::Sample> Linear<S> {
+impl<A: smp::Audio> Linear<A> {
     /// Initializes a new buffer for [`Linear`] interpolation.
-    pub const fn new(cur: S, next: S) -> Self {
-        Self { cur, next }
+    pub const fn new(cur: A, next: A) -> Self {
+        Self(shift_from([cur, next]))
+    }
+
+    /// The zero buffer.
+    pub const fn zero() -> Self {
+        Self::new(A::ZERO, A::ZERO)
+    }
+
+    /// The backing array.
+    pub const fn array(&self) -> [A; 2] {
+        self.0.inner().data
     }
 }
 
-impl<S: smp::Sample> map::Map for Linear<S> {
+impl<A: smp::Audio> map::Map for Linear<A> {
     type Input = unt::Val;
-    type Output = S;
+    type Output = A;
 
-    fn eval(&self, t: unt::Val) -> S {
-        linear(self.cur, self.next, t)
+    fn eval(&self, t: unt::Val) -> A {
+        let arr = self.array();
+        linear(arr[0], arr[1], t)
     }
 }
 
-impl<S: smp::Sample> Interpolate for Linear<S> {
-    type Sample = S;
+impl<A: smp::Audio> buf::ring::Ring for Linear<A> {
+    type Buf = buf::Stc<A, 2>;
+    ring_boilerplate!();
+}
 
+impl<A: smp::Audio> Interpolate for Linear<A> {
     const LOOK_AHEAD: u8 = 1;
     const SIZE: usize = 2;
-    const EMPTY: Self = Self::new(S::ZERO, S::ZERO);
-
-    fn load(&mut self, sample: S) {
-        self.cur = self.next;
-        self.next = sample;
-    }
-
-    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        match count {
-            0 => {}
-            1 => self.load(sgn.next()),
-            count => {
-                for _ in 0..(count - 2) {
-                    sgn.advance();
-                }
-                self.cur = sgn.next();
-                self.next = sgn.next();
-            }
-        }
-    }
-}
-
-/// An implementation of the `load` method for buffers of arbitrary size.
-///
-/// We currently only use this for `N = 4`.
-fn load_gen<S: Copy, const N: usize>(buf: &mut [S; N], sample: S) {
-    for i in 0..(N - 1) {
-        buf[i] = buf[i + 1];
-    }
-    buf[N - 1] = sample;
-}
-
-/// An implementation of the `load_many` method for buffers of size 4.
-fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usize) {
-    match count {
-        0 => {}
-        1 => load_gen(buf, sgn.next()),
-
-        // The hope here is that the compiler can optimize away redundant writes.
-        2 => {
-            for _ in 0..2 {
-                load_gen(buf, sgn.next());
-            }
-        }
-        3 => {
-            for _ in 0..3 {
-                load_gen(buf, sgn.next());
-            }
-        }
-
-        count => {
-            for _ in 0..(count - 4) {
-                sgn.advance();
-            }
-
-            // `as_mut` is not needed, but stops `rust-analyzer` from (erroneously) complaining.
-            for i in 0..4 {
-                buf.as_mut()[i] = sgn.next();
-            }
-        }
-    }
+    const EMPTY: Self = Self::zero();
 }
 
 /// A buffer for cubic [interpolation](Interpolate).
@@ -235,38 +201,44 @@ fn load_many_gen<S: SignalMut>(buf: &mut [S::Sample; 4], sgn: &mut S, count: usi
 /// Cubic interpolation uses the cubic [Lagrange
 /// polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous, current, next,
 /// and next next samples. This will often yield good results, along with [`Hermite`] interpolation.
-pub struct Cubic<S: smp::Sample>(pub [S; 4]);
+pub struct Cubic<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
 
-impl<S: smp::Sample> Cubic<S> {
+impl<A: smp::Audio> Cubic<A> {
     /// Initializes a new buffer for [`Cubic`] interpolation.
-    pub const fn new(x0: S, x1: S, x2: S, x3: S) -> Self {
-        Self([x0, x1, x2, x3])
+    pub const fn new(x0: A, x1: A, x2: A, x3: A) -> Self {
+        Self(shift_from([x0, x1, x2, x3]))
+    }
+
+    /// The zero buffer.
+    pub const fn zero() -> Self {
+        Self::new(A::ZERO, A::ZERO, A::ZERO, A::ZERO)
+    }
+
+    /// The backing array.
+    pub const fn array(&self) -> [A; 4] {
+        self.0.inner().data
     }
 }
 
-impl<S: smp::Sample> map::Map for Cubic<S> {
+impl<A: smp::Audio> map::Map for Cubic<A> {
     type Input = unt::Val;
-    type Output = S;
+    type Output = A;
 
-    fn eval(&self, t: unt::Val) -> S {
-        cubic(self.0[0], self.0[1], self.0[2], self.0[3], t)
+    fn eval(&self, t: unt::Val) -> A {
+        let arr = self.array();
+        cubic(arr[0], arr[1], arr[2], arr[3], t)
     }
 }
 
-impl<S: smp::Sample> Interpolate for Cubic<S> {
-    type Sample = S;
+impl<A: smp::Audio> buf::ring::Ring for Cubic<A> {
+    type Buf = buf::Stc<A, 4>;
+    ring_boilerplate!();
+}
 
+impl<A: smp::Audio> Interpolate for Cubic<A> {
     const LOOK_AHEAD: u8 = 2;
     const SIZE: usize = 4;
-    const EMPTY: Self = Self([S::ZERO; 4]);
-
-    fn load(&mut self, sample: S) {
-        load_gen(&mut self.0, sample);
-    }
-
-    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        load_many_gen(&mut self.0, sgn, count);
-    }
+    const EMPTY: Self = Self::zero();
 }
 
 /// A buffer for (cubic) Hermite [interpolation](Interpolate).
@@ -275,42 +247,51 @@ impl<S: smp::Sample> Interpolate for Cubic<S> {
 /// spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the cubic Hermite
 /// spline) for interpolation. This will often yield good results, along with [`Cubic`]
 /// interpolation.
-pub struct Hermite<S: smp::Sample>(pub [S; 4]);
+pub struct Hermite<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
 
-impl<S: smp::Sample> Hermite<S> {
+impl<A: smp::Audio> Hermite<A> {
     /// Initializes a new buffer for [`Hermite`] interpolation.
-    pub const fn new(x0: S, x1: S, x2: S, x3: S) -> Self {
-        Self([x0, x1, x2, x3])
+    pub const fn new(x0: A, x1: A, x2: A, x3: A) -> Self {
+        Self(shift_from([x0, x1, x2, x3]))
+    }
+
+    /// The zero buffer.
+    pub const fn zero() -> Self {
+        Self::new(A::ZERO, A::ZERO, A::ZERO, A::ZERO)
+    }
+
+    /// The backing array.
+    pub const fn array(&self) -> [A; 4] {
+        self.0.inner().data
     }
 }
 
-impl<S: smp::Sample> map::Map for Hermite<S> {
+impl<A: smp::Audio> map::Map for Hermite<A> {
     type Input = unt::Val;
-    type Output = S;
+    type Output = A;
 
-    fn eval(&self, t: unt::Val) -> S {
-        hermite(self.0[0], self.0[1], self.0[2], self.0[3], t)
+    fn eval(&self, t: unt::Val) -> A {
+        let arr = self.array();
+        hermite(arr[0], arr[1], arr[2], arr[3], t)
     }
 }
 
-impl<S: smp::Sample> Interpolate for Hermite<S> {
-    type Sample = S;
+impl<A: smp::Audio> buf::ring::Ring for Hermite<A> {
+    type Buf = buf::Stc<A, 4>;
+    ring_boilerplate!();
+}
 
+impl<A: smp::Audio> Interpolate for Hermite<A> {
     const LOOK_AHEAD: u8 = 2;
     const SIZE: usize = 4;
-    const EMPTY: Self = Self([S::ZERO; 4]);
-
-    fn load(&mut self, sample: S) {
-        load_gen(&mut self.0, sample);
-    }
-
-    fn load_many<T: SignalMut<Sample = Self::Sample>>(&mut self, sgn: &mut T, count: usize) {
-        load_many_gen(&mut self.0, sgn, count);
-    }
+    const EMPTY: Self = Self::zero();
 }
 
 /// Samples a [`SignalMut`] and time-stretches it. Both pitch and speed will be modified.
-pub struct Stretch<S: SignalMut, I: Interpolate<Sample = S::Sample>> {
+pub struct Stretch<S: SignalMut, I: Interpolate>
+where
+    I::Buf: buf::Mut<Item = S::Sample>,
+{
     /// The signal being sampled.
     sgn: S,
 
@@ -326,7 +307,10 @@ pub struct Stretch<S: SignalMut, I: Interpolate<Sample = S::Sample>> {
     val: unt::Val,
 }
 
-impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
+impl<S: SignalMut, I: Interpolate> Stretch<S, I>
+where
+    I::Buf: buf::Mut<Item = S::Sample>,
+{
     /// Initializes a new [`Stretch`].
     ///
     /// If you call this function, you'll have to write down the interpolation mode explicitly.
@@ -371,7 +355,10 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Stretch<S, I> {
 /// A [`Stretch`] using [`Drop`] interpolation.
 pub type DropStretch<S> = Stretch<S, Drop<<S as Signal>::Sample>>;
 
-impl<S: SignalMut> DropStretch<S> {
+impl<S: SignalMut> DropStretch<S>
+where
+    S::Sample: smp::Audio,
+{
     /// Initializes a new [`DropStretch`].
     pub fn new_drop(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -381,7 +368,10 @@ impl<S: SignalMut> DropStretch<S> {
 /// A [`Stretch`] using [`Linear`] interpolation.
 pub type LinearStretch<S> = Stretch<S, Linear<<S as Signal>::Sample>>;
 
-impl<S: SignalMut> LinearStretch<S> {
+impl<S: SignalMut> LinearStretch<S>
+where
+    S::Sample: smp::Audio,
+{
     /// Initializes a new [`LinearStretch`].
     pub fn new_linear(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -391,7 +381,10 @@ impl<S: SignalMut> LinearStretch<S> {
 /// A [`Stretch`] using [`Cubic`] interpolation.
 pub type CubicStretch<S> = Stretch<S, Cubic<<S as Signal>::Sample>>;
 
-impl<S: SignalMut> CubicStretch<S> {
+impl<S: SignalMut> CubicStretch<S>
+where
+    S::Sample: smp::Audio,
+{
     /// Initializes a new [`CubicStretch`].
     pub fn new_cubic(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
@@ -401,14 +394,20 @@ impl<S: SignalMut> CubicStretch<S> {
 /// A [`Stretch`] using [`Hermite`] interpolation.
 pub type HermiteStretch<S> = Stretch<S, Hermite<<S as Signal>::Sample>>;
 
-impl<S: SignalMut> HermiteStretch<S> {
+impl<S: SignalMut> HermiteStretch<S>
+where
+    S::Sample: smp::Audio,
+{
     /// Initializes a new [`HermiteStretch`].
     pub fn new_hermite(sgn: S, factor: f64) -> Self {
         Self::new(sgn, factor)
     }
 }
 
-impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> {
+impl<S: SignalMut, I: Interpolate> Signal for Stretch<S, I>
+where
+    I::Buf: buf::Mut<Item = S::Sample>,
+{
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -416,7 +415,10 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> Signal for Stretch<S, I> 
     }
 }
 
-impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, I> {
+impl<S: SignalMut, I: Interpolate> SignalMut for Stretch<S, I>
+where
+    I::Buf: buf::Mut<Item = S::Sample>,
+{
     fn advance(&mut self) {
         // The next position to read.
         let pos = self.val.inner() + self.factor;
@@ -427,7 +429,7 @@ impl<S: SignalMut, I: Interpolate<Sample = S::Sample>> SignalMut for Stretch<S, 
         let count = pos.floor() as usize;
         let val = unt::Val::fract(pos);
 
-        self.inter.load_many(&mut self.sgn, count);
+        self.inter.push_many(&mut self.sgn, count);
         self.val = val;
     }
 
