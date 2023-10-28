@@ -202,9 +202,10 @@ mod test {
     use super::*;
 
     #[test]
+    /// Tests shift buffers.
     fn shift() {
         let mut shift = Shift::new(buf::Stc::from_data(smp::Mono::array([1.0, 2.0, 3.0])));
         shift.push(smp::Mono::new(4.0));
-        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([4.0, 1.0, 2.0]))
+        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([4.0, 1.0, 2.0]));
     }
 }
