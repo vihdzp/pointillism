@@ -83,7 +83,7 @@ pub struct Env(pub f64);
 /// This trait exists mostly for convenient, general implementations of methods such as
 /// [`linear_inter`](crate::curves::interpolate::linear), which make sense both for samples and for
 /// floating point values.
-pub trait Base:
+pub trait SampleBase:
     Copy
     + Default
     + Debug
@@ -102,7 +102,7 @@ pub trait Base:
     const ZERO: Self;
 }
 
-impl Base for f64 {
+impl SampleBase for f64 {
     const ZERO: Self = 0.0;
 }
 
@@ -243,7 +243,7 @@ pub unsafe trait Array:
 ///
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
 /// envelopes such as in an LFO.
-pub trait Sample: Base + Array<Item = f64> {
+pub trait Sample: SampleBase + Array<Item = f64> {
     /// The size as a `u8`.
     #[must_use]
     fn size_u8() -> u8 {
@@ -339,7 +339,7 @@ pub trait Audio: Sample {
     }
 }
 
-impl Base for Mono {
+impl SampleBase for Mono {
     const ZERO: Self = Self(0.0);
 }
 
@@ -366,7 +366,7 @@ unsafe impl Array for Mono {
 impl Sample for Mono {}
 impl Audio for Mono {}
 
-impl Base for Stereo {
+impl SampleBase for Stereo {
     const ZERO: Self = Self(0.0, 0.0);
 }
 
@@ -393,7 +393,7 @@ unsafe impl Array for Stereo {
 impl Sample for Stereo {}
 impl Audio for Stereo {}
 
-impl Base for Env {
+impl SampleBase for Env {
     const ZERO: Self = Self(0.0);
 }
 

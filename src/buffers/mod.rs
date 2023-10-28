@@ -86,7 +86,6 @@ pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::It
     fn rms(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
         /// Prevent code duplication.
         fn rms<A: smp::Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
-            use smp::Array;
             let mut res: <A as Array>::Array<f64> = Array::new_default();
 
             for sample in buf {
@@ -152,7 +151,7 @@ pub trait BufferMut:
 
     /// Clears a buffer, without changing its length.
     fn clear(&mut self) {
-        self.overwrite(|_| smp::Base::ZERO);
+        self.overwrite(|_| smp::SampleBase::ZERO);
     }
 }
 

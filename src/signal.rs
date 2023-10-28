@@ -5,7 +5,7 @@
 //! The following example is a simplified implementation of [`NoiseGen`](crate::prelude::NoiseGen).
 //!
 //! ```
-//! # use pointillism::prelude::*;
+//! # use pointillism::{prelude::*, traits::*};
 //! /// A signal that produces random envelope data.
 //! struct NoiseGen {
 //!     /// The current random value.
@@ -25,12 +25,12 @@
 //! impl SignalMut for NoiseGen {
 //!     // Updates the current value.
 //!     fn advance(&mut self) {
-//!         self.current = Env::rand();
+//!         self.current = smp::Env::rand();
 //!     }
 //!     
 //!     // Retriggering a random signal amounts to choosing a new random value.
 //!     fn retrigger(&mut self) {         
-//!         self.current = Env::rand();
+//!         self.current = smp::Env::rand();
 //!     }
 //! }
 //! ```

@@ -353,22 +353,22 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// ```
 /// # use pointillism::prelude::*;
 /// // Basic parameters.
-/// const SAMPLE_RATE: SampleRate = SampleRate::CD;
-/// const NOTE_TIME: RawTime = RawTime::new(3.0 / 32.0);
-/// const LENGTH: RawTime = RawTime::new(3.0);
+/// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
+/// const NOTE_TIME: unt::RawTime = unt::RawTime::new(3.0 / 32.0);
+/// const LENGTH: unt::RawTime = unt::RawTime::new(3.0);
 ///
-/// let note_time = Time::from_raw(NOTE_TIME, SAMPLE_RATE);
-/// let length = Time::from_raw(LENGTH, SAMPLE_RATE);
+/// let note_time = unt::Time::from_raw(NOTE_TIME, SAMPLE_RATE);
+/// let length = unt::Time::from_raw(LENGTH, SAMPLE_RATE);
 ///
 /// // The notes played in the arpeggio.
-/// let notes = [RawFreq::C4, RawFreq::E4, RawFreq::G4, RawFreq::A4]
-///     .map(|raw| Freq::from_raw(raw, SAMPLE_RATE))
+/// let notes = [unt::RawFreq::C4, unt::RawFreq::E4, unt::RawFreq::G4, unt::RawFreq::A4]
+///     .map(|raw| unt::Freq::from_raw(raw, SAMPLE_RATE))
 ///     .to_vec();
 ///
 /// // Initializes the arpeggio.
 /// let mut arp = Arpeggio::new_arp(
 ///     vec![note_time],
-///     gen::Loop::<Mono, _>::new(Tri, Freq::ZERO),
+///     gen::Loop::<Mono, _>::new(Tri, unt::Freq::ZERO),
 ///     notes,
 /// );
 ///
@@ -379,7 +379,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// pointillism::create("examples/arpeggio.wav", 2u8 * length, SAMPLE_RATE, |time| {
 ///     // We switch up the arpeggio after the first phrase.
 ///     if timer.tick(time) {
-///         arp.notes_mut()[2] = Freq::from_raw(RawFreq::F4, SAMPLE_RATE);
+///         arp.notes_mut()[2] = unt::Freq::from_raw(unt::RawFreq::F4, SAMPLE_RATE);
 ///     }
 ///
 ///     arp.next()

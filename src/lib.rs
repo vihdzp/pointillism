@@ -147,5 +147,6 @@ pub mod prelude {
 pub mod traits {
     pub use crate::buf::{ring::Ring, Buffer, BufferMut};
     pub use crate::map::{Map, Mut};
+    pub use crate::sample::{Array, Sample, SampleBase};
     pub use crate::signal::*;
 }

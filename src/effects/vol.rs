@@ -398,7 +398,7 @@ impl<S: Signal, E: Signal<Sample = smp::Env>> Signal for Gate<S, E> {
         if self.env.get().0 >= self.threshold {
             self.sgn.get()
         } else {
-            smp::Base::ZERO
+            S::Sample::ZERO
         }
     }
 }

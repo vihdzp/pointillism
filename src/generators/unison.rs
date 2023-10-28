@@ -370,13 +370,13 @@ impl<
 /// const SCALE: f64 = 1.0 / NUM as f64;
 ///
 /// /// Length of the detuning envelope.
-/// const LEN: RawTime = RawTime::new(5.0);
-/// let len = Time::from_raw_default(LEN);
+/// const LEN: unt::RawTime = unt::RawTime::new(5.0);
+/// let len = unt::Time::from_raw_default(LEN);
 ///
 /// // Plays a number of notes, and detunes them up to an octave.
 /// let mut unison = DetuneSgn::<Mono, _, _>::new_detune(
-///     Saw,
-///     Freq::from_raw_default(RawFreq::A3),
+///     crv::Saw,
+///     unt::Freq::from_raw_default(unt::RawFreq::A3),
 ///     NUM,
 ///     gen::Once::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), len),
 /// );
@@ -384,13 +384,13 @@ impl<
 /// // If you play a large amount of curves and remove this, you'll get some wacky interference.
 /// unison.sgn_mut().randomize_phases();
 ///
-/// pointillism::create("examples/detune.wav", 2u8 * len, SampleRate::default(), |_| {
+/// pointillism::create("examples/detune.wav", 2u8 * len, unt::SampleRate::default(), |_| {
 ///     // We pan every curve according to how much its detuned.
 ///     let sgn: Stereo = (0..NUM)
 ///         .into_iter()
 ///         .map(|i| {
-///             MixedPanner::new_pan(
-///                 UnisonRef::new(unison.base(), i),
+///             eff::pan::MixedPanner::new_pan(
+///                 gen::UnisonRef::new(unison.base(), i),
 ///                 i as f64 / (NUM - 1) as f64,
 ///             )
 ///             .get()
