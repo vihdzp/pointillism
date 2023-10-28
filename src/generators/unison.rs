@@ -363,7 +363,7 @@ impl<
 /// In this example, we progressively detune some saw waves, and then pan them left to right.
 ///
 /// ```
-/// use pointillism::prelude::*;
+/// use pointillism::{prelude::*, traits::*};
 ///
 /// /// The number of waves playing.
 /// const NUM: u8 = 7;
@@ -374,11 +374,11 @@ impl<
 /// let len = unt::Time::from_raw_default(LEN);
 ///
 /// // Plays a number of notes, and detunes them up to an octave.
-/// let mut unison = DetuneSgn::<Mono, _, _>::new_detune(
+/// let mut unison = gen::uni::DetuneSgn::<smp::Mono, _, _>::new_detune(
 ///     crv::Saw,
 ///     unt::Freq::from_raw_default(unt::RawFreq::A3),
 ///     NUM,
-///     gen::Once::new(Comp::new(Saw, Linear::rescale_sgn(0.0, SCALE)), len),
+///     gen::Once::new(map::Comp::new(crv::Saw, map::Linear::rescale_sgn(0.0, SCALE)), len),
 /// );
 ///
 /// // If you play a large amount of curves and remove this, you'll get some wacky interference.
@@ -386,11 +386,11 @@ impl<
 ///
 /// pointillism::create("examples/detune.wav", 2u8 * len, unt::SampleRate::default(), |_| {
 ///     // We pan every curve according to how much its detuned.
-///     let sgn: Stereo = (0..NUM)
+///     let sgn: smp::Stereo = (0..NUM)
 ///         .into_iter()
 ///         .map(|i| {
 ///             eff::pan::MixedPanner::new_pan(
-///                 gen::UnisonRef::new(unison.base(), i),
+///                 gen::uni::UnisonRef::new(unison.base(), i),
 ///                 i as f64 / (NUM - 1) as f64,
 ///             )
 ///             .get()

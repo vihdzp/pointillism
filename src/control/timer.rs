@@ -16,7 +16,7 @@ use crate::prelude::*;
 /// ```
 /// # use pointillism::prelude::*;
 /// // The global song time.
-/// let mut time = unt::Time::new();
+/// let mut time = unt::Time::ZERO;
 /// // Our timer.
 /// let mut timer = ctr::Timer::new(unt::Time::from_samples(10));
 ///
@@ -91,7 +91,7 @@ impl From<unt::Time> for Timer {
 /// ```
 /// # use pointillism::prelude::*;
 /// // The global song time.
-/// let mut time = unt::Time::new();
+/// let mut time = unt::Time::ZERO;
 /// // Our metronome.
 /// let mut metr = ctr::Metronome::new(unt::Time::from_samples(10));
 ///

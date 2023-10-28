@@ -9,7 +9,7 @@
 //! We load "Twinkle Twinkle Little Star" as a melody, and play it on a simple synth.
 //!
 //! ```
-//! # use pointillism::prelude::*;
+//! # use pointillism::{prelude::*, traits::*};
 //! // Project sample rate.
 //! const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 //!
@@ -22,38 +22,38 @@
 //!
 //! // The notes that make up the melody.
 //! let notes = [
-//!     ctr::mel::Note::new(Time::ZERO, q, unt::RawFreq::C3),     // Twin-
-//!     ctr::mel::Note::new(q, q, unt::RawFreq::C3),              // kle
-//!     ctr::mel::Note::new(2u8 * q, q, unt::RawFreq::G3),        // Twin-
-//!     ctr::mel::Note::new(3u8 * q, q, unt::RawFreq::G3),        // kle
-//!     ctr::mel::Note::new(4u8 * q, q, unt::RawFreq::A3),        // Li-
-//!     ctr::mel::Note::new(5u8 * q, q, unt::RawFreq::A3),        // ttle
-//!     ctr::mel::Note::new(6u8 * q, 2u8 * q, unt::RawFreq::G3),  // star,
-//!     ctr::mel::Note::new(8u8 * q, q, unt::RawFreq::F3),        // How
-//!     ctr::mel::Note::new(9u8 * q, q, unt::RawFreq::F3),        // I
-//!     ctr::mel::Note::new(10u8 * q, q, unt::RawFreq::E3),       // won-
-//!     ctr::mel::Note::new(11u8 * q, q, unt::RawFreq::E3),       // der
-//!     ctr::mel::Note::new(12u8 * q, q, unt::RawFreq::D3),       // what
-//!     ctr::mel::Note::new(13u8 * q, q, unt::RawFreq::D3),       // you
-//!     ctr::mel::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::C3), // are!
+//!     ctr::mel::Note::new(unt::Time::ZERO, q, unt::RawFreq::C3), // Twin-
+//!     ctr::mel::Note::new(q, q, unt::RawFreq::C3),               // kle
+//!     ctr::mel::Note::new(2u8 * q, q, unt::RawFreq::G3),         // Twin-
+//!     ctr::mel::Note::new(3u8 * q, q, unt::RawFreq::G3),         // kle
+//!     ctr::mel::Note::new(4u8 * q, q, unt::RawFreq::A3),         // Li-
+//!     ctr::mel::Note::new(5u8 * q, q, unt::RawFreq::A3),         // ttle
+//!     ctr::mel::Note::new(6u8 * q, 2u8 * q, unt::RawFreq::G3),   // star,
+//!     ctr::mel::Note::new(8u8 * q, q, unt::RawFreq::F3),         // How
+//!     ctr::mel::Note::new(9u8 * q, q, unt::RawFreq::F3),         // I
+//!     ctr::mel::Note::new(10u8 * q, q, unt::RawFreq::E3),        // won-
+//!     ctr::mel::Note::new(11u8 * q, q, unt::RawFreq::E3),        // der
+//!     ctr::mel::Note::new(12u8 * q, q, unt::RawFreq::D3),        // what
+//!     ctr::mel::Note::new(13u8 * q, q, unt::RawFreq::D3),        // you
+//!     ctr::mel::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::C3),  // are!
 //!     ctr::mel::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::G3),
 //! ]
 //! .map(|note| note.map_data(|raw| unt::Freq::from_raw(raw, SAMPLE_RATE)));
 //!
 //! // Each note is a triangle wave, with a simple ADSR envelope, playing the corresponding note.
-//! let func = |freq: Freq| {
-//!     AdsrEnv::new_adsr(
-//!         gen::Loop::<Mono, _>::new(Tri, freq),
-//!         unt::Time::from_sec(0.1, SAMPLE_RATE),
+//! let func = |freq: unt::Freq| {
+//!     eff::env::AdsrEnv::new_adsr(
+//!         gen::Loop::<smp::Mono, _>::new(crv::Tri, freq),
+//!         eff::env::Adsr::new(unt::Time::from_sec(0.1, SAMPLE_RATE),
 //!         q,
 //!         unt::Vol::new(0.2),
 //!         release,
-//!     )
+//!     )) // TODO: FIX INDENTING HERE
 //! };
 //!
-//! let melody = Melody::piano_roll(notes, |idx| idx as u8);
-//! let mut melody_loop = MelodyLoop::new_melody(melody, Func::new(func));
-//! let mut timer = Timer::new(2u8 * length);
+//! let melody = ctr::mel::Melody::piano_roll(notes, |idx| idx as u8);
+//! let mut melody_loop = ctr::mel::MelodyLoop::new_melody(melody, map::Func::new(func));
+//! let mut timer = ctr::Timer::new(2u8 * length);
 //!
 //! // We play the melody twice.
 //! pointillism::create(
@@ -66,13 +66,14 @@
 //!             melody_loop.sgn_mut().stop_all();
 //!         }
 //!
-//!         0.5 * if time < 2u8 * length {
+//!         let smp = if time < 2u8 * length {
 //!             // Play as usual.
 //!             melody_loop.next()
 //!         } else {
 //!             // Stop the loop, just play the inner fading signal instead.
 //!             melody_loop.sgn_mut().next()
-//!         }
+//!         };
+//!         smp * 0.5 // TODO: get multiplication on the LHS working
 //!     },
 //! )
 //! .expect("IO error!");

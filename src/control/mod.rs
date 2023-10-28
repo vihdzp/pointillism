@@ -5,5 +5,5 @@ mod seq_loop;
 mod timer;
 
 pub use melody as mel;
-pub use seq_loop::{Loop, Seq};
+pub use seq_loop::{Loop, Seq,Arpeggio};
 pub use timer::{Metronome, Timer};

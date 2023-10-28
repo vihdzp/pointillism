@@ -150,19 +150,19 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// This creates a weird pulsing effect.
 ///
 /// ```
-/// # use pointillism::prelude::*;
+/// # use pointillism::{prelude::*, traits::*};
 /// // The original signals.
-/// let mut signal = gen::Loop::new(Saw, Freq::from_raw_default(RawFreq::A3));
-/// let mut trem_env = gen::LoopCurve::new(PosSaw, Freq::from_hz_default(1.5));
+/// let mut signal = gen::Loop::new(crv::Saw, unt::Freq::from_raw_default(unt::RawFreq::A3));
+/// let mut trem_env = gen::LoopCurve::new(crv::PosSaw, unt::Freq::from_hz_default(1.5));
 ///
 /// pointillism::create(
 ///     "examples/routing.wav",
-///     Time::from_sec_default(5.0), SampleRate::default(),
+///     unt::Time::from_sec_default(5.0), unt::SampleRate::default(),
 ///     |_| {
 ///         // Thanks to `Ref`, we're able to re-use these signals.
-///         let sgn1 = PwMapSgn::inf_clip(Ref::new(&signal));
-///         let sgn2 = Tremolo::new(Ref::new(&signal), Ref::new(&trem_env));
-///         let stereo = StereoMix::new(sgn1, sgn2);
+///         let sgn1 = eff::PwMapSgn::inf_clip(eff::mix::Ref::new(&signal));
+///         let sgn2 = eff::Tremolo::new(eff::mix::Ref::new(&signal), eff::mix::Ref::new(&trem_env));
+///         let stereo = eff::mix::Stereo::new(sgn1, sgn2);
 ///
 ///         // However, we must manually advance them.
 ///         let res = stereo.get();

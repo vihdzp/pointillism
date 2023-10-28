@@ -16,15 +16,15 @@
 //! We load a buffer from a file, and read it back slower.
 //!
 //! ```
-//! # use pointillism::prelude::*;
+//! # use pointillism::{prelude::*, traits::*};
 //! const FILENAME: &str = "examples/buffer.wav";
 //!
 //! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
 //! pointillism::create_from_sgn(
 //!     FILENAME,
-//!     Time::from_raw_default(RawTime::SEC),
-//!     SampleRate::default(),
-//!     &mut gen::Loop::<Mono, Sin>::default(),
+//!     unt::Time::from_raw_default(unt::RawTime::SEC),
+//!     unt::SampleRate::default(),
+//!     &mut gen::Loop::<smp::Mono, crv::Sin>::default(),
 //! )
 //! .expect("IO error!");
 //!
@@ -32,12 +32,12 @@
 //! //
 //! // This lowers the pitch, and may introduce some artifacts depending on the interpolation method.
 //! const FACTOR: f64 = 3.0;
-//! let buf_sgn = gen::OnceBuf::new(Buffer::<Mono>::from_wav(FILENAME).unwrap());
+//! let buf_sgn = gen::OnceBuf::new(buf::Dyn::<smp::Mono>::from_wav(FILENAME).unwrap());
 //! let time = buf_sgn.buffer.time();
 //!
 //! // We can change the interpolation method here.
-//! let mut sgn = Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-//! pointillism::create_from_sgn(FILENAME, time * FACTOR, SampleRate::default(), &mut sgn).unwrap();
+//! let mut sgn = buf::int::Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
+//! pointillism::create_from_sgn(FILENAME, time * FACTOR, unt::SampleRate::default(), &mut sgn).unwrap();
 //! ```
 
 use crate::{prelude::*, sample::WavSample};

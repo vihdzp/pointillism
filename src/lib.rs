@@ -139,7 +139,7 @@ pub mod prelude {
 
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, gen::poly as ply,
-        generators as gen, map, sample as smp, units as unt,
+        generators as gen, map, sample as smp, units as unt
     };
 }
 

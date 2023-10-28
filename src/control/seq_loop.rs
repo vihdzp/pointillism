@@ -351,7 +351,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// We create a single arpeggio which plays two chords.
 ///
 /// ```
-/// # use pointillism::prelude::*;
+/// # use pointillism::{prelude::*, traits::*};
 /// // Basic parameters.
 /// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 /// const NOTE_TIME: unt::RawTime = unt::RawTime::new(3.0 / 32.0);
@@ -366,16 +366,16 @@ impl<S: Frequency> map::Mut<S> for Arp {
 ///     .to_vec();
 ///
 /// // Initializes the arpeggio.
-/// let mut arp = Arpeggio::new_arp(
+/// let mut arp = ctr::Arpeggio::new_arp(
 ///     vec![note_time],
-///     gen::Loop::<Mono, _>::new(Tri, unt::Freq::ZERO),
+///     gen::Loop::<smp::Mono, _>::new(crv::Tri, unt::Freq::ZERO),
 ///     notes,
 /// );
 ///
 /// // Zero is a dummy value that gets replaced here.
 /// arp.skip();
 ///
-/// let mut timer = Timer::new(length);
+/// let mut timer = ctr::Timer::new(length);
 /// pointillism::create("examples/arpeggio.wav", 2u8 * length, SAMPLE_RATE, |time| {
 ///     // We switch up the arpeggio after the first phrase.
 ///     if timer.tick(time) {
