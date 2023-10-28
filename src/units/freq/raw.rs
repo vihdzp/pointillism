@@ -34,7 +34,7 @@ pub struct RawFreq {
 ///
 /// ```
 /// # use pointillism::prelude::*;
-/// let osc = gen::Loop::<Mono, Sin>::default();
+/// let osc = gen::Loop::<smp::Mono, crv::Sin>::default();
 /// ```
 ///
 /// will result in a 440 Hz sine wave when sampled at 44.1 kHz.
@@ -84,8 +84,8 @@ impl RawFreq {
     /// # use pointillism::prelude::*;
     /// # use assert_approx_eq::assert_approx_eq;
     /// // C5 is 3 semitones above A4.
-    /// let c5 = RawFreq::A4.bend_edo(12, 3.0);
-    /// assert_approx_eq!(c5.hz, RawFreq::C5.hz);
+    /// let c5 = unt::RawFreq::A4.bend_edo(12, 3.0);
+    /// assert_approx_eq!(c5.hz, unt::RawFreq::C5.hz);
     /// ```
     #[must_use]
     pub fn bend_edo(self, edo: u16, bend: f64) -> Self {
@@ -100,8 +100,8 @@ impl RawFreq {
     /// # use pointillism::prelude::*;
     /// # use assert_approx_eq::assert_approx_eq;
     /// // C5 is 3 semitones above A4.
-    /// let c5 = RawFreq::A4.bend(3.0);
-    /// assert_approx_eq!(c5.hz, RawFreq::C5.hz);
+    /// let c5 = unt::RawFreq::A4.bend(3.0);
+    /// assert_approx_eq!(c5.hz, unt::RawFreq::C5.hz);
     /// ```
     #[must_use]
     pub fn bend(self, bend: f64) -> Self {
@@ -144,10 +144,10 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = RawFreq::A4.bend(0.6);
+    /// let freq = unt::RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi_with(RawFreq::A4), MidiNote::AS4);
+    /// assert_eq!(freq.round_midi_with(unt::RawFreq::A4), unt::MidiNote::AS4);
     /// ```
     #[must_use]
     pub fn round_midi_with(self, a4: Self) -> unt::MidiNote {
@@ -168,10 +168,10 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = RawFreq::A4.bend(0.6);
+    /// let freq = unt::RawFreq::A4.bend(0.6);
     ///
     /// // The nearest note is `A#4`.
-    /// assert_eq!(freq.round_midi(), MidiNote::AS4);
+    /// assert_eq!(freq.round_midi(), unt::MidiNote::AS4);
     /// ```
     #[must_use]
     pub fn round_midi(self) -> unt::MidiNote {
@@ -188,11 +188,11 @@ impl RawFreq {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = RawFreq::A4.bend(0.6);
-    /// let (note, semitones) = freq.midi_semitones_with(RawFreq::A4);
+    /// let freq = unt::RawFreq::A4.bend(0.6);
+    /// let (note, semitones) = freq.midi_semitones_with(unt::RawFreq::A4);
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, MidiNote::AS4);
+    /// assert_eq!(note, unt::MidiNote::AS4);
     /// assert!((semitones + 0.4).abs() < 1e-7);
     /// ```
     #[must_use]
@@ -215,11 +215,11 @@ impl RawFreq {
     /// # use pointillism::prelude::*;
     /// # use assert_approx_eq::assert_approx_eq;
     /// // Pitch-bend A4 by 60 cents.
-    /// let freq = RawFreq::A4.bend(0.6);
+    /// let freq = unt::RawFreq::A4.bend(0.6);
     /// let (note, semitones) = freq.midi_semitones();
     ///
     /// // The nearest note is `A#4`, and it's -40 cents from it.
-    /// assert_eq!(note, MidiNote::AS4);
+    /// assert_eq!(note, unt::MidiNote::AS4);
     /// assert_approx_eq!(semitones, -0.4);
     /// ```
     #[must_use]

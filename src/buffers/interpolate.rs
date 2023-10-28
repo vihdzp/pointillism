@@ -6,8 +6,7 @@
 //!
 //! Replace the buffers by more general ring buffers.
 
-use crate::buffers::ring::Ring;
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Linearly interpolates two samples `x0` and `x1`.
 pub fn linear<S: smp::Base>(x0: S, x1: S, t: unt::Val) -> S {
@@ -51,7 +50,7 @@ pub fn hermite<S: smp::Base>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S {
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 pub trait Interpolate:
-    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Ref>::Item> + buf::ring::Ring + Sized
+    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + buf::ring::Ring + Sized
 {
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -64,13 +63,14 @@ pub trait Interpolate:
     ///
     /// This will advance the signal once for the current frame, and once for every
     /// [`Self::LOOK_AHEAD`] frame.
-    fn init<S: SignalMut<Sample = <Self::Buf as buf::Ref>::Item>>(sgn: &mut S) -> Self {
+    fn init<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(sgn: &mut S) -> Self {
         let mut inter = Self::EMPTY;
         inter.push_many(sgn, Self::LOOK_AHEAD as usize + 1);
         inter
     }
 }
 
+/// Boilerplate code for the [`Ring`] impls of the interpolation buffers.
 macro_rules! ring_boilerplate {
     () => {
         fn buffer(&self) -> &Self::Buf {
@@ -81,7 +81,7 @@ macro_rules! ring_boilerplate {
             self.0.buffer_mut()
         }
 
-        fn get(&self, index: usize) -> <Self::Buf as buf::Ref>::Item {
+        fn get(&self, index: usize) -> <Self::Buf as Buffer>::Item {
             self.0.get(index)
         }
 
@@ -95,6 +95,7 @@ macro_rules! ring_boilerplate {
     };
 }
 
+/// An auxiliary function for `buf::ring::Shift::new(buf::Stc::from_data(array))`.
 const fn shift_from<A: smp::Audio, const N: usize>(
     array: [A; N],
 ) -> buf::ring::Shift<buf::Stc<A, N>> {
@@ -290,7 +291,7 @@ impl<A: smp::Audio> Interpolate for Hermite<A> {
 /// Samples a [`SignalMut`] and time-stretches it. Both pitch and speed will be modified.
 pub struct Stretch<S: SignalMut, I: Interpolate>
 where
-    I::Buf: buf::Mut<Item = S::Sample>,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
 {
     /// The signal being sampled.
     sgn: S,
@@ -309,7 +310,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> Stretch<S, I>
 where
-    I::Buf: buf::Mut<Item = S::Sample>,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
 {
     /// Initializes a new [`Stretch`].
     ///
@@ -406,7 +407,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> Signal for Stretch<S, I>
 where
-    I::Buf: buf::Mut<Item = S::Sample>,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
 {
     type Sample = S::Sample;
 
@@ -417,7 +418,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> SignalMut for Stretch<S, I>
 where
-    I::Buf: buf::Mut<Item = S::Sample>,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
 {
     fn advance(&mut self) {
         // The next position to read.

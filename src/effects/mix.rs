@@ -1,6 +1,6 @@
 //! Functions for mixing signals together.
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on each channel.
 pub struct Stereo<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>>(pub X, pub Y);

@@ -542,11 +542,13 @@ impl Mono {
     /// Initializes a new [`Mono`] sample.
     ///
     /// You can just use `Mono(x)` to the same effect.
+    #[must_use]
     pub const fn new(x: f64) -> Self {
         Self(x)
     }
 
     /// A convenience function to create an array of [`Mono`] samples.
+    #[must_use]
     pub fn array<const N: usize>(array: [f64; N]) -> [Self; N] {
         array.map_array(|&x| Self(x))
     }
@@ -556,11 +558,13 @@ impl Env {
     /// Initializes a new [`Env`] sample.
     ///
     /// You can just use `Env(x)` to the same effect.
+    #[must_use]
     pub const fn new(x: f64) -> Self {
         Self(x)
     }
 
     /// A convenience function to create an array of [`Env`] samples.
+    #[must_use]
     pub fn array<const N: usize>(array: [f64; N]) -> [Self; N] {
         array.map_array(|&x| Self(x))
     }
@@ -570,11 +574,13 @@ impl Stereo {
     /// Initializes a new [`Stereo`] sample.
     ///
     /// You can just use `Stereo(x, y)` to the same effect.
+    #[must_use]
     pub const fn new(x: f64, y: f64) -> Self {
         Self(x, y)
     }
 
     /// A convenience function to create an array of [`Stereo`] samples.
+    #[must_use]
     pub fn array<const N: usize>(array: [(f64, f64); N]) -> [Self; N] {
         array.map_array(|&(x, y)| Self(x, y))
     }

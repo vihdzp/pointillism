@@ -18,15 +18,14 @@
 //!
 //! Actually test that [`Shift`] buffers are more efficient!
 
-use crate::{mod_inc, prelude::*};
-use buf::Ref;
+use crate::{mod_inc, prelude::*, traits::*};
 
 /// A trait for ring or cyclic buffers.
 ///
 /// See the [module docs](self) for more info.
 pub trait Ring {
     /// The backing buffer type.
-    type Buf: buf::Mut;
+    type Buf: buf::BufferMut;
 
     /// Returns a reference to the backing buffer.
     fn buffer(&self) -> &Self::Buf;
@@ -42,10 +41,10 @@ pub trait Ring {
     }
 
     /// Pushes a value into the buffer, phasing out some older value.
-    fn push(&mut self, value: <Self::Buf as buf::Ref>::Item);
+    fn push(&mut self, value: <Self::Buf as buf::Buffer>::Item);
 
     /// Loads `count` samples from a signal, phasing out the old ones.
-    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Ref>::Item>>(
+    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(
         &mut self,
         sgn: &mut S,
         count: usize,
@@ -60,12 +59,12 @@ pub trait Ring {
     /// ## Panics
     ///
     /// Panics if `index` is greater than the capacity.
-    fn get(&self, index: usize) -> <Self::Buf as buf::Ref>::Item;
+    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item;
 
     // TODO: get_mut?
 
     /// Gets the last pushed value from the buffer.
-    fn fst(&self) -> <Self::Buf as buf::Ref>::Item {
+    fn fst(&self) -> <Self::Buf as buf::Buffer>::Item {
         self.get(0)
     }
 }
@@ -75,12 +74,12 @@ pub trait Ring {
 ///
 /// This is somewhat more efficient than [`Circ`] for small buffers, but the cost quickly adds up.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Shift<B: buf::Mut> {
+pub struct Shift<B: buf::BufferMut> {
     /// The inner buffer.
     pub inner: B,
 }
 
-impl<B: buf::Mut> Shift<B> {
+impl<B: buf::BufferMut> Shift<B> {
     /// Initializes a new [`Shift`] buffer.
     pub const fn new(inner: B) -> Self {
         Self { inner }
@@ -100,7 +99,7 @@ fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
     *buf.get_mut(index + count).unwrap() = buf[index];
 }
 
-impl<B: buf::Mut> Ring for Shift<B> {
+impl<B: buf::BufferMut> Ring for Shift<B> {
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -111,7 +110,7 @@ impl<B: buf::Mut> Ring for Shift<B> {
         &mut self.inner
     }
 
-    fn get(&self, index: usize) -> <Self::Buf as buf::Ref>::Item {
+    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
         self.inner[index]
     }
 
@@ -124,7 +123,7 @@ impl<B: buf::Mut> Ring for Shift<B> {
         self.inner[0] = value;
     }
 
-    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Ref>::Item>>(
+    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(
         &mut self,
         sgn: &mut S,
         count: usize,
@@ -133,15 +132,14 @@ impl<B: buf::Mut> Ring for Shift<B> {
         // `new` is the number of new entries.
 
         let n = self.capacity();
-        let new;
-        if count < n {
-            new = count;
+        let new = if count < n {
+            count
         } else {
             for _ in 0..(count - n) {
                 sgn.advance();
             }
-            new = n;
-        }
+            n
+        };
 
         for val in self.inner.as_mut_slice()[..new].iter_mut().rev() {
             *val = sgn.next();
@@ -154,7 +152,7 @@ impl<B: buf::Mut> Ring for Shift<B> {
 ///
 /// For very small buffers, [`Shift`] might be more efficient.
 #[derive(Clone, Debug, Default)]
-pub struct Circ<B: buf::Mut> {
+pub struct Circ<B: buf::BufferMut> {
     /// The inner buffer.
     pub inner: B,
 
@@ -162,14 +160,14 @@ pub struct Circ<B: buf::Mut> {
     pos: usize,
 }
 
-impl<B: buf::Mut> Circ<B> {
+impl<B: buf::BufferMut> Circ<B> {
     /// Initializes a new [`Circ`] buffer.
     pub const fn new(inner: B) -> Self {
         Self { inner, pos: 0 }
     }
 }
 
-impl<B: buf::Mut> Ring for Circ<B> {
+impl<B: buf::BufferMut> Ring for Circ<B> {
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -180,7 +178,7 @@ impl<B: buf::Mut> Ring for Circ<B> {
         &mut self.inner
     }
 
-    fn get(&self, index: usize) -> <Self::Buf as buf::Ref>::Item {
+    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
         let index = if self.pos > index {
             self.pos - index
         } else {

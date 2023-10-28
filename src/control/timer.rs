@@ -1,6 +1,7 @@
 //! Implements the [`Timer`] and [`Metronome`] types.
 //!
-//! These can be used as part of some control flow to perform an action at a specified point in time.
+//! These can be used as part of some control flow to perform an action at a specified point in
+//! time.
 
 use crate::prelude::*;
 

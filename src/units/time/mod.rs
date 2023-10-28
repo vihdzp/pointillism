@@ -66,6 +66,7 @@ impl Time {
     }
 
     /// Compares this time to `0`.
+    #[must_use]
     pub const fn is_zero(self) -> bool {
         self.samples.is_zero()
     }

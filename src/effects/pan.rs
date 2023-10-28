@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Represents the way in which gain correlates with panning angle.
 pub trait Law: Copy + Default {

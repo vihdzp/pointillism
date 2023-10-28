@@ -5,11 +5,11 @@
 //! The following example is a simplified implementation of [`NoiseGen`](crate::prelude::NoiseGen).
 //!
 //! ```
-//! # use pointillism::prelude::{Env, Sample, Signal, SignalMut};
+//! # use pointillism::prelude::*;
 //! /// A signal that produces random envelope data.
 //! struct NoiseGen {
 //!     /// The current random value.
-//!     current: Env,
+//!     current: smp::Env,
 //! }
 //!
 //! impl Signal for NoiseGen {
@@ -17,7 +17,7 @@
 //!     type Sample = smp::Env;
 //!
 //!     // Returns the current value.
-//!     fn get(&self) -> Env {
+//!     fn get(&self) -> smp::Env {
 //!         self.current
 //!     }
 //! }

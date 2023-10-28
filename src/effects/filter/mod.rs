@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 pub mod design;
 

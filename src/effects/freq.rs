@@ -2,7 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// The function that applies vibrato to a signal.
 pub struct Vib<S: Frequency> {

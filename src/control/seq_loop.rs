@@ -14,7 +14,7 @@
 //! by changing its frequency in periodic intervals. [`MelodySeq`] and [`MelodyLoop`] both
 //! functionally serve as piano rolls for a polyphonic signal.
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Changes a signal according to a specified function, at specified times.
 ///

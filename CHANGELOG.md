@@ -1,3 +1,9 @@
+## Version 0.4.1
+
+Added ring buffers, modified filters and delay to use them.
+
+The code is now explicitly under the MIT license.
+
 ## Version 0.4.0
 
 Implemented a much more robust naming scheme for types, which should hopefully make future additions

@@ -63,6 +63,7 @@ impl FracInt {
     }
 
     /// Compares this number to `0`.
+    #[must_use]
     pub const fn is_zero(self) -> bool {
         self.0 == 0
     }

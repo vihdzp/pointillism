@@ -21,7 +21,7 @@ pub use sample::*;
 
 use std::marker::PhantomData;
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Rescales a value from `-1.0` to `1.0`, into a value from `0.0` to `1.0`.
 #[must_use]

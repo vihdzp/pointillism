@@ -1,4 +1,6 @@
-use crate::prelude::*;
+//! TODO: missing docs
+
+use crate::{prelude::*, traits::*};
 use std::marker::PhantomData;
 
 /// Controls the volume of a signal.

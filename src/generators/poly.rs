@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, hash::Hash};
 
-use crate::prelude::*;
+use crate::traits::*;
 
 /// A polyphonic signal.
 ///

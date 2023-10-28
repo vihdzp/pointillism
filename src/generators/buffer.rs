@@ -2,7 +2,7 @@
 //!
 //! These are [`OnceBuf`] and [`LoopBuf`], which work analogously to [`Once`] and [`Loop`].
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Boilerplate common to [`OnceBuf`] and [`LoopBuf`].
 macro_rules! buf_gen_boilerplate {
@@ -28,7 +28,7 @@ macro_rules! buf_gen_boilerplate {
         /// Returns a mutable reference to the inner slice.
         pub fn as_mut_slice(&mut self) -> &mut [B::Item]
         where
-            B: buf::Mut,
+            B: BufferMut,
         {
             self.buffer.as_mut_slice()
         }
@@ -42,7 +42,7 @@ macro_rules! buf_gen_boilerplate {
 
 /// A generator that reads through an audio buffer, once.
 #[derive(Clone, Debug)]
-pub struct OnceBuf<B: buf::Ref> {
+pub struct OnceBuf<B: buf::Buffer> {
     /// The inner buffer.
     pub buffer: B,
 
@@ -50,7 +50,7 @@ pub struct OnceBuf<B: buf::Ref> {
     index: usize,
 }
 
-impl<B: buf::Ref> OnceBuf<B> {
+impl<B: buf::Buffer> OnceBuf<B> {
     /// Initializes a new [`OnceBuf`].
     #[must_use]
     pub const fn new(buffer: B) -> Self {
@@ -60,7 +60,7 @@ impl<B: buf::Ref> OnceBuf<B> {
     buf_gen_boilerplate!();
 }
 
-impl<B: buf::Ref> Signal for OnceBuf<B> {
+impl<B: buf::Buffer> Signal for OnceBuf<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
@@ -68,7 +68,7 @@ impl<B: buf::Ref> Signal for OnceBuf<B> {
     }
 }
 
-impl<B: buf::Ref> SignalMut for OnceBuf<B> {
+impl<B: buf::Buffer> SignalMut for OnceBuf<B> {
     fn advance(&mut self) {
         self.index += 1;
     }
@@ -78,23 +78,23 @@ impl<B: buf::Ref> SignalMut for OnceBuf<B> {
     }
 }
 
-impl<B: buf::Ref> Base for OnceBuf<B> {
+impl<B: buf::Buffer> Base for OnceBuf<B> {
     impl_base!();
 }
 
-impl<B: buf::Ref> Stop for OnceBuf<B> {
+impl<B: buf::Buffer> Stop for OnceBuf<B> {
     fn stop(&mut self) {
         self.index = self.buffer.len();
     }
 }
 
-impl<B: buf::Ref> Done for OnceBuf<B> {
+impl<B: buf::Buffer> Done for OnceBuf<B> {
     fn is_done(&self) -> bool {
         self.index >= self.buffer.len()
     }
 }
 
-impl<B: buf::Ref> Panic for OnceBuf<B> {
+impl<B: buf::Buffer> Panic for OnceBuf<B> {
     fn panic(&mut self) {
         self.stop();
     }
@@ -102,7 +102,7 @@ impl<B: buf::Ref> Panic for OnceBuf<B> {
 
 /// A generator that loops an audio buffer.
 #[derive(Clone, Debug)]
-pub struct LoopBuf<B: buf::Ref> {
+pub struct LoopBuf<B: buf::Buffer> {
     /// The inner buffer.
     pub buffer: B,
 
@@ -110,7 +110,7 @@ pub struct LoopBuf<B: buf::Ref> {
     index: usize,
 }
 
-impl<B: buf::Ref> LoopBuf<B> {
+impl<B: buf::Buffer> LoopBuf<B> {
     /// Initializes a new [`LoopBuf`].
     #[must_use]
     pub const fn new(buffer: B) -> Self {
@@ -120,7 +120,7 @@ impl<B: buf::Ref> LoopBuf<B> {
     buf_gen_boilerplate!();
 }
 
-impl<B: buf::Ref> Signal for LoopBuf<B> {
+impl<B: buf::Buffer> Signal for LoopBuf<B> {
     type Sample = B::Item;
 
     fn get(&self) -> B::Item {
@@ -128,7 +128,7 @@ impl<B: buf::Ref> Signal for LoopBuf<B> {
     }
 }
 
-impl<B: buf::Ref> SignalMut for LoopBuf<B> {
+impl<B: buf::Buffer> SignalMut for LoopBuf<B> {
     fn advance(&mut self) {
         crate::mod_inc(self.len(), &mut self.index);
     }
@@ -138,6 +138,6 @@ impl<B: buf::Ref> SignalMut for LoopBuf<B> {
     }
 }
 
-impl<B: buf::Ref> Base for LoopBuf<B> {
+impl<B: buf::Buffer> Base for LoopBuf<B> {
     impl_base!();
 }

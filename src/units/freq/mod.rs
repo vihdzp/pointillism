@@ -185,7 +185,7 @@ impl RawFreq {
 ///
 /// ```
 /// # use pointillism::prelude::*;
-/// let osc = gen::Loop::<Mono, Sin>::default();
+/// let osc = gen::Loop::<smp::Mono, crv::Sin>::default();
 /// ```
 ///
 /// will result in a 440 Hz sine wave when sampled at 44.1 kHz.

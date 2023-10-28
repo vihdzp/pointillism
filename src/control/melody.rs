@@ -11,7 +11,7 @@
 //! ```
 //! # use pointillism::prelude::*;
 //! // Project sample rate.
-//! const SAMPLE_RATE: SampleRate = SampleRate::CD;
+//! const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 //!
 //! // A quarter note.
 //! let q = Time::from_sec(0.5, SAMPLE_RATE).floor();
@@ -22,21 +22,21 @@
 //!
 //! // The notes that make up the melody.
 //! let notes = [
-//!     Note::new(Time::ZERO, q, RawFreq::C3),     // Twin-
-//!     Note::new(q, q, RawFreq::C3),              // kle
-//!     Note::new(2u8 * q, q, RawFreq::G3),        // Twin-
-//!     Note::new(3u8 * q, q, RawFreq::G3),        // kle
-//!     Note::new(4u8 * q, q, RawFreq::A3),        // Li-
-//!     Note::new(5u8 * q, q, RawFreq::A3),        // ttle
-//!     Note::new(6u8 * q, 2u8 * q, RawFreq::G3),  // star,
-//!     Note::new(8u8 * q, q, RawFreq::F3),        // How
-//!     Note::new(9u8 * q, q, RawFreq::F3),        // I
-//!     Note::new(10u8 * q, q, RawFreq::E3),       // won-
-//!     Note::new(11u8 * q, q, RawFreq::E3),       // der
-//!     Note::new(12u8 * q, q, RawFreq::D3),       // what
-//!     Note::new(13u8 * q, q, RawFreq::D3),       // you
-//!     Note::new(14u8 * q, 2u8 * q, RawFreq::C3), // are!
-//!     Note::new(14u8 * q, 2u8 * q, RawFreq::G3),
+//!     Note::new(Time::ZERO, q, unt::RawFreq::C3),     // Twin-
+//!     Note::new(q, q, unt::RawFreq::C3),              // kle
+//!     Note::new(2u8 * q, q, unt::RawFreq::G3),        // Twin-
+//!     Note::new(3u8 * q, q, unt::RawFreq::G3),        // kle
+//!     Note::new(4u8 * q, q, unt::RawFreq::A3),        // Li-
+//!     Note::new(5u8 * q, q, unt::RawFreq::A3),        // ttle
+//!     Note::new(6u8 * q, 2u8 * q, unt::RawFreq::G3),  // star,
+//!     Note::new(8u8 * q, q, unt::RawFreq::F3),        // How
+//!     Note::new(9u8 * q, q, unt::RawFreq::F3),        // I
+//!     Note::new(10u8 * q, q, unt::RawFreq::E3),       // won-
+//!     Note::new(11u8 * q, q, unt::RawFreq::E3),       // der
+//!     Note::new(12u8 * q, q, unt::RawFreq::D3),       // what
+//!     Note::new(13u8 * q, q, unt::RawFreq::D3),       // you
+//!     Note::new(14u8 * q, 2u8 * q, unt::RawFreq::C3), // are!
+//!     Note::new(14u8 * q, 2u8 * q, unt::RawFreq::G3),
 //! ]
 //! .map(|note| note.map_data(|raw| Freq::from_raw(raw, SAMPLE_RATE)));
 //!
@@ -44,9 +44,9 @@
 //! let func = |freq: Freq| {
 //!     AdsrEnv::new_adsr(
 //!         gen::Loop::<Mono, _>::new(Tri, freq),
-//!         Time::from_sec(0.1, SAMPLE_RATE),
+//!         unt::Time::from_sec(0.1, SAMPLE_RATE),
 //!         q,
-//!         Vol::new(0.2),
+//!         unt::Vol::new(0.2),
 //!         release,
 //!     )
 //! };
@@ -78,7 +78,7 @@
 //! .expect("IO error!");
 //! ```
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 use std::hash::Hash;
 
 #[cfg(feature = "midly")]

@@ -15,7 +15,6 @@ pub mod curves;
 pub mod effects;
 pub mod generators;
 pub mod map;
-pub mod prelude;
 pub mod sample;
 pub mod signal;
 pub mod units;
@@ -27,7 +26,7 @@ pub use with_hound::*;
 
 // Needed so that the docs render properly.
 #[allow(unused_imports)]
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
@@ -44,7 +43,7 @@ pub(crate) fn mod_inc(len: usize, value: &mut usize) {
 /// Methods that require [`hound`].
 #[cfg(feature = "hound")]
 mod with_hound {
-    use crate::prelude::*;
+    use crate::{prelude::*, traits::*};
 
     /// The [specification](hound::WavSpec) for the output file.
     #[must_use]
@@ -76,15 +75,15 @@ mod with_hound {
     /// ```
     /// # use pointillism::prelude::*;
     /// // Project sample rate.
-    /// const SAMPLE_RATE: SampleRate = SampleRate::CD;
+    /// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
     ///
     /// // File duration.
-    /// let length = Time::from_sec(1.0, SAMPLE_RATE);
+    /// let length = unt::Time::from_sec(1.0, SAMPLE_RATE);
     /// // Sine wave frequency.
-    /// let freq = Freq::from_hz(440.0, SAMPLE_RATE);
+    /// let freq = unt::Freq::from_hz(440.0, SAMPLE_RATE);
     ///
     /// // We create a mono signal that loops through a sine curve at the specified frequency.
-    /// let mut sgn = gen::Loop::<Mono, _>::new(Sin, freq);
+    /// let mut sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
     ///
     /// // Export to file.
     /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
@@ -131,4 +130,22 @@ mod with_hound {
     {
         create(filename, length, sample_rate, |_| sgn.next())
     }
+}
+
+/// The crate prelude.
+pub mod prelude {
+    #[cfg(feature = "hound")]
+    pub use crate::buffers::wav::*;
+
+    pub use crate::{
+        buffers as buf, control as ctr, curves as crv, effects as eff, gen::poly as ply,
+        generators as gen, map, sample as smp, units as unt,
+    };
+}
+
+/// Imports all of the traits used throughout the code.
+pub mod traits {
+    pub use crate::buf::{ring::Ring, Buffer, BufferMut};
+    pub use crate::map::{Map, Mut};
+    pub use crate::signal::*;
 }

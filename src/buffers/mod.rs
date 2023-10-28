@@ -12,9 +12,8 @@
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
 
+use crate::{prelude::*, traits::*};
 use std::ops::{Index, IndexMut};
-
-use crate::prelude::*;
 
 pub mod interpolate;
 pub mod ring;
@@ -24,7 +23,7 @@ pub mod wav;
 pub use interpolate as int;
 
 /// A trait for readable buffers.
-pub trait Ref: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
+pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
     /// The type of sample stored in the buffer.
     type Item: smp::Audio;
 
@@ -111,7 +110,9 @@ pub trait Ref: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item>
 }
 
 /// A trait for buffers that hold a mutable reference to its data.
-pub trait Mut: Ref + AsMut<[Self::Item]> + std::ops::IndexMut<usize, Output = Self::Item> {
+pub trait BufferMut:
+    Buffer + AsMut<[Self::Item]> + std::ops::IndexMut<usize, Output = Self::Item>
+{
     /// Returns a mutable reference to the inner slice.
     fn as_mut_slice(&mut self) -> &mut [Self::Item] {
         self.as_mut()
@@ -273,25 +274,25 @@ impl<A: smp::Audio> IndexMut<usize> for Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> Ref for Slice<'a, A> {
+impl<'a, A: smp::Audio> Buffer for Slice<'a, A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Ref for SliceMut<'a, A> {
+impl<'a, A: smp::Audio> Buffer for SliceMut<'a, A> {
     type Item = A;
 }
 
-impl<A: smp::Audio, const N: usize> Ref for Stc<A, N> {
+impl<A: smp::Audio, const N: usize> Buffer for Stc<A, N> {
     type Item = A;
 }
 
-impl<A: smp::Audio> Ref for Dyn<A> {
+impl<A: smp::Audio> Buffer for Dyn<A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Mut for SliceMut<'a, A> {}
-impl<A: smp::Audio, const N: usize> Mut for Stc<A, N> {}
-impl<A: smp::Audio> Mut for Dyn<A> {}
+impl<'a, A: smp::Audio> BufferMut for SliceMut<'a, A> {}
+impl<A: smp::Audio, const N: usize> BufferMut for Stc<A, N> {}
+impl<A: smp::Audio> BufferMut for Dyn<A> {}
 
 impl<A: smp::Audio, const N: usize> Default for Stc<A, N> {
     fn default() -> Self {
@@ -330,6 +331,7 @@ impl<A: smp::Audio, const N: usize> Stc<A, N> {
     /// Initializes the zero [`Stc`].
     ///
     /// Use [`Self::from_data`] to initialize this with pre-existing data.
+    #[must_use]
     pub const fn new() -> Self {
         Self::from_data([A::ZERO; N])
     }
@@ -373,6 +375,7 @@ impl<A: smp::Audio> Dyn<A> {
     }
 
     /// Initializes a buffer with zero initial capacity.
+    #[must_use]
     pub const fn empty() -> Self {
         Self::from_data(Vec::new())
     }

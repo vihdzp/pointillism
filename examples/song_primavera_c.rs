@@ -3,7 +3,7 @@
 //!
 //! Post-processing: ≈ 1kHz lowpass, field recording noise.
 
-use pointillism::prelude::*;
+use pointillism::{prelude::*, traits::*};
 
 // Base note for binaural beats.
 const BASE: unt::RawFreq = unt::RawFreq::new(222.2);

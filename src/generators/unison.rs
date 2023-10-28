@@ -6,7 +6,7 @@
 //!
 //! Implement some sort of simple mechanism for building overtones.
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// An iterator that returns the detuning intervals for a given detune amount.
 pub struct DetuneIter {

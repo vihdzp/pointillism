@@ -4,6 +4,6 @@ mod melody;
 mod seq_loop;
 mod timer;
 
-pub use melody::{Melody, MelodyLoop, MelodySeq};
+pub use melody::{Melody, MelodyLoop, MelodySeq, Note, NoteEvent, NoteReader};
 pub use seq_loop::{Loop, Seq};
 pub use timer::{Metronome, Timer};

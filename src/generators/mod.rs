@@ -7,7 +7,7 @@
 //! from a curve. See the [curves module docs](../curves/index.html#terminology) for an explanation
 //! on different kinds of curves.
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 use std::marker::PhantomData;
 
 mod buffer;

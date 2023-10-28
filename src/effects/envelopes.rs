@@ -1,6 +1,6 @@
 //! Signal envelopes, notably including the [`ArEnv`] and [`AdsrEnv`].
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Any of the stages in an AR envelope.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -24,7 +24,7 @@ pub use freq::{Vib, Vibrato};
 pub use trailing as trt;
 pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
-use crate::prelude::*;
+use crate::{prelude::*, traits::*};
 
 /// Maps a signal to another via a specified map.
 ///

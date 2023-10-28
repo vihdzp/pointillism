@@ -2,7 +2,7 @@
 //!
 //! Adapted from <https://docs.rs/twang/latest/twang/index.html#a3-220-hz-minor-piano-example>.
 
-use pointillism::prelude::*;
+use pointillism::{prelude::*, traits::*};
 use rand::Rng;
 
 /// Project sample rate.

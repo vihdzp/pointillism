@@ -52,7 +52,7 @@ impl Interval {
     /// Being touted as the ["most irrational
     /// number"](https://en.wikipedia.org/wiki/Hurwitz%27s_theorem_(number_theory)), this might be
     /// said to be the most mathematically dissonant interval.
-    pub const PHI: Self = Self::new(1.6180339887498948482045868343656);
+    pub const PHI: Self = Self::new(1.618_033_988_749_895);
 
     /// Initializes a new ratio.
     #[must_use]
