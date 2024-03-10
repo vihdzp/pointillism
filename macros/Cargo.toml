@@ -1,0 +1,7 @@
+[package]
+name = "macros"
+version = "0.1.0"
+authors = ["Violeta Hernández Palacios <vi.hdz.p@gmail.com>"]
+
+[lib]
+proc-macro = true

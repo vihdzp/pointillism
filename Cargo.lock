@@ -429,6 +429,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "macros"
+version = "0.1.0"
+
+[[package]]
 name = "memchr"
 version = "2.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -633,6 +637,7 @@ dependencies = [
  "derive_more",
  "hound",
  "human-duration",
+ "macros",
  "midly",
  "rand",
 ]

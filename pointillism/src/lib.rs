@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "github-actions-hack"), doc = include_str!("../README.md"))]
+#![cfg_attr(not(feature = "github-actions-hack"), doc = include_str!("../../README.md"))]
 #![cfg_attr(
     feature = "github-actions-hack",
     doc = "If you're seeing this, you (accidentally or otherwise) enabled the \
@@ -27,6 +27,8 @@ pub use with_hound::*;
 // Needed so that the docs render properly.
 #[allow(unused_imports)]
 use crate::{prelude::*, traits::*};
+
+macros::make_answer!();
 
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
@@ -139,7 +141,7 @@ pub mod prelude {
 
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, gen::poly as ply,
-        generators as gen, map, sample as smp, units as unt
+        generators as gen, map, sample as smp, units as unt,
     };
 }
 
