@@ -8,6 +8,7 @@
 #![warn(clippy::cargo)]
 #![warn(clippy::missing_docs_in_private_items)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
 
 pub mod buffers;
 pub mod control;

@@ -1,3 +1,5 @@
+//! Defines various basic maps.
+
 use crate::prelude::*;
 use std::marker::PhantomData;
 
@@ -41,7 +43,7 @@ impl<X> map::Map for Id<X> {
 ///
 /// The [additive
 /// identity](https://codeyarns.com/tech/2020-06-12-floating-point-identity-elements.html#gsc.tab=0)
-/// for floating point numbers is `-0.0`, and not `0.0`! This function will return the former.
+/// for floating point numbers is `-0.0` and not `0.0`! This function will return the former.
 #[derive(Clone, Copy, Debug)]
 pub struct Zero<X, S: smp::Sample> {
     /// Dummy value.

@@ -22,7 +22,7 @@ const NOTE_NAMES: [(char, i16); 7] = [
     ('B', 11),
 ];
 
-/// Frequencies of notes in the first MIDI octave.
+/// Frequencies of notes in the first MIDI octave. These are exact within floating point precision.
 const NOTE_FREQS: [f64; 12] = [
     8.175_798_915_643_707,
     8.661_957_218_027_252,
@@ -107,6 +107,10 @@ pub fn freq(_: TokenStream) -> TokenStream {
         let pow = f64::from_bits((octave as u64 + 1023) << (f64::MANTISSA_DIGITS - 1));
 
         let freq = NOTE_FREQS[index] * pow;
-        write!(code, "Self::new({freq:.15})").unwrap();
+        write!(
+            code,
+            "{{#[allow(clippy::excessive_precision)] Self::new({freq:.15})}}"
+        )
+        .unwrap();
     })
 }
