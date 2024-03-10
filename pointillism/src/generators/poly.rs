@@ -1,5 +1,9 @@
 //! Declares the [`Polyphony`] struct, which allows for multiple signals of the same type to play at
 //! the same time.
+//!
+//! ## Todo
+//!
+//! Define another kind of polyphony that works with limited voices instead?
 
 use crate::prelude::*;
 use std::{collections::HashMap, hash::Hash};

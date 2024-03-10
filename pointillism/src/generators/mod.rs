@@ -15,6 +15,7 @@ pub mod poly;
 pub mod unison;
 
 pub use buffer::{LoopBuf, OnceBuf};
+pub use poly::Polyphony;
 pub use unison as uni;
 
 /// Converts a plain curve into a sample curve that outputs a signal of the specified type.
@@ -49,7 +50,7 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> map::Map for C
     }
 }
 
-/// Plays a sample curve for a specified [`Time`].
+/// Plays a sample curve for a specified [`unt::Time`].
 ///
 /// Initialize with [`Self::new_curve`].
 ///

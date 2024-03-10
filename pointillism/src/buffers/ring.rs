@@ -92,11 +92,9 @@ impl<B: buf::BufferMut> Shift<B> {
 }
 
 /// An auxiliary function that copies `index` to `index + count`.
-///
-/// Useful since rust-analyzer complains a lot about these lines if written in their simplest form.
 fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
-    let buf = ring.buffer_mut().as_mut();
-    *buf.get_mut(index + count).unwrap() = buf[index];
+    let buf = ring.buffer_mut();
+    buf[index + count] = buf[index];
 }
 
 impl<B: buf::BufferMut> Ring for Shift<B> {
@@ -116,8 +114,8 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
 
     /// This has linear time complexity on the size of the buffer, so be careful!
     fn push(&mut self, value: B::Item) {
-        for i in (1..self.capacity()).rev() {
-            shift(self, i - 1, 1);
+        for i in (0..(self.capacity() - 1)).rev() {
+            shift(self, i, 1);
         }
 
         self.inner[0] = value;
@@ -141,6 +139,9 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
             n
         };
 
+        for i in (0..(self.capacity() - new)).rev() {
+            shift(self, i, new);
+        }
         for val in self.inner.as_mut_slice()[..new].iter_mut().rev() {
             *val = sgn.next();
         }
@@ -185,7 +186,7 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
             self.pos + self.capacity() - index
         };
 
-        self.inner[index]
+        self.inner[index - 1]
     }
 
     fn push(&mut self, value: B::Item) {
@@ -202,8 +203,54 @@ mod test {
     #[test]
     /// Tests shift buffers.
     fn shift() {
-        let mut shift = Shift::new(buf::Stc::from_data(smp::Mono::array([1.0, 2.0, 3.0])));
-        shift.push(smp::Mono::new(4.0));
-        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([4.0, 1.0, 2.0]));
+        let mut shift = Shift::new(buf::Stc::from_data(smp::Mono::array([3.0, 2.0, 1.0])));
+
+        // Push one element.
+        shift.push(smp::Mono(4.0));
+        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([4.0, 3.0, 2.0]));
+        assert_eq!(shift.fst(), smp::Mono(4.0));
+
+        // Push two elements.
+        shift.push_many(
+            &mut gen::LoopBuf::new(buf::Stc::from_data(smp::Mono::array([5.0, 6.0]))),
+            2,
+        );
+        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([6.0, 5.0, 4.0]));
+        assert_eq!(shift.fst(), smp::Mono(6.0));
+
+        // Push four elements.
+        shift.push_many(
+            &mut gen::LoopBuf::new(buf::Stc::from_data(smp::Mono::array([7.0, 8.0, 9.0, 10.0]))),
+            4,
+        );
+        assert_eq!(shift.buffer().as_ref(), &smp::Mono::array([10.0, 9.0, 8.0]));
+        assert_eq!(shift.fst(), smp::Mono(10.0));
+    }
+
+    #[test]
+    /// Tests ring buffers.
+    fn ring() {
+        let mut ring = Circ::new(buf::Stc::from_data(smp::Mono::array([1.0, 2.0, 3.0])));
+
+        // Push one element.
+        ring.push(smp::Mono(4.0));
+        assert_eq!(ring.buffer().as_ref(), &smp::Mono::array([4.0, 2.0, 3.0]));
+        assert_eq!(ring.fst(), smp::Mono(4.0));
+
+        // Push two elements.
+        ring.push_many(
+            &mut gen::LoopBuf::new(buf::Stc::from_data(smp::Mono::array([5.0, 6.0]))),
+            2,
+        );
+        assert_eq!(ring.buffer().as_ref(), &smp::Mono::array([4.0, 5.0, 6.0]));
+        assert_eq!(ring.fst(), smp::Mono(6.0));
+
+        // Push four elements.
+        ring.push_many(
+            &mut gen::LoopBuf::new(buf::Stc::from_data(smp::Mono::array([7.0, 8.0, 9.0, 10.0]))),
+            4,
+        );
+        assert_eq!(ring.buffer().as_ref(), &smp::Mono::array([10.0, 8.0, 9.0]));
+        assert_eq!(ring.fst(), smp::Mono(10.0));
     }
 }

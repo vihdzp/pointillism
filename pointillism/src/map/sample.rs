@@ -3,7 +3,7 @@
 use crate::prelude::*;
 use std::marker::PhantomData;
 
-/// The function that [flips](Stereo::flip) a [`smp::Stereo`] signal.
+/// The function that [flips](smp::Stereo::flip) a [`smp::Stereo`] signal.
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Flip;
 

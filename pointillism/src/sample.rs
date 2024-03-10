@@ -2,7 +2,7 @@
 //!
 //! [`Mono`] and [`Stereo`] are [`Audio`] samples, meaning that they can be written to a WAV file in
 //! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
-//! [`Adsr`](crate::effects::adsr::Adsr).
+//! [`Adsr`](crate::eff::env::Adsr).
 
 use std::{fmt::Debug, iter::Sum};
 

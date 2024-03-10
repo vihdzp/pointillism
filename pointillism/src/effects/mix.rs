@@ -160,9 +160,9 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 ///     unt::Time::from_sec_default(5.0), unt::SampleRate::default(),
 ///     |_| {
 ///         // Thanks to `Ref`, we're able to re-use these signals.
-///         let sgn1 = eff::PwMapSgn::inf_clip(eff::mix::Ref::new(&signal));
-///         let sgn2 = eff::Tremolo::new(eff::mix::Ref::new(&signal), eff::mix::Ref::new(&trem_env));
-///         let stereo = eff::mix::Stereo::new(sgn1, sgn2);
+///         let sgn1 = eff::PwMapSgn::inf_clip(mix::Ref::new(&signal));
+///         let sgn2 = eff::Tremolo::new(mix::Ref::new(&signal), mix::Ref::new(&trem_env));
+///         let stereo = mix::Stereo::new(sgn1, sgn2);
 ///
 ///         // However, we must manually advance them.
 ///         let res = stereo.get();

@@ -1,3 +1,5 @@
+//! Defines filters and their coefficients.
+
 use crate::prelude::*;
 
 pub mod design;

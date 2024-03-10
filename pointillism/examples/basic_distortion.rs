@@ -36,7 +36,7 @@ fn main() {
     };
 
     // Initializes a new `Polyphony` object, plays a single note.
-    let mut poly = ply::Polyphony::new();
+    let mut poly = gen::Polyphony::new();
     let mut index = 0;
     poly.add(index, osc(base));
 
@@ -46,7 +46,7 @@ fn main() {
         vec![note_len],
         // we modify the signal `poly`,
         poly,
-        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
+        map::Func::new(|poly: &mut gen::Polyphony<_, _>| {
             // by stopping the note we just played,
             poly.stop(&index);
             index += 1;

@@ -71,7 +71,7 @@ fn main() {
     let mut freq = base;
 
     // Initializes a new `Polyphony` object, plays a single note, centered.
-    let mut poly = ply::Polyphony::new();
+    let mut poly = gen::Polyphony::new();
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
@@ -81,7 +81,7 @@ fn main() {
     let poly_loop = ctr::Loop::new(
         vec![note_len],
         poly,
-        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
+        map::Func::new(|poly: &mut gen::Polyphony<_, _>| {
             // Stops the previous note.
             poly.stop(&index);
             index += 1;

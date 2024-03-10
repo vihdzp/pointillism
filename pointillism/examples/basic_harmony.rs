@@ -37,7 +37,7 @@ fn main() {
     ];
 
     // Initialize the first chord.
-    let mut poly = ply::Polyphony::new();
+    let mut poly = gen::Polyphony::new();
     for (i, &c) in chords[0].iter().enumerate() {
         poly.add(i, sgn(c * base));
     }
@@ -46,7 +46,7 @@ fn main() {
     let mut seq = ctr::Seq::new(
         vec![note_len; chords.len()],
         poly,
-        map::Func::new(|poly: &mut ply::Polyphony<_, _>| {
+        map::Func::new(|poly: &mut gen::Polyphony<_, _>| {
             // Add next notes.
             if idx != chords.len() {
                 for (i, &c) in chords[idx].iter().enumerate() {

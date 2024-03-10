@@ -391,6 +391,17 @@ impl<A: smp::Audio> Dyn<A> {
         SliceMut::new(&mut self.data)
     }
 
+    /// Iterates over the slice.
+    #[must_use]
+    pub fn iter(&self) -> std::slice::Iter<A> {
+        self.into_iter()
+    }
+
+    /// Mutably iterates over the slice.
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<A> {
+        self.into_iter()
+    }
+
     /// Creates a buffer from the output of a song.
     ///
     /// Compare to [`crate::create`].

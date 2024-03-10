@@ -2,7 +2,7 @@
 //!
 //! ## Example
 //!
-//! The following example is a simplified implementation of [`NoiseGen`](crate::prelude::NoiseGen).
+//! The following example is a simplified implementation of [`NoiseGen`](crate::gen::NoiseGen).
 //!
 //! ```
 //! # use pointillism::{prelude::*, traits::*};
@@ -39,12 +39,12 @@ use crate::{sample::Sample, units::Freq};
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
-/// This data can either be audio data, meaning [`Mono`](crate::sample::Mono) or
-/// [`Stereo`](crate::sample::Stereo), or envelope data [`Env`](crate::sample::Env).
+/// This data can either be audio data, meaning [`Mono`](crate::smp::Mono) or
+/// [`Stereo`](crate::smp::Stereo), or envelope data [`Env`](crate::smp::Env).
 ///
 /// Most signals will implement the stronger trait [`SignalMut`], meaning that the state of the
 /// signal can be advanced. The main use case for this weaker trait is signal routing. For instance,
-/// you can create two references to a [`SignalMut`] via [`sgn::Ref`], and apply
+/// you can create two references to a [`SignalMut`] via [`crate::mix::Ref`], and apply
 /// separate effects to them.
 ///
 /// ## Implementing the trait
@@ -65,7 +65,7 @@ pub trait Signal {
     fn get(&self) -> Self::Sample;
 
     /// Currently, `rust-analyzer` trips up sometimes that `get` is called, confusing it with
-    /// [`ArrayLike::get`](crate::prelude::ArrayLike::get). This hack bypasses this.
+    /// [`Array::get`](crate::trt::Array::get). This hack bypasses this.
     fn _get(&self) -> Self::Sample {
         self.get()
     }
@@ -73,8 +73,8 @@ pub trait Signal {
 
 /// A trait for a stream of data [`Samples`](Sample), generated every frame.
 ///
-/// This data can either be audio data, meaning [`Mono`](crate::sample::Mono) or
-/// [`Stereo`](crate::sample::Stereo), or envelope data [`Env`](crate::sample::Env).
+/// This data can either be audio data, meaning [`Mono`](crate::smp::Mono) or
+/// [`Stereo`](crate::smp::Stereo), or envelope data [`Env`](crate::smp::Env).
 ///
 /// This trait is stronger than the [`Signal`] trait, as it also allows the signal to be advanced by
 /// a frame.
@@ -106,7 +106,7 @@ pub trait SignalMut: Signal {
 /// A trait for a signal with a "main" frequency that can be modified.
 ///
 /// This is implemented both for signals that have a frequency parameter such as
-/// [`gen::Loop`](crate::generators::gen::Loop), as well as straightforward wrappers for these signals.
+/// [`gen::Loop`](crate::gen::Loop), as well as straightforward wrappers for these signals.
 ///
 /// Not to be confused with [`Freq`].
 pub trait Frequency: SignalMut {
@@ -153,11 +153,11 @@ pub(crate) use impl_base;
 
 /// Represents a signal that ends.
 ///
-/// Is used in [polyphonic](gen::ply) signals, so that a synth can be cleared from memory when it
-/// stops.
+/// Is used in [polyphonic](crate::gen::poly) signals, so that a synth can be cleared from
+/// memory when it stops.
 ///
 /// If a signal never ends, it should not implement this trait. If you really want to use such a
-/// signal within a `Polyphony` object, wrap it in the [`Trailing`](crate::prelude::Trailing)
+/// signal within a `Polyphony` object, wrap it in the [`eff::Trailing`](crate::eff::Trailing)
 /// structure.
 pub trait Done: Signal {
     /// Returns whether the signal has stopped producing any sound altogether.

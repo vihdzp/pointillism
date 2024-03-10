@@ -2,13 +2,12 @@
 //!
 //! These traits serve two main purposes:
 //!
-//! - Implementing custom curves, that can be played back as samples via
-//!   [`gen::Once`](crate::prelude::gen::Once) or [`gen::Loop`](crate::prelude::gen::Loop). See the
-//!   [`crate::generators`] module for more info.
+//! - Implementing custom curves, that can be played back as samples via [`gen::Once`] or
+//!   [`gen::Loop`]. See the [`gen`] module for more info.
 //!
-//! - Create signals that modify others, either sample-wise via [`MapSgn`](crate::prelude::MapSgn),
-//!   or by directly tweaking parameters via [`MutSgn`](crate::prelude::MutSgn) or
-//!   [`ModSgn`](crate::prelude::ModSgn).
+//! - Create signals that modify others, either sample-wise via [`MapSgn`](crate::eff::MapSgn), or
+//!   by directly tweaking parameters via [`MutSgn`](crate::eff::MutSgn) or
+//!   [`ModSgn`](crate::eff::ModSgn).
 //!
 //! In many cases, one can use a Rust function, wrapped in a [`Func`] struct. However, in cases
 //! where one wants control over this function, or to create multiple instances of it, one is

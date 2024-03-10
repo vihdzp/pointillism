@@ -149,9 +149,9 @@ pub mod prelude {
 
     // Abbreviate module names.
     pub use crate::{
-        buffers as buf, control as ctr, curves as crv, effects as eff, gen::poly as ply,
+        buffers as buf, control as ctr, curves as crv, eff::flt, eff::mix, effects as eff,
         generators as gen, map, sample as smp, traits as trt, units as unt,
     };
     // Import all traits.
-    pub use crate::traits::*;
+    pub use crate::trt::*;
 }

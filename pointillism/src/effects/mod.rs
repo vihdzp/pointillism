@@ -21,7 +21,7 @@ pub use distortion as dst;
 pub use envelopes as env;
 pub use filter as flt;
 pub use freq::{Vib, Vibrato};
-pub use trailing as trt;
+pub use trailing::Trailing;
 pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
 use crate::prelude::*;

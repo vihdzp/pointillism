@@ -274,12 +274,12 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<ply::Polyphony<K, F::Output>>
+impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<gen::Polyphony<K, F::Output>>
     for NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
-    fn modify(&mut self, sgn: &mut ply::Polyphony<K, F::Output>) {
+    fn modify(&mut self, sgn: &mut gen::Polyphony<K, F::Output>) {
         match self.current() {
             NoteEvent::Add { key, data } => sgn.add(key.clone(), self.func.eval(data.clone())),
             NoteEvent::Stop { key } => {
@@ -294,10 +294,10 @@ where
 
 /// A melody that plays from start to end.
 pub type MelodySeq<K, D, F> =
-    ctr::Seq<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Seq<gen::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
 pub type MelodyLoop<K, D, F> =
-    ctr::Loop<ply::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Loop<gen::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
 
 /// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`MelodySeq`] or a
 /// [`MelodyLoop`].
@@ -552,7 +552,7 @@ where
 {
     /// Turns a [`NoteReader`] into a [`MelodySeq`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
-        Self::new(times, ply::Polyphony::new(), note_reader)
+        Self::new(times, gen::Polyphony::new(), note_reader)
     }
 
     /// Initializes a new [`MelodySeq`] from a [`Melody`].
@@ -579,7 +579,7 @@ where
 {
     /// Turns a [`NoteReader`] into a [`MelodyLoop`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
-        Self::new(times, ply::Polyphony::new(), note_reader)
+        Self::new(times, gen::Polyphony::new(), note_reader)
     }
 
     /// Initializes a new [`MelodyLoop`] from a [`Melody`].

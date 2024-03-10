@@ -356,7 +356,7 @@ impl<
 /// A reference to one of the curves played in a [`UnisonCurve`] or [`Unison`] object. This allows
 /// you to freely route these signals into other effects.
 ///
-/// See also [`Ref`].
+/// See also [`mix::Ref`].
 ///
 /// ## Example
 ///

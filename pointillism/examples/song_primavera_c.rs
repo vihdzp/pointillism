@@ -51,7 +51,7 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
     };
 
     // Binaural beats.
-    eff::mix::Stereo::new(wave(base * 0.985), vib(base))
+    mix::Stereo::new(wave(base * 0.985), vib(base))
 }
 
 /// The melody that starts two minutes in.
@@ -83,14 +83,14 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
         )
     };
 
-    let poly = ply::Polyphony::new();
+    let poly = gen::Polyphony::new();
     let mut index = 0;
 
     // Play a new note every four seconds.
     ctr::Loop::new(
         vec![unt::Time::from_sec_default(4.0)],
         poly,
-        map::Func::new(move |poly: &mut ply::Polyphony<_, _>| {
+        map::Func::new(move |poly: &mut gen::Polyphony<_, _>| {
             freq *= intervals[index % intervals.len()];
             poly.add(index, trem(freq));
             index += 1;
