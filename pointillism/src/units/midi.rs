@@ -1,4 +1,6 @@
 //! Defines the type for a [`MidiNote`], and its basic methods.
+//!
+//! For the conventions on note name constants, see [`unt::RawFreq`](super::RawFreq).
 
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -24,6 +26,8 @@ impl MidiNote {
     pub const fn new(note: i16) -> Self {
         Self { note }
     }
+
+    macros::midi!();
 }
 
 /// We use `A4` as a default note.

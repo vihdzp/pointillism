@@ -3,6 +3,20 @@
 //! This type measures frequency in the natural unit of
 //! [hertz](https://en.wikipedia.org/wiki/Hertz). However, in order to use actually use it for most
 //! things, you'll need to convert it into [`Freq`], which is measured in inverse samples.
+//!
+//! ## Constants
+//!
+//! We initialize constants for [`RawFreq`] and [`MidiNote`](unt::MidiNote). For instance,
+//! [`RawFreq::A4`] = 440 Hz.
+//!
+//! Each name is made out of a pitch letter, followed by an optional `S` or `B` for sharps and
+//! flats, followed by the octave number. We use `N` for a negative sign.
+//!
+//! Enharmonic notes are given their individual constant names, for good measure.
+//!
+//! We only implement the notes from octaves -1 to 10, as anything lower is unsupported as a
+//! (standard) MIDI note, and anything higher is too high-pitched to be practical. This range
+//! well-covers the human hearing range.
 
 use crate::{prelude::*, units::A4_MIDI};
 
@@ -67,6 +81,8 @@ impl RawFreq {
     pub const fn new(hz: f64) -> Self {
         Self { hz }
     }
+
+    macros::freq!();
 
     /// The period, which equals the reciprocal of the frequency.
     #[must_use]

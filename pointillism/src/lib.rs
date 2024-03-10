@@ -28,8 +28,6 @@ pub use with_hound::*;
 #[allow(unused_imports)]
 use crate::{prelude::*, traits::*};
 
-macros::make_answer!();
-
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
 /// This should be marginally more efficient than `value = (value + 1) % len`, as it avoids the more
