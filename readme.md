@@ -86,7 +86,7 @@ This is a passion project made by one college student learning about DSP. I make
 being well-designed, well-maintained, or usable for your own goals.
 
 If you just want to make music with code, and especially if you enjoy live feedback,
-[SuperCollider](https://supercollider.github.io/) and [Pure Data](https://puredata.info/) will most
+[SuperCollider](https://supercollider.github.i) and [Pure Data](https://puredata.info) will most
 likely be better alternatives for you.
 
 That said, if you happen to stumble across this and make something cool, please let me know!

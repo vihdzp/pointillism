@@ -12,7 +12,7 @@
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 use std::ops::{Index, IndexMut};
 
 pub mod interpolate;

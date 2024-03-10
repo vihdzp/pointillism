@@ -79,7 +79,7 @@
 //! .expect("IO error!");
 //! ```
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 use std::hash::Hash;
 
 #[cfg(feature = "midly")]

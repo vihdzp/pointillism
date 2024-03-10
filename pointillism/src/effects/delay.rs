@@ -1,6 +1,6 @@
 //! TODO: missing docs
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// Plays a signal back with a delay. Can have some optional feedback.
 ///

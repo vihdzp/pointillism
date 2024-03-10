@@ -26,8 +26,7 @@ pub mod cpal;
 pub use with_hound::*;
 
 // Needed so that the docs render properly.
-#[allow(unused_imports)]
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
@@ -44,7 +43,7 @@ pub(crate) fn mod_inc(len: usize, value: &mut usize) {
 /// Methods that require [`hound`].
 #[cfg(feature = "hound")]
 mod with_hound {
-    use crate::{prelude::*, traits::*};
+    use crate::prelude::*;
 
     /// The [specification](hound::WavSpec) for the output file.
     #[must_use]
@@ -133,21 +132,26 @@ mod with_hound {
     }
 }
 
+/// Auxiliary module for importing traits.
+pub mod traits {
+    pub use crate::{
+        buf::{ring::Ring, Buffer, BufferMut},
+        map::{Map, Mut},
+        sample::{Array, Sample, SampleBase},
+        signal::*,
+    };
+}
+
 /// The crate prelude.
 pub mod prelude {
     #[cfg(feature = "hound")]
     pub use crate::buffers::wav::*;
 
+    // Abbreviate module names.
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, gen::poly as ply,
-        generators as gen, map, sample as smp, units as unt,
+        generators as gen, map, sample as smp, traits as trt, units as unt,
     };
-}
-
-/// Imports all of the traits used throughout the code.
-pub mod traits {
-    pub use crate::buf::{ring::Ring, Buffer, BufferMut};
-    pub use crate::map::{Map, Mut};
-    pub use crate::sample::{Array, Sample, SampleBase};
-    pub use crate::signal::*;
+    // Import all traits.
+    pub use crate::traits::*;
 }

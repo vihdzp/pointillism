@@ -6,7 +6,7 @@
 //!
 //! Replace the buffers by more general ring buffers.
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// Linearly interpolates two samples `x0` and `x1`.
 pub fn linear<S: smp::SampleBase>(x0: S, x1: S, t: unt::Val) -> S {

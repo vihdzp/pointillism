@@ -3,7 +3,7 @@
 //! No new signal structs are defined in this file. Instead, we define new initiailzations for
 //! [`PwMapSgn`].
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// Infinite clipping distortion.
 ///

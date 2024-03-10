@@ -1,7 +1,9 @@
+//! Defines maps that act on samples.
+
 use crate::prelude::*;
 use std::marker::PhantomData;
 
-/// The function that [flips](Stereo::flip) a [`Stereo`] signal.
+/// The function that [flips](Stereo::flip) a [`smp::Stereo`] signal.
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Flip;
 

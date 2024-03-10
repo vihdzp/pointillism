@@ -1,7 +1,14 @@
 [package]
 name = "macros"
-version = "0.1.0"
 authors = ["Violeta Hernández Palacios <vi.hdz.p@gmail.com>"]
+categories = ["multimedia", "multimedia::audio"]
+description = "A compositional library for musical composition."
+edition = "2021"
+keywords = ["pointillism", "music", "audio", "modular", "synthesizer", "macros"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/vihdzp/pointillism"
+version = "0.1.0"
 
 [lib]
 proc-macro = true

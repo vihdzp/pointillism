@@ -18,7 +18,7 @@
 //!
 //! Actually test that [`Shift`] buffers are more efficient!
 
-use crate::{mod_inc, prelude::*, traits::*};
+use crate::{mod_inc, prelude::*};
 
 /// A trait for ring or cyclic buffers.
 ///

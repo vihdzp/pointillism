@@ -1,4 +1,4 @@
-use pointillism::{prelude::*, traits::*};
+use pointillism::prelude::*;
 
 /// Project sample rate.
 const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;

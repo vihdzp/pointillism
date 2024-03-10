@@ -1,6 +1,6 @@
 //! Defines structs that add extra trait functionality to other signals.
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// A trailing signal.
 ///

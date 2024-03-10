@@ -1,7 +1,7 @@
 //! We play various chords in succession, showing off somewhat more advanced use of the
 //! [`Polyphony`] struct.
 
-use pointillism::{prelude::*, traits::*};
+use pointillism::prelude::*;
 
 /// Project sample rate.
 const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;

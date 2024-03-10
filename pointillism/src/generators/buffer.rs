@@ -2,7 +2,7 @@
 //!
 //! These are [`OnceBuf`] and [`LoopBuf`], which work analogously to [`Once`] and [`Loop`].
 
-use crate::{prelude::*, traits::*};
+use crate::prelude::*;
 
 /// Boilerplate common to [`OnceBuf`] and [`LoopBuf`].
 macro_rules! buf_gen_boilerplate {
