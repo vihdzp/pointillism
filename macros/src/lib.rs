@@ -38,7 +38,7 @@ const NOTE_FREQS: [f64; 12] = [
     15.433_853_164_253_879,
 ];
 
-/// For every note in octaves from -1 to 10, writes
+/// For every note in our range, writes
 ///
 /// ```rs
 /// /// The note {note_name}.
@@ -52,8 +52,8 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
 
     for octave in MIN_OCTAVE..=MAX_OCTAVE {
         for (name, index) in NOTE_NAMES {
-            for (nat_symbol, symbol, offset) in [("", "", 0), ("#", "S", 1), ("b", "B", -1)] {
-                // BS adds an octave, Cb removes one.
+            for (nat_symbol, symbol, offset) in [("", "", 0), ("♭", "B", -1), ("♯", "S", 1)] {
+                // BS adds an octave, CB removes one.
                 let index = index + offset;
                 let octave = match index {
                     -1 => octave + 1,
@@ -64,7 +64,7 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
 
                 write!(
                     code,
-                    "/// The note {name}{nat_symbol}{octave}.
+                    "/// The note {name}{nat_symbol}<sub>{octave}</sub>.
                     pub const {name}{symbol}"
                 )
                 .unwrap();
@@ -87,6 +87,7 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
     code.parse().expect("code could not be parsed")
 }
 
+/// Defines the constants for `MidiNote`.
 #[proc_macro]
 pub fn midi(_: TokenStream) -> TokenStream {
     for_all_notes(|code, note| {
@@ -94,6 +95,7 @@ pub fn midi(_: TokenStream) -> TokenStream {
     })
 }
 
+/// Defines the constants for `RawFreq`.
 #[proc_macro]
 pub fn freq(_: TokenStream) -> TokenStream {
     for_all_notes(|code, note| {
