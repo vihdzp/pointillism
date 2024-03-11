@@ -393,7 +393,6 @@ impl<A: smp::Audio> Dyn<A> {
     }
 
     /// Iterates over the slice.
-    #[must_use]
     pub fn iter(&self) -> std::slice::Iter<A> {
         self.into_iter()
     }

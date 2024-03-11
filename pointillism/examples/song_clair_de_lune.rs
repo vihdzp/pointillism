@@ -9,21 +9,26 @@ fn main() {
     use pointillism::prelude::*;
 
     // Play at a normal speed.
-    let tick_time = Time::from_sec_default(2.2e-3);
+    let tick_time = unt::Time::from_sec_default(2.2e-3);
 
     // Soft triangle waves with a piano-like envelope.
-    let release = Time::from_sec_default(0.3);
-    let func = |data: MidiNoteData| {
+    let release = unt::Time::from_sec_default(0.3);
+    let func = |data: ctr::mel::MidiNoteData| {
         // Add a bit of octave compression just for fun.
-        let mut raw = RawFreq::new_midi(data.key.into()).bend(0.5);
+        let mut raw = unt::RawFreq::new_midi(data.key.into()).bend(0.5);
         raw.hz = raw.hz.powf(0.995);
 
-        AdsrEnv::new_adsr(
-            gen::Loop::<Stereo, _>::new(Morph::half(Sin, Tri), Freq::from_raw_default(raw)),
-            Time::from_sec_default(0.05),
-            Time::from_sec_default(2.5),
-            Vol::ZERO,
-            release,
+        eff::env::AdsrEnv::new_adsr(
+            gen::Loop::<smp::Stereo, _>::new(
+                crv::Morph::half(crv::Sin, crv::Tri),
+                unt::Freq::from_raw_default(raw),
+            ),
+            eff::env::Adsr::new(
+                unt::Time::from_sec_default(0.05),
+                unt::Time::from_sec_default(2.5),
+                unt::Vol::ZERO,
+                release,
+            ),
         )
     };
 
@@ -38,13 +43,13 @@ fn main() {
     // There will not be more than 256 notes playing at once.
     let idx_cast = |idx: usize| idx as u8;
 
-    let mut main_melody = MelodySeq::new_melody(
-        Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
-        Func::new(func),
+    let mut main_melody = ctr::mel::MelodySeq::new_melody(
+        ctr::mel::Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
+        map::Func::new(func),
     );
-    let mut bass_melody = MelodySeq::new_melody(
-        Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
-        Func::new(func),
+    let mut bass_melody = ctr::mel::MelodySeq::new_melody(
+        ctr::mel::Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
+        map::Func::new(func),
     );
 
     // Length of the file.
@@ -53,8 +58,8 @@ fn main() {
     pointillism::create(
         "pointillism/examples/clair_de_lune.wav",
         length,
-        SampleRate::default(),
-        |_| 0.15 * (main_melody.next() + 0.8 * bass_melody.next()),
+        unt::SampleRate::default(),
+        |_| (main_melody.next() + bass_melody.next() * 0.8) * 0.15,
     )
     .unwrap();
 }

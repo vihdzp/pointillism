@@ -188,10 +188,8 @@ impl<D: Clone> Note<D> {
 pub struct MidiNoteData {
     /// The channel number this note comes from.
     pub channel: u4,
-
     /// The MIDI note being played.
     pub key: u7,
-
     /// The velocity of the note.
     ///
     /// This will always be at least 1, since a velocity of 0 is taken to represent a note off event
@@ -447,7 +445,7 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     /// Any errors returned will result from the event iterator itself.
     pub fn from_midi<G: FnMut(usize) -> K>(
         event_iter: midly::EventIter,
-        tick_time: Time,
+        tick_time: unt::Time,
         mut idx_cast: G,
     ) -> midly::Result<Self> {
         // The things we want to return.
@@ -495,7 +493,7 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
                                 key: idx_cast(idx),
                                 data: MidiNoteData::new(channel, key, vel),
                             });
-                            times.push(Time::ZERO);
+                            times.push(unt::Time::ZERO);
 
                             latest[index(key)] = idx;
                             idx += 1;
@@ -531,8 +529,8 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     /// Any errors returned will result from the event iterator itself.
     pub fn from_midi_loop<G: FnMut(usize) -> K>(
         event_iter: midly::EventIter,
-        length: Time,
-        tick_time: Time,
+        length: unt::Time,
+        tick_time: unt::Time,
         idx_cast: G,
     ) -> midly::Result<Self> {
         let mut melody = Self::from_midi(event_iter, tick_time, idx_cast)?;

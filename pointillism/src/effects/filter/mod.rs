@@ -250,6 +250,7 @@ pub type LoFilter<A, const T: usize, const U: usize> =
 
 impl<A: smp::Audio, const T: usize, const U: usize> LoFilter<A, T, U> {
     /// Initializes a [`LoFilter`] from its coefficients.
+    #[must_use]
     pub const fn new_coefs(coefs: Coefficients<T, U>) -> Self {
         Self::new_prev(
             coefs,
