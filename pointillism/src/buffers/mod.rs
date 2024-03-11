@@ -16,11 +16,12 @@ use crate::prelude::*;
 use std::ops::{Index, IndexMut};
 
 pub mod interpolate;
-pub mod ring;
+mod ring;
 #[cfg(feature = "hound")]
 pub mod wav;
 
 pub use interpolate as int;
+pub use ring::*;
 
 /// A trait for readable buffers.
 pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
@@ -472,3 +473,6 @@ impl<'a, A: smp::Audio> IntoIterator for &'a mut Dyn<A> {
         self.data.iter_mut()
     }
 }
+
+/// An empty buffer.
+pub type Empty<A> = Stc<A, 0>;

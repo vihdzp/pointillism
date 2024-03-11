@@ -9,7 +9,7 @@
 //! Cookbook](https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html) by Robert
 //! Bristow-Johnson.
 
-use super::{Biquad, Coefficients};
+use super::Coefficients;
 use crate::prelude::*;
 
 impl<const T: usize, const U: usize> Coefficients<T, U> {
@@ -73,6 +73,9 @@ impl Coefficients<1, 1> {
         Self::new_normalized([norm], [norm * a])
     }
 }
+
+/// [`Coefficients`] for a biquadratic (order 2) filter.
+pub type Biquad = Coefficients<3, 2>;
 
 impl Biquad {
     /// Initializes a [`Biquad`] from the explicit normalized coefficients.

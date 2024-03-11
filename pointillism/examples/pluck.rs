@@ -30,17 +30,21 @@ fn main() {
     // Low-pass filter the chord.
     //
     // The zero coefficients are dummy values that get replaced by the envelope.
-    let filter = eff::flt::Filtered::new(chord, eff::flt::Biquad::zero());
+    let filter = eff::flt::LoFiltered::new_coefs(chord, eff::flt::Biquad::zero());
 
     // An envelope that closes the filter.
     let env = eff::MutSgn::new(
         filter,
         gen::Once::new(crv::PosInvSaw, unt::Time::from_sec(PLUCK_TIME, SAMPLE_RATE)),
-        map::Func::new(|filter: &mut eff::flt::Filtered<_, 3, 2>, env: smp::Env| {
-            let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
-            *filter.coefficients_mut() =
-                eff::flt::Biquad::low_pass(unt::Freq::from_hz(hz, SAMPLE_RATE), unt::QFactor(1.0));
-        }),
+        map::Func::new(
+            |filter: &mut eff::flt::LoFiltered<_, 3, 2>, env: smp::Env| {
+                let hz = (15.0 * env.0 * env.0 + 1.0) * 100.0;
+                *filter.coefs_mut() = eff::flt::Biquad::low_pass(
+                    unt::Freq::from_hz(hz, SAMPLE_RATE),
+                    unt::QFactor(1.0),
+                );
+            },
+        ),
     );
 
     // Retrigger the pluck in a loop.

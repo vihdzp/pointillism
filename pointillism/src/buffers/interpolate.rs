@@ -140,7 +140,8 @@ impl<A: smp::Audio> map::Map for Drop<A> {
     }
 }
 
-impl<A: smp::Audio> buf::ring::Ring for Drop<A> {
+impl<A: smp::Audio> buf::Ring for Drop<A> {
+    type Item = A;
     type Buf = buf::Stc<A, 1>;
     ring_boilerplate!();
 }
@@ -186,7 +187,8 @@ impl<A: smp::Audio> map::Map for Linear<A> {
     }
 }
 
-impl<A: smp::Audio> buf::ring::Ring for Linear<A> {
+impl<A: smp::Audio> buf::Ring for Linear<A> {
+    type Item = A;
     type Buf = buf::Stc<A, 2>;
     ring_boilerplate!();
 }
@@ -231,7 +233,8 @@ impl<A: smp::Audio> map::Map for Cubic<A> {
     }
 }
 
-impl<A: smp::Audio> buf::ring::Ring for Cubic<A> {
+impl<A: smp::Audio> buf::Ring for Cubic<A> {
+    type Item = A;
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }
@@ -277,7 +280,8 @@ impl<A: smp::Audio> map::Map for Hermite<A> {
     }
 }
 
-impl<A: smp::Audio> buf::ring::Ring for Hermite<A> {
+impl<A: smp::Audio> buf::Ring for Hermite<A> {
+    type Item = A;
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }

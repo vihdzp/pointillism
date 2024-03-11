@@ -2,7 +2,25 @@
 
 use crate::prelude::*;
 
+use self::smp::Audio;
+
 pub mod design;
+pub use design::Biquad;
+
+/// A trait for a filter's function.
+///
+/// A `FilterMap` returns an audio sample, given ring buffers for the previous inputs and outputs.
+/// Often, these need to have a minimum length in order for the filter to be effective, which can be
+/// specified.
+pub trait FilterMap<A: smp::Audio> {
+    /// Minimum length for the inputs.
+    fn min_inputs(&self) -> usize;
+    /// Minimum length for the outputs.
+    fn min_outputs(&self) -> usize;
+
+    /// Evaluates the function, given the previous inputs and outputs.
+    fn eval<I: buf::Ring<Item = A>, O: buf::Ring<Item = A>>(&self, inputs: &I, outputs: &O) -> A;
+}
 
 /// Coefficients of a difference equation
 ///
@@ -47,14 +65,14 @@ impl<const T: usize, const U: usize> Coefficients<T, U> {
         Self { input, feedback }
     }
 
-    /// Initializes new [`Coefficients`], which are there normalized.
+    /// Initializes new [`Coefficients`], which are then normalized.
     ///
     /// ## Panics
     ///
-    /// You must guarantee `V = U + 1`!
+    ///
     #[must_use]
     pub fn new<const V: usize>(mut input: [f64; T], feedback: [f64; V]) -> Self {
-        assert_eq!(T, U + 1, "input element mismatch");
+        assert_eq!(V, U + 1, "input element mismatch");
         let a0 = feedback[0];
 
         // Normalize input.
@@ -82,128 +100,117 @@ impl<const T: usize> Coefficients<T, 0> {
     }
 }
 
-/// [`Coefficients`] for a biquadratic (order 2) filter.
-pub type Biquad = Coefficients<3, 2>;
+impl<A: smp::Audio, const T: usize, const U: usize> FilterMap<A> for Coefficients<T, U> {
+    fn min_inputs(&self) -> usize {
+        T
+    }
 
-/// Shifts the elements of an array by one position, adds a new one.
-///
-/// This is quite inefficient for larger arrays, but should be fine for small filters and gives a
-/// simple implementation.
-fn shift<T: Copy>(array: &mut [T], val: T) {
-    if !array.is_empty() {
-        for i in (0..(array.len() - 1)).rev() {
-            array[i + 1] = array[i];
-        }
-        array[0] = val;
+    fn min_outputs(&self) -> usize {
+        U
+    }
+
+    fn eval<I: buf::Ring<Item = A>, O: buf::Ring<Item = A>>(&self, inputs: &I, outputs: &O) -> A {
+        // Direct form 1.
+        (0..T).map(|i| inputs.get(i) * self.input[i]).sum::<A>()
+            - (0..U).map(|i| outputs.get(i) * self.feedback[i]).sum::<A>()
     }
 }
 
-/// A filter defined by a given difference equation, determined by some [`Coefficients`].
-///
-/// At least for the moment being, this uses a Direct Form 1 architecture.
-pub struct Filter<S: smp::Sample, const T: usize, const U: usize> {
-    /// The coefficients which determine the difference equation.
-    pub coefficients: Coefficients<T, U>,
+/// In its most general form, a filter is defined by its previous inputs, its previous outputs, and
+/// a function that maps these to a new output. Traditionally, this function would take the form of
+/// a difference equation, like that of [`Coefficients`], but we allow for versatility so that other
+/// structures like [`Delays`](Delay) can be implemented as a special case.
+pub struct Filter<A: smp::Audio, I: buf::Ring<Item = A>, O: buf::Ring<Item = A>, F: FilterMap<A>> {
+    /// The filter map.
+    pub func: F,
 
     /// Previous inputs to the filter.
-    prev_inputs: [S; T],
+    prev_inputs: I,
     /// Previous outputs to the filter.
-    prev_outputs: [S; U],
+    prev_outputs: O,
 }
 
-impl<S: smp::Sample, const T: usize, const U: usize> Filter<S, T, U> {
+impl<A: smp::Audio, I: buf::Ring<Item = A>, O: buf::Ring<Item = A>, F: FilterMap<A>>
+    Filter<A, I, O, F>
+{
     /// Initializes a filter with given preconditions.
-    pub const fn new_prev(
-        coefficients: Coefficients<T, U>,
-        prev_inputs: [S; T],
-        prev_outputs: [S; U],
-    ) -> Self {
+    pub const fn new_prev(func: F, prev_inputs: I, prev_outputs: O) -> Self {
         Self {
-            coefficients,
+            func,
             prev_inputs,
             prev_outputs,
         }
     }
 
-    /// Initializes a new filter.
-    #[must_use]
-    pub const fn new(coefficients: Coefficients<T, U>) -> Self {
-        Self::new_prev(coefficients, [S::ZERO; T], [S::ZERO; U])
-    }
-
-    /// A reference to the input coefficients.
-    pub const fn input(&self) -> &[f64; T] {
-        &self.coefficients.input
-    }
-
-    /// A reference to the feedback coefficients.
-    pub const fn feedback(&self) -> &[f64; U] {
-        &self.coefficients.feedback
-    }
-
     /// Takes in a new input, returns a new output.
-    ///
-    /// The previous inputs and outputs are shifted every time this function is called, so this is
-    /// only efficient for low-order filters.
-    pub fn eval(&mut self, input: S) -> S {
-        shift(&mut self.prev_inputs, input);
-
-        // Direct Form 1.
-        let output = (0..T)
-            .map(|i| self.prev_inputs[i] * self.input()[i])
-            .sum::<S>()
-            - (0..U)
-                .map(|i| self.prev_outputs[i] * self.feedback()[i])
-                .sum::<S>();
-
-        shift(&mut self.prev_outputs, output);
+    pub fn eval(&mut self, input: A) -> A {
+        self.prev_inputs.push(input);
+        let output = self.func.eval(&self.prev_inputs, &self.prev_outputs);
+        self.prev_outputs.push(output);
         output
     }
 
     /// Gets the last output value.
-    pub const fn get(&self) -> S {
-        self.prev_outputs[0]
+    pub fn get(&self) -> A {
+        self.prev_outputs.fst()
     }
 
     /// Resets the previous values to zero.
     pub fn retrigger(&mut self) {
-        self.prev_inputs = [S::ZERO; T];
-        self.prev_outputs = [S::ZERO; U];
+        self.prev_inputs.clear();
+        self.prev_outputs.clear();
     }
 }
 
 /// Filters a [`Signal`] through a [`Filter`].
-pub struct Filtered<S: Signal, const T: usize, const U: usize> {
+pub struct Filtered<
+    S: Signal,
+    I: buf::Ring<Item = S::Sample>,
+    O: buf::Ring<Item = S::Sample>,
+    F: FilterMap<S::Sample>,
+> where
+    S::Sample: Audio,
+{
     /// The filtered signal.
     pub sgn: S,
-
     /// The filter employed.
-    pub filter: Filter<S::Sample, T, U>,
+    pub filter: Filter<S::Sample, I, O, F>,
 }
 
-impl<S: Signal, const T: usize, const U: usize> Filtered<S, T, U> {
-    /// Initializes a [`Filtered`] signal from given preconditions.
-    pub const fn new_prev(sgn: S, filter: Filter<S::Sample, T, U>) -> Self {
+impl<
+        S: Signal,
+        I: buf::Ring<Item = S::Sample>,
+        O: buf::Ring<Item = S::Sample>,
+        F: FilterMap<S::Sample>,
+    > Filtered<S, I, O, F>
+where
+    S::Sample: Audio,
+{
+    /// Initializes a [`Filtered`] signal.
+    pub const fn new(sgn: S, filter: Filter<S::Sample, I, O, F>) -> Self {
         Self { sgn, filter }
     }
 
-    /// Initializes a [`Filtered`] signal given coefficients for the filter.
-    pub const fn new(sgn: S, coefficients: Coefficients<T, U>) -> Self {
-        Self::new_prev(sgn, Filter::new(coefficients))
+    /// Returns the current filter function.
+    pub const fn func(&self) -> &F {
+        &self.filter.func
     }
 
-    /// Returns the current filter coefficients.
-    pub const fn coefficients(&self) -> Coefficients<T, U> {
-        self.filter.coefficients
-    }
-
-    /// Returns a reference to the filter coefficients.
-    pub fn coefficients_mut(&mut self) -> &mut Coefficients<T, U> {
-        &mut self.filter.coefficients
+    /// Returns a mutable reference to the current filter function.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.filter.func
     }
 }
 
-impl<S: Signal, const T: usize, const U: usize> Signal for Filtered<S, T, U> {
+impl<
+        S: Signal,
+        I: buf::Ring<Item = S::Sample>,
+        O: buf::Ring<Item = S::Sample>,
+        F: FilterMap<S::Sample>,
+    > Signal for Filtered<S, I, O, F>
+where
+    S::Sample: Audio,
+{
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -211,7 +218,15 @@ impl<S: Signal, const T: usize, const U: usize> Signal for Filtered<S, T, U> {
     }
 }
 
-impl<S: SignalMut, const T: usize, const U: usize> SignalMut for Filtered<S, T, U> {
+impl<
+        S: SignalMut,
+        I: buf::Ring<Item = S::Sample>,
+        O: buf::Ring<Item = S::Sample>,
+        F: FilterMap<S::Sample>,
+    > SignalMut for Filtered<S, I, O, F>
+where
+    S::Sample: Audio,
+{
     fn advance(&mut self) {
         self.next();
     }
@@ -223,5 +238,51 @@ impl<S: SignalMut, const T: usize, const U: usize> SignalMut for Filtered<S, T, 
 
     fn next(&mut self) -> S::Sample {
         self.filter.eval(self.sgn.next())
+    }
+}
+
+/// A low order filter defined by its [`Coefficients`]. **This is not the same as a low-pass!**
+///
+/// This is recommended only for simple filters like biquads, as it makes use of a [`buf::Shift`]
+/// buffer. Higher orders, assuming the coefficients are dense, are better served by [`HiFilter`].
+pub type LoFilter<A, const T: usize, const U: usize> =
+    Filter<A, buf::Shift<buf::Stc<A, T>>, buf::Shift<buf::Stc<A, U>>, Coefficients<T, U>>;
+
+impl<A: smp::Audio, const T: usize, const U: usize> LoFilter<A, T, U> {
+    /// Initializes a [`LoFilter`] from its coefficients.
+    pub const fn new_coefs(coefs: Coefficients<T, U>) -> Self {
+        Self::new_prev(
+            coefs,
+            buf::Shift::new(buf::Stc::new()),
+            buf::Shift::new(buf::Stc::new()),
+        )
+    }
+}
+
+/// Filters a signal through a [`LoFilter`]. **This is not the same as a low-pass!**
+pub type LoFiltered<S, const T: usize, const U: usize> = Filtered<
+    S,
+    buf::Shift<buf::Stc<<S as Signal>::Sample, T>>,
+    buf::Shift<buf::Stc<<S as Signal>::Sample, U>>,
+    Coefficients<T, U>,
+>;
+
+impl<S: Signal, const T: usize, const U: usize> LoFiltered<S, T, U>
+where
+    S::Sample: smp::Audio,
+{
+    /// Initializes a [`LoFilter`] from its coefficients.
+    pub const fn new_coefs(sgn: S, coefs: Coefficients<T, U>) -> Self {
+        Self::new(sgn, LoFilter::new_coefs(coefs))
+    }
+
+    /// Returns the coefficients of the filter.
+    pub fn coefs(&self) -> &Coefficients<T, U> {
+        self.func()
+    }
+
+    /// Returns a mutable reference to the coefficients of the filter.
+    pub fn coefs_mut(&mut self) -> &mut Coefficients<T, U> {
+        self.func_mut()
     }
 }

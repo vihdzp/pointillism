@@ -24,8 +24,10 @@ use crate::{mod_inc, prelude::*};
 ///
 /// See the [module docs](self) for more info.
 pub trait Ring {
+    /// The item for the backing buffer.
+    type Item: smp::Sample;
     /// The backing buffer type.
-    type Buf: buf::BufferMut;
+    type Buf: buf::BufferMut<Item = Self::Item>;
 
     /// Returns a reference to the backing buffer.
     fn buffer(&self) -> &Self::Buf;
@@ -38,6 +40,11 @@ pub trait Ring {
     /// This is the number of samples that can be pushed before the first one is deleted.
     fn capacity(&self) -> usize {
         self.buffer().len()
+    }
+
+    /// Clears a buffer, without changing its length.
+    fn clear(&mut self) {
+        self.buffer_mut().clear();
     }
 
     /// Pushes a value into the buffer, phasing out some older value.
@@ -69,7 +76,7 @@ pub trait Ring {
     }
 }
 
-/// A ring buffer that inserts new data at the start, and shifts all previously written data when
+/// A non-empty ring buffer that inserts new data at the start, and shifts all previously written data when
 /// doing so.
 ///
 /// This is somewhat more efficient than [`Circ`] for small buffers, but the cost quickly adds up.
@@ -98,6 +105,7 @@ fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
 }
 
 impl<B: buf::BufferMut> Ring for Shift<B> {
+    type Item = B::Item;
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -148,8 +156,8 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
     }
 }
 
-/// A ring buffer that inserts new data at consecutive positions, looping back to the start after
-/// reaching the end.
+/// A non-empty ring buffer that inserts new data at consecutive positions, looping back to the
+/// start after reaching the end.
 ///
 /// For very small buffers, [`Shift`] might be more efficient.
 #[derive(Clone, Debug, Default)]
@@ -169,6 +177,7 @@ impl<B: buf::BufferMut> Circ<B> {
 }
 
 impl<B: buf::BufferMut> Ring for Circ<B> {
+    type Item = B::Item;
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -193,6 +202,36 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
         let pos = self.pos;
         self.buffer_mut()[pos] = value;
         mod_inc(self.capacity(), &mut self.pos);
+    }
+}
+
+/// Returns a mutable reference to a ZST.
+fn zst_mut<'a, T: 'a>() -> &'a mut T {
+    assert_eq!(std::mem::size_of::<T>(), 0);
+    unsafe { &mut *std::ptr::NonNull::dangling().as_mut() }
+}
+
+/// An empty ring buffer.
+pub struct EmptyRing<A: smp::Audio>(std::marker::PhantomData<A>);
+
+impl<A: smp::Audio> Ring for EmptyRing<A> {
+    type Item = A;
+    type Buf = buf::Empty<A>;
+
+    fn buffer(&self) -> &Self::Buf {
+        zst_mut()
+    }
+
+    fn buffer_mut(&mut self) -> &mut Self::Buf {
+        zst_mut()
+    }
+
+    fn push(&mut self, _: <Self::Buf as buf::Buffer>::Item) {
+        // No-op.
+    }
+
+    fn get(&self, _: usize) -> <Self::Buf as buf::Buffer>::Item {
+        panic!("can't get an element from an empty buffer")
     }
 }
 

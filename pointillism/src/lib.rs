@@ -135,7 +135,7 @@ mod with_hound {
 /// Auxiliary module for importing traits.
 pub mod traits {
     pub use crate::{
-        buf::{ring::Ring, Buffer, BufferMut},
+        buf::{Buffer, BufferMut, Ring},
         map::{Map, Mut},
         sample::{Array, Sample, SampleBase},
         signal::*,
