@@ -56,7 +56,7 @@ fn main() {
     );
 
     pointillism::create_from_sgn(
-        "examples/pluck.wav",
+        "pointillism/examples/pluck.wav",
         NOTES * note_time,
         SAMPLE_RATE,
         &mut env_loop,

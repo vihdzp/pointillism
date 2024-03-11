@@ -107,7 +107,7 @@ fn main() {
     let fade_time = unt::Time::from_raw_default(FADE);
 
     pointillism::create(
-        "examples/primavera_c.wav",
+        "pointillism/examples/primavera_c.wav",
         length,
         unt::SampleRate::CD,
         |time| {

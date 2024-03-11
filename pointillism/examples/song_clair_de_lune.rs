@@ -51,7 +51,7 @@ fn main() {
     let length = main_melody.total_time() + release;
 
     pointillism::create(
-        "examples/clair_de_lune.wav",
+        "pointillism/examples/clair_de_lune.wav",
         length,
         SampleRate::default(),
         |_| 0.15 * (main_melody.next() + 0.8 * bass_melody.next()),
