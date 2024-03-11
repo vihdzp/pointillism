@@ -1,10 +1,6 @@
 //! Implements functions for interpolating between samples.
 //!
 //! The main trait defined in this file is [`Interpolate`]. See the docs there for more information.
-//!
-//! ## Todo
-//!
-//! Replace the buffers by more general ring buffers.
 
 use crate::prelude::*;
 
@@ -145,7 +141,6 @@ impl<A: smp::Audio> map::Map for Drop<A> {
 }
 
 impl<A: smp::Audio> buf::Ring for Drop<A> {
-    type Item = A;
     type Buf = buf::Stc<A, 1>;
     ring_boilerplate!();
 }
@@ -192,7 +187,6 @@ impl<A: smp::Audio> map::Map for Linear<A> {
 }
 
 impl<A: smp::Audio> buf::Ring for Linear<A> {
-    type Item = A;
     type Buf = buf::Stc<A, 2>;
     ring_boilerplate!();
 }
@@ -238,7 +232,6 @@ impl<A: smp::Audio> map::Map for Cubic<A> {
 }
 
 impl<A: smp::Audio> buf::Ring for Cubic<A> {
-    type Item = A;
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }
@@ -285,7 +278,6 @@ impl<A: smp::Audio> map::Map for Hermite<A> {
 }
 
 impl<A: smp::Audio> buf::Ring for Hermite<A> {
-    type Item = A;
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }

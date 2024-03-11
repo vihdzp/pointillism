@@ -24,10 +24,8 @@ use crate::{mod_inc, prelude::*};
 ///
 /// See the [module docs](self) for more info.
 pub trait Ring {
-    /// The item for the backing buffer.
-    type Item: smp::Sample;
     /// The backing buffer type.
-    type Buf: buf::BufferMut<Item = Self::Item>;
+    type Buf: buf::BufferMut;
 
     /// Returns a reference to the backing buffer.
     fn buffer(&self) -> &Self::Buf;
@@ -117,7 +115,6 @@ fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
 }
 
 impl<B: buf::BufferMut> Ring for Shift<B> {
-    type Item = B::Item;
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -203,7 +200,6 @@ impl<B: buf::BufferMut> Circ<B> {
 }
 
 impl<B: buf::BufferMut> Ring for Circ<B> {
-    type Item = B::Item;
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -246,7 +242,6 @@ pub struct EmptyRing<A: smp::Audio>(std::marker::PhantomData<A>);
 const EMPTY_BUFFER: &str = "can't get an element from an empty buffer";
 
 impl<A: smp::Audio> Ring for EmptyRing<A> {
-    type Item = A;
     type Buf = buf::Empty<A>;
 
     fn buffer(&self) -> &Self::Buf {
