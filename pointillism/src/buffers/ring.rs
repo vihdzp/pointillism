@@ -56,6 +56,7 @@ pub trait Ring {
         sgn: &mut S,
         count: usize,
     ) {
+        // Default implementation, not necessarily optimal.
         for _ in 0..count {
             self.push(sgn.next());
         }
@@ -65,12 +66,21 @@ pub trait Ring {
     ///
     /// ## Panics
     ///
-    /// Panics if `index` is greater than the capacity.
+    /// Panics if `index` is not smaller than the capacity.
     fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item;
 
-    // TODO: get_mut?
+    /// Gets a mutable reference to the `n`-th previously pushed value from the buffer.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if `index` is not smaller than the capacity.
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item;
 
-    /// Gets the last pushed value from the buffer.
+    /// Gets the last value pushed into the buffer.
+    ///
+    /// ## Panics
+    ///
+    /// Panics in the case of an empty buffer.
     fn fst(&self) -> <Self::Buf as buf::Buffer>::Item {
         self.get(0)
     }
@@ -99,9 +109,11 @@ impl<B: buf::BufferMut> Shift<B> {
 }
 
 /// An auxiliary function that copies `index` to `index + count`.
+///
+/// The redundant `as_mut` stops rust-analyzer from complaining.
 fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
     let buf = ring.buffer_mut();
-    buf[index + count] = buf[index];
+    buf.as_mut()[index + count] = buf[index];
 }
 
 impl<B: buf::BufferMut> Ring for Shift<B> {
@@ -118,6 +130,10 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
 
     fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
         self.inner[index]
+    }
+
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
+        &mut self.inner[index]
     }
 
     /// This has linear time complexity on the size of the buffer, so be careful!
@@ -174,6 +190,16 @@ impl<B: buf::BufferMut> Circ<B> {
     pub const fn new(inner: B) -> Self {
         Self { inner, pos: 0 }
     }
+
+    /// Auxiliary function for computing the index in the inner array corresponding to the `n`-th
+    /// last pushed value.
+    fn index(&self, n: usize) -> usize {
+        (if self.pos > n {
+            self.pos - n
+        } else {
+            self.pos + self.capacity() - n
+        }) - 1
+    }
 }
 
 impl<B: buf::BufferMut> Ring for Circ<B> {
@@ -189,13 +215,12 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
     }
 
     fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
-        let index = if self.pos > index {
-            self.pos - index
-        } else {
-            self.pos + self.capacity() - index
-        };
+        self.inner[self.index(index)]
+    }
 
-        self.inner[index - 1]
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
+        let idx = self.index(index);
+        &mut self.inner[idx]
     }
 
     fn push(&mut self, value: B::Item) {
@@ -206,13 +231,19 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
 }
 
 /// Returns a mutable reference to a ZST.
+///
+/// ## Panics
+///
+/// Panics if the type is not in fact a ZST.
 fn zst_mut<'a, T: 'a>() -> &'a mut T {
     assert_eq!(std::mem::size_of::<T>(), 0);
-    unsafe { &mut *std::ptr::NonNull::dangling().as_mut() }
+    unsafe { std::ptr::NonNull::dangling().as_mut() }
 }
 
 /// An empty ring buffer.
 pub struct EmptyRing<A: smp::Audio>(std::marker::PhantomData<A>);
+
+const EMPTY_BUFFER: &str = "can't get an element from an empty buffer";
 
 impl<A: smp::Audio> Ring for EmptyRing<A> {
     type Item = A;
@@ -231,7 +262,11 @@ impl<A: smp::Audio> Ring for EmptyRing<A> {
     }
 
     fn get(&self, _: usize) -> <Self::Buf as buf::Buffer>::Item {
-        panic!("can't get an element from an empty buffer")
+        panic!("{EMPTY_BUFFER}")
+    }
+
+    fn get_mut(&mut self, _: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
+        panic!("{EMPTY_BUFFER}")
     }
 }
 

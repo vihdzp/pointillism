@@ -165,7 +165,7 @@ pub unsafe trait Array:
 
     /// Gets a mutable reference to the value from channel `index`.
     ///
-    /// # Panics
+    /// ## Panics
     ///
     /// Panics if the index is greater than the number of channels.
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Item> {

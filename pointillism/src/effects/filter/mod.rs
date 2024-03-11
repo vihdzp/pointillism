@@ -36,7 +36,7 @@ pub trait FilterMap<A: smp::Audio> {
 ///
 /// ## Transfer function
 ///
-/// Define the complex function
+/// Define the complex [transfer function](https://en.wikipedia.org/wiki/Transfer_function):
 ///
 /// ```txt
 /// H(z) = (b[0] + b[1] * z⁻¹ + ...) / (a[0] + a[1] * z⁻¹ + ...)
@@ -119,46 +119,61 @@ impl<A: smp::Audio, const T: usize, const U: usize> FilterMap<A> for Coefficient
 /// In its most general form, a filter is defined by its previous inputs, its previous outputs, and
 /// a function that maps these to a new output. Traditionally, this function would take the form of
 /// a difference equation, like that of [`Coefficients`], but we allow for versatility so that other
-/// structures like [`Delays`](Delay) can be implemented as a special case.
+/// structures like [`Delays`](eff::Delay) can be implemented as a special case.
+///
+/// The inputs and outputs can be stored in any kind of ring buffer. These include [`buf::Shift`]
+/// and [`buf::Circ`], where the former is preferred for very small buffers, while the latter is
+/// preferred otherwise. You may also use [`buf::EmptyRing`] if you want to ignore the
+/// inputs/outputs, at no cost.
 pub struct Filter<A: smp::Audio, I: buf::Ring<Item = A>, O: buf::Ring<Item = A>, F: FilterMap<A>> {
     /// The filter map.
     pub func: F,
 
     /// Previous inputs to the filter.
-    prev_inputs: I,
+    inputs: I,
     /// Previous outputs to the filter.
-    prev_outputs: O,
+    outputs: O,
 }
 
 impl<A: smp::Audio, I: buf::Ring<Item = A>, O: buf::Ring<Item = A>, F: FilterMap<A>>
     Filter<A, I, O, F>
 {
     /// Initializes a filter with given preconditions.
-    pub const fn new_prev(func: F, prev_inputs: I, prev_outputs: O) -> Self {
+    pub const fn new_prev(func: F, inputs: I, outputs: O) -> Self {
         Self {
             func,
-            prev_inputs,
-            prev_outputs,
+            inputs,
+            outputs,
         }
     }
 
     /// Takes in a new input, returns a new output.
     pub fn eval(&mut self, input: A) -> A {
-        self.prev_inputs.push(input);
-        let output = self.func.eval(&self.prev_inputs, &self.prev_outputs);
-        self.prev_outputs.push(output);
+        self.inputs.push(input);
+        let output = self.func.eval(&self.inputs, &self.outputs);
+        self.outputs.push(output);
         output
+    }
+
+    /// A reference to the previous input values.
+    pub const fn inputs(&self) -> &I {
+        &self.inputs
+    }
+
+    /// A reference to the previous output values.
+    pub const fn outputs(&self) -> &O {
+        &self.outputs
     }
 
     /// Gets the last output value.
     pub fn get(&self) -> A {
-        self.prev_outputs.fst()
+        self.outputs.fst()
     }
 
     /// Resets the previous values to zero.
     pub fn retrigger(&mut self) {
-        self.prev_inputs.clear();
-        self.prev_outputs.clear();
+        self.inputs.clear();
+        self.outputs.clear();
     }
 }
 

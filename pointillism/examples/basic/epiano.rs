@@ -103,27 +103,32 @@ fn main() {
     );
 
     let mut timer = ctr::Timer::new(5.0 * sec);
-    pointillism::create("pointillism/examples/epiano.wav", 5.2 * sec, SAMPLE_RATE, |time| {
-        let mut sgn = p1.next();
+    pointillism::create(
+        "pointillism/examples/epiano.wav",
+        5.2 * sec,
+        SAMPLE_RATE,
+        |time| {
+            let mut sgn = p1.next();
 
-        // Play the second note after one second.
-        if time > unt::Time::from_raw_default(unt::RawTime::SEC) {
-            sgn += p2.next();
-        }
+            // Play the second note after one second.
+            if time > unt::Time::from_raw_default(unt::RawTime::SEC) {
+                sgn += p2.next();
+            }
 
-        // Play the third note after two seconds.
-        if time > 2u8 * sec {
-            sgn += p3.next();
-        }
+            // Play the third note after two seconds.
+            if time > 2u8 * sec {
+                sgn += p3.next();
+            }
 
-        // Stops all notes after five seconds.
-        if timer.tick(time) {
-            p1.stop();
-            p2.stop();
-            p3.stop();
-        }
+            // Stops all notes after five seconds.
+            if timer.tick(time) {
+                p1.stop();
+                p2.stop();
+                p3.stop();
+            }
 
-        sgn / 3.0
-    })
+            sgn / 3.0
+        },
+    )
     .unwrap();
 }

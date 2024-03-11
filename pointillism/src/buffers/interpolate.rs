@@ -85,6 +85,10 @@ macro_rules! ring_boilerplate {
             self.0.get(index)
         }
 
+        fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as Buffer>::Item {
+            self.0.get_mut(index)
+        }
+
         fn push(&mut self, sample: A) {
             self.0.push(sample)
         }

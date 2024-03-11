@@ -3,7 +3,8 @@
 //! ## Sources
 //!
 //! Info on first-order designs retrieved from [First Order Digital Filters--An Audio
-//! Cookbook](http://freeverb3vst.osdn.jp/doc/AN11.pdf) by Christopher Moore.
+//! Cookbook](https://web.archive.org/web/20230711111226/http://freeverb3vst.osdn.jp/doc/AN11.pdf)
+//! by Christopher Moore.
 //!
 //! Biquadratic filter designs are adapted from the renowned [Audio EQ
 //! Cookbook](https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html) by Robert

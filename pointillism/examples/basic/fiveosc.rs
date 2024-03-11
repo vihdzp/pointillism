@@ -37,12 +37,17 @@ fn main() {
     let mut oscillators: [_; NUM_OSC] =
         std::array::from_fn(|i| osc(unt::Val::new(i as f64 / NUM_OSC as f64)));
 
-    pointillism::create("pointillism/examples/fiveosc.wav", 2u8 * time, SAMPLE_RATE, |_| {
-        oscillators
-            .iter_mut()
-            .map(|osc| osc.next())
-            .sum::<smp::Mono>()
-            / NUM_OSC as f64
-    })
+    pointillism::create(
+        "pointillism/examples/fiveosc.wav",
+        2u8 * time,
+        SAMPLE_RATE,
+        |_| {
+            oscillators
+                .iter_mut()
+                .map(|osc| osc.next())
+                .sum::<smp::Mono>()
+                / NUM_OSC as f64
+        },
+    )
     .unwrap();
 }

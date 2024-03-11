@@ -25,16 +25,16 @@ impl QFactor {
     /// - The interval between half gain frequencies, for peaking filters.
     #[must_use]
     pub fn from_bw(bw: unt::Interval) -> Self {
-        Self::new(bw.ratio.sqrt() / (bw.ratio - 1.0))
+        Self(bw.ratio.sqrt() / (bw.ratio - 1.0))
     }
 
-    /// Initializes a Q factor from the "shelf slope", and the filter gain.
+    /// Initializes a Q factor from the "shelf slope" and the filter gain.
     ///
     /// The value S = 1, corresponding to Q = 1 / √2, is the steepest for which the frequency gain
     /// remains monotonic.
     #[must_use]
     pub fn from_slope(slope: f64, vol: unt::Vol) -> Self {
         let a = vol.gain.sqrt();
-        Self::new(1.0 / ((a + 1.0 / a) * (1.0 / slope - 1.0) + 2.0).sqrt())
+        Self(1.0 / ((a + 1.0 / a) * (1.0 / slope - 1.0) + 2.0).sqrt())
     }
 }

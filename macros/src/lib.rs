@@ -1,3 +1,5 @@
+//! Implements the [`midi!`] and [`freq!`] macros.
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use std::fmt::Write;
@@ -53,7 +55,7 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
     for octave in MIN_OCTAVE..=MAX_OCTAVE {
         for (name, index) in NOTE_NAMES {
             for (nat_symbol, symbol, offset) in [("", "", 0), ("♭", "B", -1), ("♯", "S", 1)] {
-                // BS adds an octave, CB removes one.
+                // B♯ adds an octave, C♭ removes one.
                 let index = index + offset;
                 let octave = match index {
                     -1 => octave + 1,
@@ -77,7 +79,7 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
                 }
                 .unwrap();
 
-                write!(code, ": Self = ").unwrap();
+                code.push_str(": Self = ");
                 f(&mut code, note);
                 code.push_str(";\n");
             }
