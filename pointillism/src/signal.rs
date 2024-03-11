@@ -65,7 +65,7 @@ pub trait Signal {
     fn get(&self) -> Self::Sample;
 
     /// Currently, `rust-analyzer` trips up sometimes that `get` is called, confusing it with
-    /// [`Array::get`](crate::trt::Array::get). This hack bypasses this.
+    /// [`Array::get`](crate::Array::get). This hack bypasses this.
     fn _get(&self) -> Self::Sample {
         self.get()
     }

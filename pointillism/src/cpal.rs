@@ -61,13 +61,13 @@ use crate::prelude::*;
 /// A type alias for the return type of these functions.
 pub type CpalResult = Result<<cpal::Device as DeviceTrait>::Stream, cpal::BuildStreamError>;
 
-impl From<SampleRate> for cpal::SampleRate {
-    fn from(value: SampleRate) -> Self {
+impl From<unt::SampleRate> for cpal::SampleRate {
+    fn from(value: unt::SampleRate) -> Self {
         Self(value.0)
     }
 }
 
-impl From<cpal::SampleRate> for SampleRate {
+impl From<cpal::SampleRate> for unt::SampleRate {
     fn from(value: cpal::SampleRate) -> Self {
         Self(value.0)
     }
@@ -83,18 +83,18 @@ impl From<cpal::SampleRate> for SampleRate {
 #[allow(clippy::missing_errors_doc)]
 pub fn build_output_stream<
     A: smp::Audio,
-    F: Send + 'static + FnMut(Time) -> A,
+    F: Send + 'static + FnMut(unt::Time) -> A,
     E: FnMut(cpal::StreamError) + Send + 'static,
 >(
     device: &cpal::Device,
     timeout: Option<std::time::Duration>,
-    sample_rate: SampleRate,
+    sample_rate: unt::SampleRate,
     buffer_size: cpal::BufferSize,
     error_callback: E,
     mut song: F,
 ) -> CpalResult {
     let channels = A::size_u8();
-    let mut time = Time::ZERO;
+    let mut time = unt::Time::ZERO;
 
     device.build_output_stream(
         &StreamConfig {
@@ -137,7 +137,7 @@ pub fn build_output_stream_from_sgn<
 >(
     device: &cpal::Device,
     timeout: Option<std::time::Duration>,
-    sample_rate: SampleRate,
+    sample_rate: unt::SampleRate,
     buffer_size: cpal::BufferSize,
     error_callback: E,
     mut sgn: S,

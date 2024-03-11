@@ -11,11 +11,12 @@ repository = "https://github.com/vihdzp/pointillism"
 version = "0.3.7"
 
 [dependencies]
-cfg-if = "1.0"
+# Required dependencies.
 derive_more = "0.99"
 rand = "0.8"
 macros = { path = "../macros" }
 
+# Optional dependencies.
 cpal = { version = "0.15", optional = true }
 hound = { version = "3.5", optional = true }
 human-duration = { version = "0.1", optional = true }
@@ -33,3 +34,31 @@ midly = ["dep:midly"]
 github-actions-hack = []
 # All features to test code with.
 github-actions-all-features = ["cpal", "midly", "github-actions-hack"]
+
+# Basic examples
+[[example]]
+name = "distortion"
+path = "examples/basic/distortion.rs"
+[[example]]
+name = "epiano"
+path = "examples/basic/epiano.rs"
+[[example]]
+name = "fiveosc"
+path = "examples/basic/fiveosc.rs"
+[[example]]
+name = "harmony"
+path = "examples/basic/harmony.rs"
+[[example]]
+name = "pluck"
+path = "examples/basic/pluck.rs"
+
+# Song examples
+[[example]]
+name = "clair_de_lune"
+path = "examples/songs/clair_de_lune.rs"
+[[example]]
+name = "continuum"
+path = "examples/songs/continuum.rs"
+[[example]]
+name = "primavera_c"
+path = "examples/songs/primavera_c.rs"
