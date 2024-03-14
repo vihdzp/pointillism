@@ -1,5 +1,5 @@
 //! We play various chords in succession, showing off somewhat more advanced use of the
-//! [`Polyphony`] struct.
+//! [`gen::Polyphony`] struct.
 
 use pointillism::prelude::*;
 

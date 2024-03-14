@@ -1,5 +1,7 @@
 //! Implements various simple, common, or useful filter designs.
 //!
+//! TODO: add more first-order filters.
+//!
 //! ## Sources
 //!
 //! Info on first-order designs retrieved from [First Order Digital Filters--An Audio
@@ -10,44 +12,28 @@
 //! Cookbook](https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html) by Robert
 //! Bristow-Johnson.
 
-use super::Coefficients;
+use super::{coefficients::DenseStc, DiffEq};
 use crate::prelude::*;
 
-impl<const T: usize, const U: usize> Coefficients<T, U> {
-    /// Zero all coefficients of the filter.
-    #[must_use]
-    pub const fn zero() -> Self {
-        Self::new_normalized([0.0; T], [0.0; U])
-    }
-}
+/// [`DiffEq`] with small order.
+///
+/// This is backed by two [`DenseStcs`](DenseStc).
+pub type LoDiffEq<const T: usize, const U: usize> = DiffEq<DenseStc<T>, DenseStc<U>>;
 
-impl Default for Coefficients<0, 0> {
-    fn default() -> Self {
-        Self::zero()
-    }
-}
+/// [`DiffEq`] for an order 1 zero.
+pub type SingleZero = LoDiffEq<2, 0>;
 
-impl Coefficients<1, 0> {
-    /// Coefficients for the filter that simply modifies the signal volume.
-    #[must_use]
-    pub const fn gain(vol: unt::Vol) -> Self {
-        Self::new_fir([vol.gain])
+impl SingleZero {
+    /// Initializes a [`SingleZero`] from coefficients normalized to `a0 = 1`.
+    pub const fn new_normalized(b0: f64, b1: f64) -> Self {
+        Self::new_fir(DenseStc::new([b0, b1]))
     }
 
-    /// Coefficients for the filter that returns the original signal, unaltered.
-    #[must_use]
-    pub const fn trivial() -> Self {
-        Self::gain(unt::Vol::FULL)
+    /// Initializes a [`SingleZero`] from its unnormalized coefficients.
+    pub fn new(a0: f64, b0: f64, b1: f64) -> Self {
+        Self::new_normalized(b0 / a0, b1 / a0)
     }
-}
 
-impl Default for Coefficients<1, 0> {
-    fn default() -> Self {
-        Self::trivial()
-    }
-}
-
-impl Coefficients<2, 0> {
     /// Coefficients for a first order zero with 0dB max gain.
     ///
     /// This is a low-pass filter for `a ≤ 0` and a high-pass filter for `a ≥ 0`.
@@ -57,11 +43,24 @@ impl Coefficients<2, 0> {
     #[must_use]
     pub fn single_zero(a: f64) -> Self {
         let norm = 1.0 / (1.0 + a.abs());
-        Self::new_fir([-norm, norm * a])
+        Self::new_normalized(-norm, norm * a)
     }
 }
 
-impl Coefficients<1, 1> {
+/// [`DiffEq`] for an order 1 pole.
+pub type SinglePole = LoDiffEq<1, 1>;
+
+impl SinglePole {
+    /// Initializes a [`SinglePole`] from coefficients normalized to `a0 = 1`.
+    pub const fn new_normalized(a1: f64, b0: f64) -> Self {
+        Self::new_raw(DenseStc::new([b0]), DenseStc::new([a1]))
+    }
+
+    /// Initializes a [`SinglePole`] from its unnormalized coefficients.
+    pub fn new(a0: f64, a1: f64, b0: f64) -> Self {
+        Self::new_normalized(a1 / a0, b0 / a0)
+    }
+
     /// Coefficients for a first order pole with 0dB max gain.
     ///
     /// This is a low-pass filter for `a ≤ 0` and a high-pass filter for `a ≥ 0`.
@@ -71,24 +70,25 @@ impl Coefficients<1, 1> {
     #[must_use]
     pub fn single_pole(a: f64) -> Self {
         let norm = 1.0 - a.abs();
-        Self::new_normalized([norm], [norm * a])
+        Self::new_normalized(norm, norm * a)
     }
 }
 
-/// [`Coefficients`] for a biquadratic (order 2) filter.
-pub type Biquad = Coefficients<3, 2>;
+/// [`DiffEq`] for a bilinear (order 1) filter.
+pub type Bilinear = LoDiffEq<2, 1>;
+
+/// [`DiffEq`] for a biquadratic (order 2) filter.
+pub type Biquad = LoDiffEq<3, 2>;
 
 impl Biquad {
-    /// Initializes a [`Biquad`] from the explicit normalized coefficients.
-    #[must_use]
-    pub const fn new_biquad_normalized(a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
-        Self::new_normalized([b0, b1, b2], [a1, a2])
+    /// Initializes a [`Biquad`] from coefficients normalized to `a0 = 1`.
+    pub const fn new_normalized(a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
+        Self::new_raw(DenseStc::new([b0, b1, b2]), DenseStc::new([a1, a2]))
     }
 
-    /// Initializes a [`Biquad`] from coefficients, which are then normalized.
-    #[must_use]
-    pub fn new_biquad(a0: f64, a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
-        Self::new([b0, b1, b2], [a0, a1, a2])
+    /// Initializes a [`Biquad`] from its unnormalized coefficients.
+    pub fn new(a0: f64, a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
+        Self::new_normalized(a1 / a0, a2 / a0, b0 / a0, b1 / a0, b2 / a0)
     }
 
     /// A [low-pass](https://en.wikipedia.org/wiki/Low-pass_filter) filter.
@@ -103,7 +103,7 @@ impl Biquad {
         let b1 = 1.0 - wc;
         let b0 = b1 / 2.0;
 
-        Self::new_biquad(1.0 + a, -2.0 * wc, 1.0 - a, b0, b1, b0)
+        Self::new(1.0 + a, -2.0 * wc, 1.0 - a, b0, b1, b0)
     }
 
     /// A [hi-pass](https://en.wikipedia.org/wiki/High-pass_filter) filter.
@@ -118,7 +118,7 @@ impl Biquad {
         let b1_neg = 1.0 + wc;
         let b0 = b1_neg / 2.0;
 
-        Self::new_biquad(1.0 + a, -2.0 * wc, 1.0 - a, b0, -b1_neg, b0)
+        Self::new(1.0 + a, -2.0 * wc, 1.0 - a, b0, -b1_neg, b0)
     }
 
     /// A [band-pass](https://en.wikipedia.org/wiki/Band-pass_filter) filter with a 0 dB gain.
@@ -130,7 +130,7 @@ impl Biquad {
         let (ws, wc) = freq.angular().sin_cos();
         let a = ws / (2.0 * q.0);
 
-        Self::new_biquad(1.0 + a, -2.0 * wc, 1.0 - a, a, 0.0, -a)
+        Self::new(1.0 + a, -2.0 * wc, 1.0 - a, a, 0.0, -a)
     }
 
     /// A [notch filter](https://en.wikipedia.org/wiki/Band-stop_filter).
@@ -143,7 +143,7 @@ impl Biquad {
         let a = ws / (2.0 * q.0);
         let a1 = -2.0 * wc;
 
-        Self::new_biquad(1.0 + a, a1, 1.0 - a, 1.0, a1, 1.0)
+        Self::new(1.0 + a, a1, 1.0 - a, 1.0, a1, 1.0)
     }
 
     /// An [all-pass](https://en.wikipedia.org/wiki/Band-stop_filter) filter.
@@ -158,7 +158,7 @@ impl Biquad {
         let a1 = -2.0 * wc;
         let a2 = 1.0 - a;
 
-        Self::new_biquad(a0, a1, a2, a2, a1, a0)
+        Self::new(a0, a1, a2, a2, a1, a0)
     }
 
     /// A peaking filter.
@@ -184,7 +184,7 @@ impl Biquad {
         let mul = a * amp;
         let div = a / amp;
 
-        Self::new_biquad(1.0 + div, a1, 1.0 - div, 1.0 + mul, a1, 1.0 - mul)
+        Self::new(1.0 + div, a1, 1.0 - div, 1.0 + mul, a1, 1.0 - mul)
     }
 
     /// A low shelf filter.
@@ -211,7 +211,7 @@ impl Biquad {
         let add = nxt + prv_mul;
         let sub = nxt - prv_mul;
 
-        Self::new_biquad(
+        Self::new(
             add + mul,
             -2.0 * (prv + nxt_mul),
             add - mul,
@@ -245,7 +245,7 @@ impl Biquad {
         let add = nxt + prv_mul;
         let sub = nxt - prv_mul;
 
-        Self::new_biquad(
+        Self::new(
             sub + mul,
             2.0 * (prv - nxt_mul),
             sub - mul,

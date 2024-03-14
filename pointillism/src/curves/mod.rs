@@ -222,7 +222,6 @@ pub fn saw_tri(x: f64, shape: unt::Val) -> f64 {
     const EPS: f64 = 1e-7;
 
     let shape = shape.inner();
-
     if x < shape {
         if shape < EPS {
             1.0

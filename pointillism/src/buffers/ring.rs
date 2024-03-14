@@ -231,14 +231,17 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
 /// ## Panics
 ///
 /// Panics if the type is not in fact a ZST.
-fn zst_mut<'a, T: 'a>() -> &'a mut T {
+fn zst_mut<'a, T>() -> &'a mut T {
     assert_eq!(std::mem::size_of::<T>(), 0);
+
+    // Safety: dangling pointers are valid for ZSTs.
     unsafe { std::ptr::NonNull::dangling().as_mut() }
 }
 
 /// An empty ring buffer.
 pub struct EmptyRing<A: smp::Audio>(std::marker::PhantomData<A>);
 
+/// Error message for empty buffers.
 const EMPTY_BUFFER: &str = "can't get an element from an empty buffer";
 
 impl<A: smp::Audio> Ring for EmptyRing<A> {

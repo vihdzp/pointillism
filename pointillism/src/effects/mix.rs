@@ -1,8 +1,16 @@
 //! Functions for mixing signals together.
 
+use std::{
+    cell::{RefCell, UnsafeCell},
+    marker::PhantomData,
+};
+
 use crate::prelude::*;
 
-/// Combines two [`Mono`] signals into a [`Stereo`] signal. One signal plays on each channel.
+use self::smp::Audio;
+
+/// Combines two [`smp::Mono`] signals into a [`smp::Stereo`] signal. One signal plays on each
+/// channel.
 pub struct Stereo<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>>(pub X, pub Y);
 
 impl<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>> Stereo<X, Y> {
@@ -123,7 +131,7 @@ impl map::Map for Dup {
     type Output = smp::Stereo;
 
     fn eval(&self, x: smp::Mono) -> smp::Stereo {
-        smp::Audio::duplicate(&x)
+        x.duplicate()
     }
 }
 
@@ -139,35 +147,65 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 
 /// A reference to another signal.
 ///
-/// This can be used as an efficient way to "clone" a signal, in order to then use its output across
-/// various other signals.
+/// This can be used as a simple and efficient way to "clone" a signal, in order to use its output
+/// across various other signals.
 ///
-/// ## Example
+/// Note that due to Rust's aliasing rules, once a `Ref<S>` is created, the original signal can't be
+/// modified until it's dropped. For this same reason, `Ref<S>` does not implement `SignalMut`, even
+/// if `S` does. The only way to "advance" a signal is to re-build it for each sample. If this
+/// restriction is unacceptable, [`Cell`] can be used to provide interior mutability.
 ///
-/// In this simple example, we apply two different effects to a simple saw wave, and play them in
-/// both ears.
+/// ## Examples
 ///
-/// This creates a weird pulsing effect.
+/// In this example, we apply two different distortion effects to a single sine wave, and play them
+/// in both ears. The left ear should be noticeably louder.
 ///
 /// ```
-/// # use pointillism::{prelude::*, traits::*};
-/// // The original signals.
-/// let mut signal = gen::Loop::new(crv::Saw, unt::Freq::from_raw_default(unt::RawFreq::A3));
-/// let mut trem_env = gen::LoopCurve::new(crv::PosSaw, unt::Freq::from_hz_default(1.5));
+/// # use pointillism::prelude::*;
+/// // The original signal.
+/// let mut signal = gen::Loop::new(crv::Sin, unt::Freq::from_raw_default(unt::RawFreq::A3));
 ///
 /// pointillism::create(
 ///     "examples/routing.wav",
-///     unt::Time::from_sec_default(5.0), unt::SampleRate::default(),
+///     unt::Time::from_sec_default(3.0), unt::SampleRate::default(),
 ///     |_| {
-///         // Thanks to `Ref`, we're able to re-use these signals.
+///         // Thanks to `Ref`, we're able to re-use our signal.
+///         // However, we need to re-define it for every sample.
 ///         let sgn1 = eff::PwMapSgn::inf_clip(mix::Ref::new(&signal));
-///         let sgn2 = eff::Tremolo::new(mix::Ref::new(&signal), mix::Ref::new(&trem_env));
+///         let sgn2 = eff::PwMapSgn::cubic(mix::Ref::new(&signal));
 ///         let stereo = mix::Stereo::new(sgn1, sgn2);
 ///
 ///         // However, we must manually advance them.
 ///         let res = stereo.get();
 ///         signal.advance();
-///         trem_env.advance();
+///         res
+///     }
+/// )
+/// .unwrap();
+/// ```
+///
+/// The next example rewrites our previous code in terms of [`Cell`]. If our wrappers had non-zero
+/// cost, this would most likely give a noticeable improvement in performance.
+///
+/// ```
+/// # use pointillism::prelude::*;
+/// // The original signal.
+/// let signal = gen::Loop::new(crv::Sin, unt::Freq::from_raw_default(unt::RawFreq::A3));
+/// let cell = mix::Cell::new(signal);
+///
+/// // Thanks to `Ref`, we're able to re-use our signal.
+/// // And thanks to `Cell`, we only need to define our mix once.
+/// let sgn1 = eff::PwMapSgn::inf_clip(mix::Ref::new(&cell));
+/// let sgn2 = eff::PwMapSgn::cubic(mix::Ref::new(&cell));
+/// let stereo = mix::Stereo::new(sgn1, sgn2);
+///
+/// pointillism::create(
+///     "examples/routing_cell.wav",
+///     unt::Time::from_sec_default(3.0), unt::SampleRate::default(),
+///     |_| {
+///         // The `advance` method here uses interior mutability.
+///         let res = stereo.get();
+///         cell.advance();
 ///         res
 ///     }
 /// )
@@ -193,5 +231,61 @@ impl<'a, S: Signal> Signal for Ref<'a, S> {
 impl<'a, S: Done> Done for Ref<'a, S> {
     fn is_done(&self) -> bool {
         self.0.is_done()
+    }
+}
+
+/// A wrapper around [`UnsafeCell`], which allows us to reference a signal that might be modified.
+///
+/// For safety reasons, we don't allow access to the pointer `&mut S`. Instead, the signal must be
+/// read using the [`Signal`] methods, and modified using [`Cell::modify`].
+pub struct Cell<S: Signal>(UnsafeCell<S>);
+
+impl<S: Signal> Cell<S> {
+    /// Initializes a new [`Cell`].
+    pub const fn new(sgn: S) -> Self {
+        Self(UnsafeCell::new(sgn))
+    }
+
+    /// Modify the signal through the function.
+    pub fn modify<F: FnMut(&mut S)>(&self, mut func: F) {
+        // Safety: within this scope, this is an exclusive reference.
+        func(unsafe { &mut *self.0.get() });
+    }
+}
+
+impl<S: SignalMut> Cell<S> {
+    /// Advances the signal. Note that this only requires `&self`.
+    pub fn advance(&self) {
+        self.modify(|sgn| sgn.advance())
+    }
+
+    /// Gets the next sample and advances the state of the signal. Note that this only requires
+    /// `&self`.
+    pub fn next(&self) -> S::Sample {
+        self.advance();
+        self._get()
+    }
+}
+
+/// If we own `&mut Cell<S>`, it must be the only reference.
+impl<S: Signal> AsMut<S> for Cell<S> {
+    fn as_mut(&mut self) -> &mut S {
+        self.0.get_mut()
+    }
+}
+
+impl<S: Signal> Signal for Cell<S> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> Self::Sample {
+        // Safety: within this scope, this is an exclusive reference.
+        (unsafe { &*self.0.get() })._get()
+    }
+}
+
+impl<S: Done> Done for Cell<S> {
+    fn is_done(&self) -> bool {
+        // Safety: within this scope, this is an exclusive reference.
+        (unsafe { &*self.0.get() }).is_done()
     }
 }

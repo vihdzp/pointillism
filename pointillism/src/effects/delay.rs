@@ -12,7 +12,7 @@ use crate::prelude::*;
 /// owned buffer, and you'll want one of the following three feedback behaviors, for which we make
 /// type aliases.
 ///
-/// - No feedback: [`SingleDelay`].
+/// - No feedback: [`PureDelay`].
 /// - Exponential feedback: [`ExpDelay`].
 /// - Exponential feedback + ping-pong: [`FlipDelay`].
 #[derive(Clone, Debug)]
@@ -189,9 +189,9 @@ impl<
 }
 
 /// A delay that only plays once.
-pub type SingleDelay<S, B> = Delay<S, B, map::Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
+pub type PureDelay<S, B> = Delay<S, B, map::Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
 
-impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> SingleDelay<S, B> {
+impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> PureDelay<S, B> {
     /// Initializes a delay that only plays once.
     ///
     /// To use an empty, owned buffer, see [`Self::new_single_owned`].
@@ -200,13 +200,13 @@ impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> SingleDelay<S, B> {
     }
 }
 
-impl<S: Signal> SingleDelay<S, buf::Dyn<S::Sample>>
+impl<S: Signal> PureDelay<S, buf::Dyn<S::Sample>>
 where
     S::Sample: smp::Audio,
 {
     /// Initializes a delay that only plays once and owns its buffer. The size of the buffer is
     /// determined by the delay time.
-    pub fn new_single_owned(sgn: S, delay: unt::Time) -> Self {
+    pub fn new_pure_owned(sgn: S, delay: unt::Time) -> Self {
         Self::new_owned(sgn, delay, map::Zero::new())
     }
 }
@@ -214,7 +214,7 @@ where
 /// A delay that feeds back into itself with some gain factor.
 ///
 /// This causes the signal to decay exponentially. You can set the volume to `1.0` for an infinite
-/// delay, but other than that, you'll probably want a value between `0.0` and `1.0`, exclusively.
+/// delay, but other than that, you'll probably want a value exclusively between `0.0` and `1.0`.
 pub type ExpDelay<S, B> = Delay<S, B, map::Pw<<S as Signal>::Sample, unt::Vol>>;
 
 impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> ExpDelay<S, B> {
@@ -259,7 +259,7 @@ impl<S: Signal<Sample = smp::Stereo>, B: buf::BufferMut<Item = smp::Stereo>> Fli
     /// Initializes a new [`FlipDelay`].
     ///
     /// You can set the volume to `1.0` for an infinite delay, but other than that, you'll probably
-    /// want a value between `0.0` and `1.0`, exclusively.
+    /// want a value exclusively between `0.0` and `1.0`.
     pub const fn new_flip(sgn: S, buffer: B, vol: unt::Vol) -> Self {
         Self::new(sgn, buffer, comp_flip(vol))
     }

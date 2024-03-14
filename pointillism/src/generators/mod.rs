@@ -379,11 +379,11 @@ impl<S: smp::Sample> Signal for NoiseGen<S> {
 
 impl<S: smp::Sample> SignalMut for NoiseGen<S> {
     fn advance(&mut self) {
-        self.current = S::rand();
+        self.retrigger();
     }
 
     fn retrigger(&mut self) {
-        self.advance();
+        self.current = S::rand();
     }
 }
 

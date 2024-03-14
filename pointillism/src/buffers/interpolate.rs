@@ -46,7 +46,7 @@ pub fn hermite<S: smp::SampleBase>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 pub trait Interpolate:
-    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + buf::ring::Ring + Sized
+    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + buf::Ring + Sized
 {
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -95,11 +95,9 @@ macro_rules! ring_boilerplate {
     };
 }
 
-/// An auxiliary function for `buf::ring::Shift::new(buf::Stc::from_data(array))`.
-const fn shift_from<A: smp::Audio, const N: usize>(
-    array: [A; N],
-) -> buf::ring::Shift<buf::Stc<A, N>> {
-    buf::ring::Shift::new(buf::Stc::from_data(array))
+/// An auxiliary function for casting `[A; N]` into `buf::Shift<buf::Stc<A, N>>`.
+const fn shift_from<A: smp::Audio, const N: usize>(array: [A; N]) -> buf::Shift<buf::Stc<A, N>> {
+    buf::Shift::new(buf::Stc::from_data(array))
 }
 
 /// A buffer for drop-sample [interpolation](Interpolate).

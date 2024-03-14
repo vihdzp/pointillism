@@ -30,7 +30,7 @@ fn main() {
     // Low-pass filter the chord.
     //
     // The zero coefficients are dummy values that get replaced by the envelope.
-    let filter = eff::flt::LoFiltered::new_coefs(chord, eff::flt::Biquad::zero());
+    let filter = eff::flt::LoFiltered::new_coefs(chord, eff::flt::Biquad::default());
 
     // An envelope that closes the filter.
     let env = eff::MutSgn::new(
