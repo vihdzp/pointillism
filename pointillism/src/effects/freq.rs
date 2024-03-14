@@ -8,7 +8,6 @@ use crate::prelude::*;
 pub struct Vib<S: Frequency> {
     /// Base frequency.
     pub base: unt::Freq,
-
     /// Dummy value.
     phantom: PhantomData<S>,
 }
@@ -37,6 +36,8 @@ impl<S: Frequency> map::Env<S> for Vib<S> {
 }
 
 /// Applies vibrato (change in pitch) to a signal according to an envelope.
+///
+/// The envelope serves as a multiplier for a base frequency.
 pub struct Vibrato<S: Frequency, E: SignalMut<Sample = smp::Env>> {
     /// Inner data.
     inner: eff::MutSgn<S, E, Vib<S>>,

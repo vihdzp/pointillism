@@ -85,6 +85,10 @@ where
 }
 
 /// Filters a [`Signal`] through a [`Filter`].
+///
+/// Note that the implementation of [`Done`] assumes that the filtered signal stops right after the
+/// original. This isn't exactly accurate, even for the simplest filters, but it should be
+/// approximately so in practice.
 pub struct Filtered<S: Signal, I: buf::Ring, O: buf::Ring, F: FilterMap>
 where
     S::Sample: smp::Audio,
@@ -149,6 +153,58 @@ where
 
     fn next(&mut self) -> S::Sample {
         self.filter.eval(self.sgn.next())
+    }
+}
+
+impl<S: Base, I: buf::Ring, O: buf::Ring, F: FilterMap> Base for Filtered<S, I, O, F>
+where
+    S::Sample: smp::Audio,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
+    O::Buf: buf::BufferMut<Item = S::Sample>,
+{
+    type Base = S::Base;
+
+    fn base(&self) -> &Self::Base {
+        self.sgn.base()
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self.sgn.base_mut()
+    }
+}
+
+impl<S: Stop, I: buf::Ring, O: buf::Ring, F: FilterMap> Stop for Filtered<S, I, O, F>
+where
+    S::Sample: smp::Audio,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
+    O::Buf: buf::BufferMut<Item = S::Sample>,
+{
+    fn stop(&mut self) {
+        self.sgn.stop();
+    }
+}
+
+impl<S: Panic, I: buf::Ring, O: buf::Ring, F: FilterMap> Panic for Filtered<S, I, O, F>
+where
+    S::Sample: smp::Audio,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
+    O::Buf: buf::BufferMut<Item = S::Sample>,
+{
+    fn panic(&mut self) {
+        self.sgn.panic();
+        self.filter.inputs.clear();
+        self.filter.outputs.clear();
+    }
+}
+
+impl<S: Done, I: buf::Ring, O: buf::Ring, F: FilterMap> Done for Filtered<S, I, O, F>
+where
+    S::Sample: smp::Audio,
+    I::Buf: buf::BufferMut<Item = S::Sample>,
+    O::Buf: buf::BufferMut<Item = S::Sample>,
+{
+    fn is_done(&self) -> bool {
+        self.sgn.is_done()
     }
 }
 

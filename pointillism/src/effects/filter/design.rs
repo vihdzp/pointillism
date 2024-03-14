@@ -25,11 +25,13 @@ pub type SingleZero = LoDiffEq<2, 0>;
 
 impl SingleZero {
     /// Initializes a [`SingleZero`] from coefficients normalized to `a0 = 1`.
+    #[must_use]
     pub const fn new_normalized(b0: f64, b1: f64) -> Self {
         Self::new_fir(DenseStc::new([b0, b1]))
     }
 
     /// Initializes a [`SingleZero`] from its unnormalized coefficients.
+    #[must_use]
     pub fn new(a0: f64, b0: f64, b1: f64) -> Self {
         Self::new_normalized(b0 / a0, b1 / a0)
     }
@@ -52,11 +54,13 @@ pub type SinglePole = LoDiffEq<1, 1>;
 
 impl SinglePole {
     /// Initializes a [`SinglePole`] from coefficients normalized to `a0 = 1`.
+    #[must_use]
     pub const fn new_normalized(a1: f64, b0: f64) -> Self {
         Self::new_raw(DenseStc::new([b0]), DenseStc::new([a1]))
     }
 
     /// Initializes a [`SinglePole`] from its unnormalized coefficients.
+    #[must_use]
     pub fn new(a0: f64, a1: f64, b0: f64) -> Self {
         Self::new_normalized(a1 / a0, b0 / a0)
     }
@@ -82,11 +86,13 @@ pub type Biquad = LoDiffEq<3, 2>;
 
 impl Biquad {
     /// Initializes a [`Biquad`] from coefficients normalized to `a0 = 1`.
+    #[must_use]
     pub const fn new_normalized(a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
         Self::new_raw(DenseStc::new([b0, b1, b2]), DenseStc::new([a1, a2]))
     }
 
     /// Initializes a [`Biquad`] from its unnormalized coefficients.
+    #[must_use]
     pub fn new(a0: f64, a1: f64, a2: f64, b0: f64, b1: f64, b2: f64) -> Self {
         Self::new_normalized(a1 / a0, a2 / a0, b0 / a0, b1 / a0, b2 / a0)
     }

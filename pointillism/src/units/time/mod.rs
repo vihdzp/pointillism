@@ -101,6 +101,18 @@ impl Time {
         Self::from_sec(seconds, unt::SampleRate::default())
     }
 
+    /// Initializes a [`Time`] from the value in milliseconds, and a sample rate.
+    #[must_use]
+    pub fn from_msec(millis: f64, sample_rate: unt::SampleRate) -> Self {
+        Self::from_raw(RawTime::new(1000.0 * millis), sample_rate)
+    }
+
+    /// Initializes a [`Time`] from the value in milliseconds, using the default sample rate.
+    #[must_use]
+    pub fn from_msec_default(millis: f64) -> Self {
+        Self::from_msec(millis, unt::SampleRate::default())
+    }
+
     /// Converts [`Time`] into [`RawTime`], using the specified sample rate.
     #[must_use]
     pub fn into_raw(self, sample_rate: unt::SampleRate) -> RawTime {

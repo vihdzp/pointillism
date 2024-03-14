@@ -188,6 +188,10 @@ impl<S: Signal, F: map::Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
 ///
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`ModSgn`].
+///
+/// ## Example
+///
+/// TODO.
 #[derive(Clone, Debug)]
 pub struct MutSgn<S: Signal, E: Signal<Sample = smp::Env>, F: map::Env<S>> {
     /// The signal to modify.

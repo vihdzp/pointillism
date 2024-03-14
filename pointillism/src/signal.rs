@@ -153,8 +153,8 @@ pub(crate) use impl_base;
 
 /// Represents a signal that ends.
 ///
-/// Is used in [polyphonic](crate::gen::poly) signals, so that a synth can be cleared from
-/// memory when it stops.
+/// This trait is used in [polyphonic](crate::gen::poly) signals, so that a synth can be cleared
+/// from memory when it stops.
 ///
 /// If a signal never ends, it should not implement this trait. If you really want to use such a
 /// signal within a `Polyphony` object, wrap it in the [`eff::Trailing`](crate::eff::Trailing)

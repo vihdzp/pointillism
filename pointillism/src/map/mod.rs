@@ -81,7 +81,7 @@ pub struct Func<X, Y, F> {
 }
 
 impl<X, Y, F> Func<X, Y, F> {
-    /// Wraps a function in an [`Func`].
+    /// Wraps a function in an [`Func`], so that it implements the [`Map`] or [`Mut`] traits..
     pub const fn new(func: F) -> Self {
         Self {
             func,

@@ -1,13 +1,7 @@
 //! Functions for mixing signals together.
 
-use std::{
-    cell::{RefCell, UnsafeCell},
-    marker::PhantomData,
-};
-
 use crate::prelude::*;
-
-use self::smp::Audio;
+use std::cell::UnsafeCell;
 
 /// Combines two [`smp::Mono`] signals into a [`smp::Stereo`] signal. One signal plays on each
 /// channel.
@@ -131,7 +125,8 @@ impl map::Map for Dup {
     type Output = smp::Stereo;
 
     fn eval(&self, x: smp::Mono) -> smp::Stereo {
-        x.duplicate()
+        // TODO: Why do I import all other traits but not this?
+        smp::Audio::duplicate(&x)
     }
 }
 
@@ -256,7 +251,7 @@ impl<S: Signal> Cell<S> {
 impl<S: SignalMut> Cell<S> {
     /// Advances the signal. Note that this only requires `&self`.
     pub fn advance(&self) {
-        self.modify(|sgn| sgn.advance())
+        self.modify(SignalMut::advance);
     }
 
     /// Gets the next sample and advances the state of the signal. Note that this only requires

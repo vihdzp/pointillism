@@ -1,3 +1,8 @@
+//! Defines the different types for the [`Coefficients`] of a [`DiffEq`].
+//!
+//! These include [`Dense`] for polynomials with mostly non-zero entries, and [`Sparse`] for
+//! anything else.
+
 use super::FilterMap;
 use crate::prelude::*;
 
@@ -57,6 +62,7 @@ pub type Zero = DenseStc<0>;
 
 impl<const N: usize> DenseStc<N> {
     /// An array of zero coefficients.
+    #[must_use]
     pub const fn zero() -> Self {
         Self([0.0; N])
     }
