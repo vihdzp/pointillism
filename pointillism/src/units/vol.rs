@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 /// Represents the gain of some signal.
 ///
-/// You can use [`Self::new_db`] and [`Self::db`] to convert gain into decibels, and viceversa. A
+/// You can use [`Self::from_db`] and [`Self::db`] to convert gain into decibels, and viceversa. A
 /// unit gain corresponds to 0 dB.
 ///
 /// This also implements the [`map::Map`] trait, thus doubling as a function that multiplies the
@@ -59,7 +59,7 @@ impl Vol {
 
     /// Gain measured in decibels.
     #[must_use]
-    pub fn new_db(db: f64) -> Self {
+    pub fn from_db(db: f64) -> Self {
         Self::new(10f64.powf(db / 20.0))
     }
 
@@ -68,7 +68,7 @@ impl Vol {
     /// This is not necessarily the best way to interpret MIDI velocity, but it is the simplest.
     #[cfg(feature = "midly")]
     #[must_use]
-    pub fn new_vel(vel: midly::num::u7) -> Self {
+    pub fn from_vel(vel: midly::num::u7) -> Self {
         Self::new(f64::from(vel.as_int()) / 127.0)
     }
 

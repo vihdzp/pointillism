@@ -76,7 +76,7 @@ fn main() {
     // We start with a harmonically complex waveform.
     // Something like a laser sound.
     let signal = eff::Vibrato::new(
-        gen::Loop::<smp::Stereo, _>::new(crv::Saw, unt::Freq::default()),
+        gen::Loop::<smp::Stereo, _>::new(crv::Tri, unt::Freq::default()),
         unt::Freq::from_raw_default(unt::RawFreq::A4),
         gen::Loop::new(
             map::Comp::new(crv::PosSaw, map::Linear::rescale_unit(0.5, 2.0)),
@@ -84,13 +84,18 @@ fn main() {
         ),
     );
 
+    // We set some basic settings.
+    // The delays are set to random amounts, so that each is about 3x as long as the next.
+    let gain = unt::Vol::MDB3;
+    let decay = 10.0;
+    let delays: [unt::Time; 4] =
+        [347.17, 113.29, 37.31, 13.42].map_array(|&t| unt::Time::from_samples((t * decay) as u64));
+
     // Then we compose various reverbs on top of each other.
-    let vol = unt::Vol::new(0.7);
-    let delays: [unt::Time; 4] = [439, 139, 43, 13].map_array(|&s| unt::Time::from_samples(s));
-    let reverb_0 = SchroederUnit::new(signal, vol, delays[0]);
-    let reverb_1 = SchroederUnit::new(reverb_0, vol, delays[1]);
-    let reverb_2 = SchroederUnit::new(reverb_1, vol, delays[2]);
-    let mut reverb_3 = SchroederUnit::new(reverb_2, vol, delays[3]);
+    let reverb_0 = SchroederUnit::new(signal, gain, delays[0]);
+    let reverb_1 = SchroederUnit::new(reverb_0, gain, delays[1]);
+    let reverb_2 = SchroederUnit::new(reverb_1, gain, delays[2]);
+    let mut reverb_3 = SchroederUnit::new(reverb_2, gain, delays[3]);
 
     // Fades from dry to wet.
     let length = unt::Time::from_sec_default(10.0);

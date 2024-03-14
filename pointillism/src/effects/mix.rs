@@ -242,6 +242,10 @@ impl<S: Signal> Cell<S> {
     }
 
     /// Modify the signal through the function.
+    ///
+    /// Although this should be safe, note that it's subject to the same pitfalls as the nightly
+    /// [`Cell::update`](https://github.com/rust-lang/rust/issues/50186#issuecomment-593233850).
+    /// Particularly, you should avoid nested calls.
     pub fn modify<F: FnMut(&mut S)>(&self, mut func: F) {
         // Safety: within this scope, this is an exclusive reference.
         func(unsafe { &mut *self.0.get() });

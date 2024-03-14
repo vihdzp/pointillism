@@ -104,7 +104,7 @@ impl Time {
     /// Initializes a [`Time`] from the value in milliseconds, and a sample rate.
     #[must_use]
     pub fn from_msec(millis: f64, sample_rate: unt::SampleRate) -> Self {
-        Self::from_raw(RawTime::new(1000.0 * millis), sample_rate)
+        Self::from_raw(RawTime::new(millis / 1000.0), sample_rate)
     }
 
     /// Initializes a [`Time`] from the value in milliseconds, using the default sample rate.

@@ -181,7 +181,7 @@ impl<D: Clone> Note<D> {
 ///   can be then converted into [`Freq`] in the standard ways.
 /// - Velocity can be used to attenuate or otherwise modify the sound. This mapping is not specified
 ///   in the MIDI specification, and you can use whatever you want (or nothing at all), but an
-///   obvious choice is to use [`Vol::new_vel`].
+///   obvious choice is to use [`Vol::from_vel`].
 /// - The channel can optionally be used to switch between different instruments or sounds.
 #[derive(Clone, Copy, Debug)]
 #[cfg(feature = "midly")]
