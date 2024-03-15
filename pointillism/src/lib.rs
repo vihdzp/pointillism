@@ -6,7 +6,7 @@
 //! `examples` folder. There's also many simple examples scattered throughout the source code,
 //! showing off different features.
 //!
-//! For a starting example, see the [`create`] docs.
+//! For a starting example, see the [`Song`] docs.
 //!
 //! **Note:** Some examples may be loud, dissonant, and/or jarring. Hearing discretion is advised.
 //!
