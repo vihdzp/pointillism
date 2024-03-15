@@ -29,7 +29,7 @@ your own structs, giving you vast control over the samples you're producing.
 The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because of
 this, we rely on the `prelude` to categorize things neatly.
 
-Every type has a three-letter namespace which helps categorizes it. The main namespaces are as
+Every type has a three-letter namespace which helps disambiguate it. The top-level namespaces are as
 follows:
 
 | Namespace | Full Name | Contents |
@@ -38,8 +38,8 @@ follows:
 | [`crv`] | `curves` | Basic oscillator shapes, and builder methods for more complex ones (in the future).
 | [`ctr`] | `control` | Control structures, which allow for events to happen at specified time intervals.
 | [`eff`] | `effects` | For effects, meaning types that alter other signals.
-| [`map`] | `map` | Basic maps and associated traits.
 | [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
+| [`map`] | `map` | Basic maps and associated traits.
 | [`sgn`] | `signal` | Traits on signals, including the basic [`Signal`] and [`SignalMut`].
 | [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
 | [`rtn`] | `routing` | Structures for mixing or combining different signals together.
