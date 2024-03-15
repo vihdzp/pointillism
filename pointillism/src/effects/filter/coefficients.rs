@@ -16,7 +16,7 @@ pub trait Coefficients {
     /// ```
     ///
     /// This is used for both inputs and outputs.
-    fn eval<A: smp::Audio, B: buf::Ring>(&self, inputs: &B) -> A
+    fn eval<A: Audio, B: Ring>(&self, inputs: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>;
 }
@@ -40,7 +40,7 @@ impl<T: AsRef<[f64]>> Dense<T> {
 }
 
 impl<T: AsRef<[f64]>> Coefficients for Dense<T> {
-    fn eval<A: smp::Audio, B: buf::Ring>(&self, samples: &B) -> A
+    fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>,
     {
@@ -104,7 +104,7 @@ impl<T: AsRef<[(usize, f64)]>> Sparse<T> {
 }
 
 impl<T: AsRef<[(usize, f64)]>> Coefficients for Sparse<T> {
-    fn eval<A: smp::Audio, B: buf::Ring>(&self, samples: &B) -> A
+    fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>,
     {
@@ -179,7 +179,7 @@ impl<T: Coefficients> DiffEq<T, Zero> {
 }
 
 impl<T: Coefficients, U: Coefficients> FilterMap for DiffEq<T, U> {
-    fn eval<A: smp::Audio, I: buf::Ring, O: buf::Ring>(&self, inputs: &I, outputs: &O) -> A
+    fn eval<A: Audio, I: Ring, O: Ring>(&self, inputs: &I, outputs: &O) -> A
     where
         I::Buf: buf::BufferMut<Item = A>,
         O::Buf: buf::BufferMut<Item = A>,

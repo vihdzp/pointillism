@@ -26,7 +26,7 @@ pub use ring::*;
 /// A trait for readable buffers.
 pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::Item> {
     /// The type of sample stored in the buffer.
-    type Item: smp::Audio;
+    type Item: Audio;
 
     /// Returns the length of the buffer.
     fn len(&self) -> usize {
@@ -62,7 +62,7 @@ pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::It
     #[must_use]
     fn peak(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn peak<A: smp::Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
+        fn peak<A: Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
             let mut res = A::new_default();
 
             for sample in buf {
@@ -86,7 +86,7 @@ pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::It
     #[must_use]
     fn rms(&self) -> <Self::Item as smp::Array>::Array<unt::Vol> {
         /// Prevent code duplication.
-        fn rms<A: smp::Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
+        fn rms<A: Audio>(buf: &[A]) -> <A as smp::Array>::Array<unt::Vol> {
             let mut res: <A as Array>::Array<f64> = Array::new_default();
 
             for sample in buf {
@@ -118,9 +118,15 @@ pub trait BufferMut:
         self.as_mut()
     }
 
+    /// Currently, `rust-analyzer` trips up sometimes that `as_mut` is called directly, not
+    /// recognizing that it can be dereferenced. This hack bypasses this.
+    fn _as_mut(&mut self) -> &mut [Self::Item] {
+        self.as_mut()
+    }
+
     /// Gets a mutable reference to a sample at a given index.
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Item> {
-        self.as_mut().get_mut(index)
+        self._as_mut().get_mut(index)
     }
 
     /// Overwrites a buffer with the output from a song.
@@ -131,7 +137,7 @@ pub trait BufferMut:
         time: &mut unt::Time,
         mut song: F,
     ) {
-        for sample in self.as_mut() {
+        for sample in self._as_mut() {
             *sample = song(*time);
             time.advance();
         }
@@ -158,73 +164,73 @@ pub trait BufferMut:
 
 /// A buffer that holds a reference to its data.
 #[derive(Clone, Debug)]
-pub struct Slice<'a, A: smp::Audio> {
+pub struct Slice<'a, A: Audio> {
     pub data: &'a [A],
 }
 
 /// A buffer that holds a mutable reference to its data.
 #[derive(Debug)]
-pub struct SliceMut<'a, A: smp::Audio> {
+pub struct SliceMut<'a, A: Audio> {
     pub data: &'a mut [A],
 }
 
 /// A statically allocated, owned sample buffer.
 #[derive(Clone, Copy, Debug)]
-pub struct Stc<A: smp::Audio, const N: usize> {
+pub struct Stc<A: Audio, const N: usize> {
     /// The data stored by the buffer.
     pub data: [A; N],
 }
 
 /// A dynamically allocated, owned sample buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Dyn<A: smp::Audio> {
+pub struct Dyn<A: Audio> {
     /// The data stored by the buffer.
     pub data: Vec<A>,
 }
 
-impl<'a, A: smp::Audio> AsRef<[A]> for Slice<'a, A> {
+impl<'a, A: Audio> AsRef<[A]> for Slice<'a, A> {
     fn as_ref(&self) -> &[A] {
         self.data
     }
 }
 
-impl<'a, A: smp::Audio> AsRef<[A]> for SliceMut<'a, A> {
+impl<'a, A: Audio> AsRef<[A]> for SliceMut<'a, A> {
     fn as_ref(&self) -> &[A] {
         self.data
     }
 }
 
-impl<A: smp::Audio, const N: usize> AsRef<[A]> for Stc<A, N> {
+impl<A: Audio, const N: usize> AsRef<[A]> for Stc<A, N> {
     fn as_ref(&self) -> &[A] {
         &self.data
     }
 }
 
-impl<A: smp::Audio> AsRef<[A]> for Dyn<A> {
+impl<A: Audio> AsRef<[A]> for Dyn<A> {
     fn as_ref(&self) -> &[A] {
         &self.data
     }
 }
 
-impl<'a, A: smp::Audio> AsMut<[A]> for SliceMut<'a, A> {
+impl<'a, A: Audio> AsMut<[A]> for SliceMut<'a, A> {
     fn as_mut(&mut self) -> &mut [A] {
         self.data
     }
 }
 
-impl<A: smp::Audio, const N: usize> AsMut<[A]> for Stc<A, N> {
+impl<A: Audio, const N: usize> AsMut<[A]> for Stc<A, N> {
     fn as_mut(&mut self) -> &mut [A] {
         &mut self.data
     }
 }
 
-impl<A: smp::Audio> AsMut<[A]> for Dyn<A> {
+impl<A: Audio> AsMut<[A]> for Dyn<A> {
     fn as_mut(&mut self) -> &mut [A] {
         &mut self.data
     }
 }
 
-impl<'a, A: smp::Audio> Index<usize> for Slice<'a, A> {
+impl<'a, A: Audio> Index<usize> for Slice<'a, A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -232,7 +238,7 @@ impl<'a, A: smp::Audio> Index<usize> for Slice<'a, A> {
     }
 }
 
-impl<'a, A: smp::Audio> Index<usize> for SliceMut<'a, A> {
+impl<'a, A: Audio> Index<usize> for SliceMut<'a, A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -240,7 +246,7 @@ impl<'a, A: smp::Audio> Index<usize> for SliceMut<'a, A> {
     }
 }
 
-impl<A: smp::Audio, const N: usize> Index<usize> for Stc<A, N> {
+impl<A: Audio, const N: usize> Index<usize> for Stc<A, N> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -248,7 +254,7 @@ impl<A: smp::Audio, const N: usize> Index<usize> for Stc<A, N> {
     }
 }
 
-impl<A: smp::Audio> Index<usize> for Dyn<A> {
+impl<A: Audio> Index<usize> for Dyn<A> {
     type Output = A;
 
     fn index(&self, index: usize) -> &A {
@@ -256,58 +262,58 @@ impl<A: smp::Audio> Index<usize> for Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IndexMut<usize> for SliceMut<'a, A> {
+impl<'a, A: Audio> IndexMut<usize> for SliceMut<'a, A> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
-impl<A: smp::Audio, const N: usize> IndexMut<usize> for Stc<A, N> {
+impl<A: Audio, const N: usize> IndexMut<usize> for Stc<A, N> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
-impl<A: smp::Audio> IndexMut<usize> for Dyn<A> {
+impl<A: Audio> IndexMut<usize> for Dyn<A> {
     fn index_mut(&mut self, index: usize) -> &mut A {
         &mut self.as_mut()[index]
     }
 }
 
-impl<'a, A: smp::Audio> Buffer for Slice<'a, A> {
+impl<'a, A: Audio> Buffer for Slice<'a, A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> Buffer for SliceMut<'a, A> {
+impl<'a, A: Audio> Buffer for SliceMut<'a, A> {
     type Item = A;
 }
 
-impl<A: smp::Audio, const N: usize> Buffer for Stc<A, N> {
+impl<A: Audio, const N: usize> Buffer for Stc<A, N> {
     type Item = A;
 }
 
-impl<A: smp::Audio> Buffer for Dyn<A> {
+impl<A: Audio> Buffer for Dyn<A> {
     type Item = A;
 }
 
-impl<'a, A: smp::Audio> BufferMut for SliceMut<'a, A> {}
-impl<A: smp::Audio, const N: usize> BufferMut for Stc<A, N> {}
-impl<A: smp::Audio> BufferMut for Dyn<A> {}
+impl<'a, A: Audio> BufferMut for SliceMut<'a, A> {}
+impl<A: Audio, const N: usize> BufferMut for Stc<A, N> {}
+impl<A: Audio> BufferMut for Dyn<A> {}
 
-impl<A: smp::Audio, const N: usize> Default for Stc<A, N> {
+impl<A: Audio, const N: usize> Default for Stc<A, N> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, A: smp::Audio> Slice<'a, A> {
+impl<'a, A: Audio> Slice<'a, A> {
     /// Initializes a new [`buf::Slice`].
     pub const fn new(data: &'a [A]) -> Self {
         Self { data }
     }
 }
 
-impl<'a, A: smp::Audio> SliceMut<'a, A> {
+impl<'a, A: Audio> SliceMut<'a, A> {
     /// Initializes a new [`buf::MutSlice`].
     pub fn new(data: &'a mut [A]) -> Self {
         Self { data }
@@ -322,7 +328,7 @@ impl<'a, A: smp::Audio> SliceMut<'a, A> {
     }
 }
 
-impl<A: smp::Audio, const N: usize> Stc<A, N> {
+impl<A: Audio, const N: usize> Stc<A, N> {
     /// Initializes a new [`Stc`] from data.
     pub const fn from_data(data: [A; N]) -> Self {
         Self { data }
@@ -349,7 +355,7 @@ impl<A: smp::Audio, const N: usize> Stc<A, N> {
     }
 }
 
-impl<A: smp::Audio> Dyn<A> {
+impl<A: Audio> Dyn<A> {
     /// Initializes a new [`Dyn`] from data.
     #[must_use]
     pub const fn from_data(data: Vec<A>) -> Self {
@@ -434,19 +440,19 @@ impl<A: smp::Audio> Dyn<A> {
     }
 }
 
-impl<A: smp::Audio> From<Vec<A>> for Dyn<A> {
+impl<A: Audio> From<Vec<A>> for Dyn<A> {
     fn from(data: Vec<A>) -> Self {
         Self::from_data(data)
     }
 }
 
-impl<A: smp::Audio> FromIterator<A> for Dyn<A> {
+impl<A: Audio> FromIterator<A> for Dyn<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self::from_data(FromIterator::from_iter(iter))
     }
 }
 
-impl<A: smp::Audio> IntoIterator for Dyn<A> {
+impl<A: Audio> IntoIterator for Dyn<A> {
     type IntoIter = std::vec::IntoIter<A>;
     type Item = A;
 
@@ -455,7 +461,7 @@ impl<A: smp::Audio> IntoIterator for Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IntoIterator for &'a Dyn<A> {
+impl<'a, A: Audio> IntoIterator for &'a Dyn<A> {
     type IntoIter = std::slice::Iter<'a, A>;
     type Item = &'a A;
 
@@ -464,7 +470,7 @@ impl<'a, A: smp::Audio> IntoIterator for &'a Dyn<A> {
     }
 }
 
-impl<'a, A: smp::Audio> IntoIterator for &'a mut Dyn<A> {
+impl<'a, A: Audio> IntoIterator for &'a mut Dyn<A> {
     type IntoIter = std::slice::IterMut<'a, A>;
     type Item = &'a mut A;
 

@@ -108,7 +108,7 @@ impl<B: buf::BufferMut> Shift<B> {
 
 /// An auxiliary function that copies `index` to `index + count`.
 ///
-/// The redundant `as_mut` stops rust-analyzer from complaining.
+/// The redundant `as_mut` stops `rust-analyzer` from complaining.
 fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
     let buf = ring.buffer_mut();
     buf.as_mut()[index + count] = buf[index];
@@ -239,12 +239,12 @@ fn zst_mut<'a, T>() -> &'a mut T {
 }
 
 /// An empty ring buffer.
-pub struct EmptyRing<A: smp::Audio>(std::marker::PhantomData<A>);
+pub struct EmptyRing<A: Audio>(std::marker::PhantomData<A>);
 
 /// Error message for empty buffers.
 const EMPTY_BUFFER: &str = "can't get an element from an empty buffer";
 
-impl<A: smp::Audio> Ring for EmptyRing<A> {
+impl<A: Audio> Ring for EmptyRing<A> {
     type Buf = buf::Empty<A>;
 
     fn buffer(&self) -> &Self::Buf {

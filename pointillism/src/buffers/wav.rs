@@ -2,7 +2,7 @@
 //!
 //! ## Supported WAV formats
 //!
-//! The [`hound`] library, and `pointillism` by extension, support only WAV files in the following
+//! The [`hound`] library, and `pointillism` by extension, only support WAV files in the following
 //! formats:
 //!    
 //! - 8-bit integer
@@ -83,8 +83,8 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// Initializes a [`WavFileReader`] with the given path, which can expect a [`Mono`] or [`Stereo`]
-/// file.
+/// Initializes a [`WavFileReader`] with the given path, which can expect a [`smp::Mono`] or
+/// [`smp::Stereo`] file.
 ///
 /// ## Errors
 ///

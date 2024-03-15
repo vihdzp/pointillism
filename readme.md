@@ -38,15 +38,17 @@ follows:
 | [`crv`] | `curves` | Basic oscillator shapes, and builder methods for more complex ones (in the future).
 | [`ctr`] | `control` | Control structures, which allow for events to happen at specified time intervals.
 | [`eff`] | `effects` | For effects, meaning types that alter other signals.
-| [`int`] | `interpolate` | Interpolation types and buffers.
 | [`map`] | `map` | Basic maps and associated traits.
 | [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
-| [`sgn`] | `signal` | Traits on signals, including the basic [`sgn::Ref`] and [`sgn::Mut`].
+| [`sgn`] | `signal` | Traits on signals, including the basic [`Signal`] and [`SignalMut`].
 | [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
-| [`unt`] | `units` | Different units for musical measurement, and associated arithmetic boilerplate.
+| [`unt`] | `units` | Different units for musical measurement, and associated arithmetical boilerplate.
 
-Some of these also contain further namespaces, almost always three letters. See the documentation
-for the full breakdown.
+Note that traits are always imported when the prelude is imported. This simplifies some complex
+`impl` declarations, and also makes the trait methods available whenever.
+
+Some of these namespaces also contain further nested namespaces, almost always three letters. See
+the documentation for the full breakdown.
 
 ### Compile-time
 
@@ -65,10 +67,10 @@ The project uses the following features:
 
 | Feature | Enables |
 |-|-|
-| [`hound`](https://docs.rs/hound/latest/hound/)* | Saving songs as WAV files. |
-| [`cpal`](https://docs.rs/cpal/latest/cpal/) | Playing songs in a dedicated thread. |
-| [`midly`](https://docs.rs/midly/latest/midly/) | Reading and playing back MIDI files. |
-| [`human-duration`](https://docs.rs/human-duration/latest/human_duration/)* | Pretty-printing for the [`RawTime`] type. |
+| [`hound`](https://docs.rs/hound/latest/hound)* | Saving songs as WAV files. |
+| [`cpal`](https://docs.rs/cpal/latest/cpal) | Playing songs in a dedicated thread. |
+| [`midly`](https://docs.rs/midly/latest/midly) | Reading and playing back MIDI files. |
+| [`human-duration`](https://docs.rs/human-duration/latest/human_duration)* | Pretty-printing for the [`RawTime`] type. |
 
 \* Features marked with an asterisk are enabled by default.
 
@@ -76,7 +78,7 @@ The project uses the following features:
 
 Future goals of pointillism are:
 
-- Algorithmic reverb
+- (Better) algorithmic reverbs
 - Limiters, compressors, sidechaining
 - [Me](https://viiii.bandcamp.com) making a whole album with it :D
 
@@ -86,7 +88,7 @@ This is a passion project made by one college student learning about DSP. I make
 being well-designed, well-maintained, or usable for your own goals.
 
 If you just want to make music with code, and especially if you enjoy live feedback,
-[SuperCollider](https://supercollider.github.i) and [Pure Data](https://puredata.info) will most
+[SuperCollider](https://supercollider.github.io) and [Pure Data](https://puredata.info) will most
 likely be better alternatives for you.
 
 That said, if you happen to stumble across this and make something cool, please let me know!

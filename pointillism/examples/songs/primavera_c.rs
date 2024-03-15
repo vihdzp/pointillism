@@ -51,7 +51,7 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
     };
 
     // Binaural beats.
-    mix::Stereo::new(wave(base * 0.985), vib(base))
+    eff::Stereo::new(wave(base * 0.985), vib(base))
 }
 
 /// The melody that starts two minutes in.
@@ -115,9 +115,10 @@ fn main() {
 
             // The triangle waves start playing 2 minutes in.
             if time > melody_time {
-                sample += smp::Audio::duplicate(
-                    &(melody.next() * fade(time - melody_time, length - melody_time, fade_time)),
-                ) / 10.0;
+                sample += (melody.next()
+                    * fade(time - melody_time, length - melody_time, fade_time))
+                .duplicate()
+                    / 10.0;
             }
 
             sample / 2.0

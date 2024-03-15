@@ -120,7 +120,7 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> map::Env<Volume<S>> for Trem<S> {
+impl<S: Signal> Env<Volume<S>> for Trem<S> {
     fn modify_env(&mut self, sgn: &mut Volume<S>, gain: smp::Env) {
         sgn.vol_mut().gain = gain.0;
     }
@@ -130,7 +130,7 @@ impl<S: Signal> map::Env<Volume<S>> for Trem<S> {
 ///
 /// Note that "tremolo" here just means a **change** in volume controlled by an envelope. This is
 /// more general than the usual meaning of tremolo, this being **oscillation** in volume. For
-/// instance, [`AdsrEnv`] is a special case of [`Tremolo`] (technically [`StopTremolo`]).
+/// instance, [`eff::env::Adsr`] is a special case of [`Tremolo`] (technically [`StopTremolo`]).
 ///
 /// This signal stops whenever the original signal does. If you instead want a signal that stops
 /// when the envelope does, use [`StopTremolo`].

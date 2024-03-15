@@ -3,13 +3,14 @@
 
 use pointillism::prelude::*;
 
+/// A single Schroeder all-pass filter.
 struct SchroederUnit<S: Signal>(eff::dly::ExpDelay<S, buf::Dyn<S::Sample>>)
 where
-    S::Sample: smp::Audio;
+    S::Sample: Audio;
 
 impl<S: Signal> SchroederUnit<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a Schroeder reverberation unit.
     fn new(sgn: S, gain: unt::Vol, delay: unt::Time) -> Self {
@@ -34,7 +35,7 @@ where
 
 impl<S: Signal> Signal for SchroederUnit<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     type Sample = S::Sample;
 
@@ -46,7 +47,7 @@ where
 
 impl<S: SignalMut> SignalMut for SchroederUnit<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     fn advance(&mut self) {
         self.0.advance();
@@ -59,7 +60,7 @@ where
 
 impl<S: Base> Base for SchroederUnit<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     type Base = S::Base;
 
@@ -74,7 +75,7 @@ where
 
 fn main() {
     // We start with a harmonically complex waveform.
-    // Something like a laser sound.
+    // A laser sound should work.
     let signal = eff::Vibrato::new(
         gen::Loop::<smp::Stereo, _>::new(crv::Tri, unt::Freq::default()),
         unt::Freq::from_raw_default(unt::RawFreq::A4),

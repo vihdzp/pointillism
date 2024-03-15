@@ -178,7 +178,7 @@ impl From<ArStage> for AdsrStage {
 /// •――――――――――――――――――•  [DC = 0]
 /// ```
 ///
-/// If you don't care for the sustain, you might instead want to use an [`ArEnvelope`].
+/// If you don't care for the sustain, you might want to use an [`ArEnv`] instead.
 #[derive(Clone, Copy, Debug)]
 pub struct Adsr {
     /// The time from the signal start to its peak.

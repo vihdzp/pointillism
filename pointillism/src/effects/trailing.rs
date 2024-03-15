@@ -4,10 +4,11 @@ use crate::prelude::*;
 
 /// A trailing signal.
 ///
-/// It can be stopped, but doing so won't actually change the output.
+/// It can be stopped, but doing so won't actually change the output. Calling [`Done::is_done`] will
+/// always return `false`.
 ///
 /// **Important note**: Using this is somewhat of a hack. If used repeatedly in a
-/// [`Polyphony`](crate::prelude::Polyphony) struct, it will greatly slow down the code.
+/// [`Polyphony`](crate::gen::Polyphony) struct, it will greatly slow down the code.
 pub struct Trailing<S: SignalMut> {
     /// The inner signal.
     pub sgn: S,

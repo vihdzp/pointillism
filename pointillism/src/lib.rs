@@ -89,7 +89,7 @@ mod with_hound {
     /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
     ///     .expect("IO error");
     /// ```
-    pub fn create<P: AsRef<std::path::Path>, A: smp::Audio, F: FnMut(unt::Time) -> A>(
+    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(unt::Time) -> A>(
         filename: P,
         length: unt::Time,
         sample_rate: unt::SampleRate,
@@ -126,32 +126,27 @@ mod with_hound {
         sgn: &mut S,
     ) -> hound::Result<()>
     where
-        S::Sample: smp::Audio,
+        S::Sample: Audio,
     {
         create(filename, length, sample_rate, |_| sgn.next())
     }
 }
 
-/// Auxiliary module for importing traits.
-pub mod traits {
-    pub use crate::{
-        buf::{Buffer, BufferMut, Ring},
-        map::{Map, Mut},
-        sample::{Array, Sample, SampleBase},
-        signal::*,
-    };
-}
-
 /// The crate prelude.
+///
+/// See the readme for a full list of abbreviations.
 pub mod prelude {
-    #[cfg(feature = "hound")]
-    pub use crate::buffers::wav::*;
 
     // Abbreviate module names.
     pub use crate::{
-        buffers as buf, control as ctr, curves as crv, eff::flt, eff::mix, effects as eff,
-        generators as gen, map, sample as smp, traits as trt, units as unt,
+        buffers as buf, control as ctr, curves as crv, effects as eff, generators as gen, map,
+        sample as smp, units as unt,
     };
-    // Import all traits.
-    pub use crate::trt::*;
+    // Import traits.
+    pub use crate::{
+        buf::{Buffer, BufferMut, Ring},
+        map::{Env, Map, Mut},
+        sample::{Array, Audio, Sample, SampleBase},
+        signal::*,
+    };
 }

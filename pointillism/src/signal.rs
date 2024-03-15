@@ -44,7 +44,7 @@ use crate::{sample::Sample, units::Freq};
 ///
 /// Most signals will implement the stronger trait [`SignalMut`], meaning that the state of the
 /// signal can be advanced. The main use case for this weaker trait is signal routing. For instance,
-/// you can create two references to a [`SignalMut`] via [`crate::mix::Ref`], and apply
+/// you can create two references to a [`SignalMut`] via [`eff::Ref`](crate::eff::Ref), and apply
 /// separate effects to them.
 ///
 /// ## Implementing the trait
@@ -157,14 +157,17 @@ pub(crate) use impl_base;
 /// from memory when it stops.
 ///
 /// If a signal never ends, it should not implement this trait. If you really want to use such a
-/// signal within a `Polyphony` object, wrap it in the [`eff::Trailing`](crate::eff::Trailing)
-/// structure.
+/// signal within a [`Polyphony`](crate::gen::poly) struct, wrap it in the
+/// [`eff::Trailing`](crate::eff::Trailing) structure.
 pub trait Done: Signal {
-    /// Returns whether the signal has stopped producing any sound altogether.
+    /// Returns whether the signal has stopped producing any sound altogether. If this returns
+    /// `true` once, it must return `true` in all successive times, unless retriggered.
     ///
-    /// If this returns `true` once, it must return `true` in all successive times, unless
-    /// retriggered. Further, if this returns `true`, then getting a sample from the signal must
-    /// always return zero.
+    /// We make no formal guarantee that calling `is_done` on a signal means that it outputs zero.
+    /// This is both because of potential floating point imprecision, and infinite impulse filters
+    /// (such as those seen in equalizers) never technically flattening out. That said, any output
+    /// after `is_done` outputs `true` should be "negligible", in the sense that trimming it off
+    /// won't substantially change the sound.
     fn is_done(&self) -> bool;
 }
 

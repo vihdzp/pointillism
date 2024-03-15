@@ -13,7 +13,7 @@ pub use design::*;
 /// These might need to have a minimum length in order to avoid panicking.
 pub trait FilterMap {
     /// Evaluates the function, given the previous inputs and outputs.
-    fn eval<A: smp::Audio, I: buf::Ring, O: buf::Ring>(&self, inputs: &I, outputs: &O) -> A
+    fn eval<A: Audio, I: Ring, O: Ring>(&self, inputs: &I, outputs: &O) -> A
     where
         I::Buf: buf::BufferMut<Item = A>,
         O::Buf: buf::BufferMut<Item = A>;
@@ -27,7 +27,7 @@ pub trait FilterMap {
 /// and [`buf::Circ`], where the former is preferred for very small buffers, while the latter is
 /// preferred otherwise. You may also use [`buf::EmptyRing`] if you want to ignore the
 /// inputs/outputs, at no cost.
-pub struct Filter<A: smp::Audio, I: buf::Ring, O: buf::Ring, F: FilterMap>
+pub struct Filter<A: Audio, I: Ring, O: Ring, F: FilterMap>
 where
     I::Buf: buf::BufferMut<Item = A>,
     O::Buf: buf::BufferMut<Item = A>,
@@ -40,7 +40,7 @@ where
     outputs: O,
 }
 
-impl<A: smp::Audio, I: buf::Ring, O: buf::Ring, F: FilterMap> Filter<A, I, O, F>
+impl<A: Audio, I: Ring, O: Ring, F: FilterMap> Filter<A, I, O, F>
 where
     I::Buf: buf::BufferMut<Item = A>,
     O::Buf: buf::BufferMut<Item = A>,
@@ -89,9 +89,9 @@ where
 /// Note that the implementation of [`Done`] assumes that the filtered signal stops right after the
 /// original. This isn't exactly accurate, even for the simplest filters, but it should be
 /// approximately so in practice.
-pub struct Filtered<S: Signal, I: buf::Ring, O: buf::Ring, F: FilterMap>
+pub struct Filtered<S: Signal, I: Ring, O: Ring, F: FilterMap>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -101,9 +101,9 @@ where
     pub filter: Filter<S::Sample, I, O, F>,
 }
 
-impl<S: Signal, I: buf::Ring, O: buf::Ring, F: FilterMap> Filtered<S, I, O, F>
+impl<S: Signal, I: Ring, O: Ring, F: FilterMap> Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -123,9 +123,9 @@ where
     }
 }
 
-impl<S: Signal, I: buf::Ring, O: buf::Ring, F: FilterMap> Signal for Filtered<S, I, O, F>
+impl<S: Signal, I: Ring, O: Ring, F: FilterMap> Signal for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -136,9 +136,9 @@ where
     }
 }
 
-impl<S: SignalMut, I: buf::Ring, O: buf::Ring, F: FilterMap> SignalMut for Filtered<S, I, O, F>
+impl<S: SignalMut, I: Ring, O: Ring, F: FilterMap> SignalMut for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -156,9 +156,9 @@ where
     }
 }
 
-impl<S: Base, I: buf::Ring, O: buf::Ring, F: FilterMap> Base for Filtered<S, I, O, F>
+impl<S: Base, I: Ring, O: Ring, F: FilterMap> Base for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -173,9 +173,9 @@ where
     }
 }
 
-impl<S: Stop, I: buf::Ring, O: buf::Ring, F: FilterMap> Stop for Filtered<S, I, O, F>
+impl<S: Stop, I: Ring, O: Ring, F: FilterMap> Stop for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -184,9 +184,9 @@ where
     }
 }
 
-impl<S: Panic, I: buf::Ring, O: buf::Ring, F: FilterMap> Panic for Filtered<S, I, O, F>
+impl<S: Panic, I: Ring, O: Ring, F: FilterMap> Panic for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
     I::Buf: buf::BufferMut<Item = S::Sample>,
     O::Buf: buf::BufferMut<Item = S::Sample>,
 {
@@ -197,25 +197,44 @@ where
     }
 }
 
-impl<S: Done, I: buf::Ring, O: buf::Ring, F: FilterMap> Done for Filtered<S, I, O, F>
+impl<S: Done, I: Ring, O: Ring, F: FilterMap> Done for Filtered<S, I, O, F>
 where
-    S::Sample: smp::Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    S::Sample: Audio,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     fn is_done(&self) -> bool {
         self.sgn.is_done()
     }
 }
 
+/// Aliases for [`Filtered::func`] and [`Filtered::func_mut`].
+impl<S: Signal, I: Ring, O: Ring, T: Coefficients, U: Coefficients> Filtered<S, I, O, DiffEq<T, U>>
+where
+    S::Sample: Audio,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
+{
+    /// Returns the coefficients of the filter.
+    pub fn coefs(&self) -> &DiffEq<T, U> {
+        self.func()
+    }
+
+    /// Returns a mutable reference to the coefficients of the filter.
+    pub fn coefs_mut(&mut self) -> &mut DiffEq<T, U> {
+        self.func_mut()
+    }
+}
+
 /// A low order filter defined by its [`Coefficients`]. **This is not the same as a low-pass!**
 ///
 /// This is recommended only for simple filters like biquads, as it makes use of a [`buf::Shift`]
-/// buffer. Higher orders, assuming the coefficients are dense, are better served by [`HiFilter`].
+/// buffer. Higher order filters can be implemented in more than one way, and you'll probably want
+/// to build your [`Filter`] manually.
 pub type LoFilter<A, const T: usize, const U: usize> =
     Filter<A, buf::Shift<buf::Stc<A, T>>, buf::Shift<buf::Stc<A, U>>, LoDiffEq<T, U>>;
 
-impl<A: smp::Audio, const T: usize, const U: usize> LoFilter<A, T, U> {
+impl<A: Audio, const T: usize, const U: usize> LoFilter<A, T, U> {
     /// Initializes a [`LoFilter`] from its coefficients.
     #[must_use]
     pub const fn new_coefs(coefs: LoDiffEq<T, U>) -> Self {
@@ -237,20 +256,10 @@ pub type LoFiltered<S, const T: usize, const U: usize> = Filtered<
 
 impl<S: Signal, const T: usize, const U: usize> LoFiltered<S, T, U>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a [`LoFilter`] from its coefficients.
     pub const fn new_coefs(sgn: S, coefs: LoDiffEq<T, U>) -> Self {
         Self::new(sgn, LoFilter::new_coefs(coefs))
-    }
-
-    /// Returns the coefficients of the filter.
-    pub fn coefs(&self) -> &LoDiffEq<T, U> {
-        self.func()
-    }
-
-    /// Returns a mutable reference to the coefficients of the filter.
-    pub fn coefs_mut(&mut self) -> &mut LoDiffEq<T, U> {
-        self.func_mut()
     }
 }

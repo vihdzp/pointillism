@@ -8,14 +8,14 @@ use std::cell::UnsafeCell;
 pub struct Stereo<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>>(pub X, pub Y);
 
 impl<X: Signal<Sample = smp::Mono>, Y: Signal<Sample = smp::Mono>> Stereo<X, Y> {
-    /// Initializes a new [`StereoMix`].
+    /// Initializes a new [`Stereo`].
     pub const fn new(sgn1: X, sgn2: Y) -> Self {
         Self(sgn1, sgn2)
     }
 }
 
 impl<Z: Signal<Sample = smp::Mono> + Clone> Stereo<Z, Z> {
-    /// Duplicates a [`Mono`] signal.
+    /// Duplicates a [`smp::Mono`] signal.
     pub fn dup(sgn: Z) -> Self {
         Self(sgn.clone(), sgn)
     }
@@ -116,7 +116,7 @@ impl<X: Panic, Y: Panic<Sample = X::Sample>> Panic for Mix<X, Y> {
     }
 }
 
-/// The function that duplicates a [`Mono`] sample in both channels.
+/// The function that duplicates a [`smp::Mono`] sample in both channels.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Dup;
 
@@ -125,16 +125,15 @@ impl map::Map for Dup {
     type Output = smp::Stereo;
 
     fn eval(&self, x: smp::Mono) -> smp::Stereo {
-        // TODO: Why do I import all other traits but not this?
-        smp::Audio::duplicate(&x)
+        x.duplicate()
     }
 }
 
-/// Duplicates a [`Mono`] signal to create a [`Stereo`] signal.
+/// Duplicates a [`smp::Mono`] signal to create a [`Stereo`] signal.
 pub type Duplicate<S> = eff::MapSgn<S, Dup>;
 
 impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
-    /// Duplicates a [`Mono`] signal in both channels.
+    /// Duplicates a [`smp::Mono`] signal in both channels.
     pub const fn new_dup(sgn: S) -> Self {
         Self::new(sgn, Dup)
     }
@@ -204,7 +203,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 ///         res
 ///     }
 /// )
-/// .unwrap();
+/// .expect("IO error!");
 /// ```
 pub struct Ref<'a, S: Signal>(pub &'a S);
 

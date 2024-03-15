@@ -288,12 +288,12 @@ impl<S: smp::Sample, C: map::Map<Input = unt::Val, Output = f64>> Unison<S, C> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detune;
 
-impl<C: map::Map<Input = unt::Val>> map::Env<UnisonCurve<C>> for Detune
+impl<C: map::Map<Input = unt::Val>> Env<UnisonCurve<C>> for Detune
 where
     C::Output: smp::Sample,
 {
     fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: smp::Env) {
-        // Assuming you've used `[DetuneCurveSgn::new_detune_curve`], this should not result in
+        // Assuming you've used [`DetuneCurveSgn::new_detune_curve`], this should not result in
         // truncation.
         #[allow(clippy::cast_possible_truncation)]
         let num = sgn.len() as u16;
@@ -356,7 +356,7 @@ impl<
 /// A reference to one of the curves played in a [`UnisonCurve`] or [`Unison`] object. This allows
 /// you to freely route these signals into other effects.
 ///
-/// See also [`mix::Ref`].
+/// See also [`eff::Ref`].
 ///
 /// ## Example
 ///

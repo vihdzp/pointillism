@@ -46,7 +46,7 @@ pub fn hermite<S: smp::SampleBase>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 pub trait Interpolate:
-    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + buf::Ring + Sized
+    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + Ring + Sized
 {
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -96,7 +96,7 @@ macro_rules! ring_boilerplate {
 }
 
 /// An auxiliary function for casting `[A; N]` into `buf::Shift<buf::Stc<A, N>>`.
-const fn shift_from<A: smp::Audio, const N: usize>(array: [A; N]) -> buf::Shift<buf::Stc<A, N>> {
+const fn shift_from<A: Audio, const N: usize>(array: [A; N]) -> buf::Shift<buf::Stc<A, N>> {
     buf::Shift::new(buf::Stc::from_data(array))
 }
 
@@ -105,9 +105,9 @@ const fn shift_from<A: smp::Audio, const N: usize>(array: [A; N]) -> buf::Shift<
 /// Drop-sample interpolation simply consists on taking the previously read sample. This is terrible
 /// for audio fidelity, but can create some interesting bit-crush effects.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Drop<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 1>>);
+pub struct Drop<A: Audio>(pub buf::ring::Shift<buf::Stc<A, 1>>);
 
-impl<A: smp::Audio> Drop<A> {
+impl<A: Audio> Drop<A> {
     /// Initializes a new buffer for [`Drop`] interpolation.
     pub const fn new(sample: A) -> Self {
         Self(shift_from([sample]))
@@ -129,7 +129,7 @@ impl<A: smp::Audio> Drop<A> {
     }
 }
 
-impl<A: smp::Audio> map::Map for Drop<A> {
+impl<A: Audio> map::Map for Drop<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -138,12 +138,12 @@ impl<A: smp::Audio> map::Map for Drop<A> {
     }
 }
 
-impl<A: smp::Audio> buf::Ring for Drop<A> {
+impl<A: Audio> Ring for Drop<A> {
     type Buf = buf::Stc<A, 1>;
     ring_boilerplate!();
 }
 
-impl<A: smp::Audio> Interpolate for Drop<A> {
+impl<A: Audio> Interpolate for Drop<A> {
     const LOOK_AHEAD: u8 = 0;
     const SIZE: usize = 1;
     const EMPTY: Self = Self::zero();
@@ -155,9 +155,9 @@ impl<A: smp::Audio> Interpolate for Drop<A> {
 /// better than [`Drop`] interpolation, both [`Cubic`] and [`Hermite`] interpolation will generally
 /// give "cleaner" results.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Linear<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 2>>);
+pub struct Linear<A: Audio>(pub buf::ring::Shift<buf::Stc<A, 2>>);
 
-impl<A: smp::Audio> Linear<A> {
+impl<A: Audio> Linear<A> {
     /// Initializes a new buffer for [`Linear`] interpolation.
     pub const fn new(cur: A, next: A) -> Self {
         Self(shift_from([cur, next]))
@@ -174,7 +174,7 @@ impl<A: smp::Audio> Linear<A> {
     }
 }
 
-impl<A: smp::Audio> map::Map for Linear<A> {
+impl<A: Audio> map::Map for Linear<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -184,12 +184,12 @@ impl<A: smp::Audio> map::Map for Linear<A> {
     }
 }
 
-impl<A: smp::Audio> buf::Ring for Linear<A> {
+impl<A: Audio> Ring for Linear<A> {
     type Buf = buf::Stc<A, 2>;
     ring_boilerplate!();
 }
 
-impl<A: smp::Audio> Interpolate for Linear<A> {
+impl<A: Audio> Interpolate for Linear<A> {
     const LOOK_AHEAD: u8 = 1;
     const SIZE: usize = 2;
     const EMPTY: Self = Self::zero();
@@ -200,9 +200,9 @@ impl<A: smp::Audio> Interpolate for Linear<A> {
 /// Cubic interpolation uses the cubic [Lagrange
 /// polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the previous, current, next,
 /// and next next samples. This will often yield good results, along with [`Hermite`] interpolation.
-pub struct Cubic<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
+pub struct Cubic<A: Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
 
-impl<A: smp::Audio> Cubic<A> {
+impl<A: Audio> Cubic<A> {
     /// Initializes a new buffer for [`Cubic`] interpolation.
     pub const fn new(x0: A, x1: A, x2: A, x3: A) -> Self {
         Self(shift_from([x0, x1, x2, x3]))
@@ -219,7 +219,7 @@ impl<A: smp::Audio> Cubic<A> {
     }
 }
 
-impl<A: smp::Audio> map::Map for Cubic<A> {
+impl<A: Audio> map::Map for Cubic<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -229,12 +229,12 @@ impl<A: smp::Audio> map::Map for Cubic<A> {
     }
 }
 
-impl<A: smp::Audio> buf::Ring for Cubic<A> {
+impl<A: Audio> Ring for Cubic<A> {
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }
 
-impl<A: smp::Audio> Interpolate for Cubic<A> {
+impl<A: Audio> Interpolate for Cubic<A> {
     const LOOK_AHEAD: u8 = 2;
     const SIZE: usize = 4;
     const EMPTY: Self = Self::zero();
@@ -246,9 +246,9 @@ impl<A: smp::Audio> Interpolate for Cubic<A> {
 /// spline](https://en.wikipedia.org/wiki/Catmull–Rom_spline) (a special case of the cubic Hermite
 /// spline) for interpolation. This will often yield good results, along with [`Cubic`]
 /// interpolation.
-pub struct Hermite<A: smp::Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
+pub struct Hermite<A: Audio>(pub buf::ring::Shift<buf::Stc<A, 4>>);
 
-impl<A: smp::Audio> Hermite<A> {
+impl<A: Audio> Hermite<A> {
     /// Initializes a new buffer for [`Hermite`] interpolation.
     pub const fn new(x0: A, x1: A, x2: A, x3: A) -> Self {
         Self(shift_from([x0, x1, x2, x3]))
@@ -265,7 +265,7 @@ impl<A: smp::Audio> Hermite<A> {
     }
 }
 
-impl<A: smp::Audio> map::Map for Hermite<A> {
+impl<A: Audio> map::Map for Hermite<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -275,12 +275,12 @@ impl<A: smp::Audio> map::Map for Hermite<A> {
     }
 }
 
-impl<A: smp::Audio> buf::Ring for Hermite<A> {
+impl<A: Audio> Ring for Hermite<A> {
     type Buf = buf::Stc<A, 4>;
     ring_boilerplate!();
 }
 
-impl<A: smp::Audio> Interpolate for Hermite<A> {
+impl<A: Audio> Interpolate for Hermite<A> {
     const LOOK_AHEAD: u8 = 2;
     const SIZE: usize = 4;
     const EMPTY: Self = Self::zero();
@@ -356,7 +356,7 @@ pub type DropStretch<S> = Stretch<S, Drop<<S as Signal>::Sample>>;
 
 impl<S: SignalMut> DropStretch<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a new [`DropStretch`].
     pub fn new_drop(sgn: S, factor: f64) -> Self {
@@ -369,7 +369,7 @@ pub type LinearStretch<S> = Stretch<S, Linear<<S as Signal>::Sample>>;
 
 impl<S: SignalMut> LinearStretch<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a new [`LinearStretch`].
     pub fn new_linear(sgn: S, factor: f64) -> Self {
@@ -382,7 +382,7 @@ pub type CubicStretch<S> = Stretch<S, Cubic<<S as Signal>::Sample>>;
 
 impl<S: SignalMut> CubicStretch<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a new [`CubicStretch`].
     pub fn new_cubic(sgn: S, factor: f64) -> Self {
@@ -395,7 +395,7 @@ pub type HermiteStretch<S> = Stretch<S, Hermite<<S as Signal>::Sample>>;
 
 impl<S: SignalMut> HermiteStretch<S>
 where
-    S::Sample: smp::Audio,
+    S::Sample: Audio,
 {
     /// Initializes a new [`HermiteStretch`].
     pub fn new_hermite(sgn: S, factor: f64) -> Self {

@@ -21,7 +21,8 @@ pub use distortion as dst;
 pub use envelopes as env;
 pub use filter as flt;
 pub use freq::{Vib, Vibrato};
-pub use trailing::Trailing;
+pub use mix::{Cell, Dup, Duplicate, Mix, Ref, Stereo};
+pub use trailing::{Stopping, Trailing};
 pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
 use crate::prelude::*;
@@ -32,7 +33,7 @@ use crate::prelude::*;
 /// is no DC offset if the signal stops.
 ///
 /// Note that the map here takes in a sample and outputs a sample. If you instead want to map the
-/// floating point values of the sample pointwise, wrap the function in [`Pw`].
+/// floating point values of the sample pointwise, wrap the function in [`map::Pw`].
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MapSgn<S: Signal, F: map::Map<Input = S::Sample>>
 where

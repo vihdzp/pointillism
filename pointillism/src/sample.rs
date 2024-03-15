@@ -3,6 +3,8 @@
 //! [`Mono`] and [`Stereo`] are [`Audio`] samples, meaning that they can be written to a WAV file in
 //! order to produce sound. [`Env`] is reserved for outputs from envelopes, such as an
 //! [`Adsr`](crate::eff::env::Adsr).
+//!
+//! The abbreviation for this namespace is `smp`.
 
 use std::{fmt::Debug, iter::Sum};
 
@@ -81,7 +83,7 @@ pub struct Env(pub f64);
 /// implementing [`Sample`] as well as `f64`.
 ///
 /// This trait exists mostly for convenient, general implementations of methods such as
-/// [`linear_inter`](crate::curves::interpolate::linear), which make sense both for samples and for
+/// [`buf::int::linear`](crate::buf::int::linear), which make sense both for samples and for
 /// floating point values.
 pub trait SampleBase:
     Copy
@@ -176,6 +178,12 @@ pub unsafe trait Array:
         }
     }
 
+    /// Currently, `rust-analyzer` trips up sometimes that `&mut self[index]` is called directly,
+    /// complaining that `self` is immutable. This hack bypasses this.
+    fn _index_mut(&mut self, index: usize) -> &mut Self::Item {
+        self.get_mut(index).unwrap()
+    }
+
     /// Executes a function for each element in the array type.
     fn for_each<F: FnMut(usize)>(mut f: F) {
         for i in 0..Self::SIZE {
@@ -197,7 +205,7 @@ pub unsafe trait Array:
 
     /// Mutably applies a function `f` to all entries of the sample.
     fn map_mut<F: FnMut(&mut Self::Item)>(&mut self, mut f: F) {
-        Self::for_each(|index| f(&mut self[index]));
+        Self::for_each(|index| f(self._index_mut(index)));
     }
 
     /// Applies a function `f` to pairs of entries of the samples.
@@ -212,7 +220,7 @@ pub unsafe trait Array:
 
     /// Mutably applies a function `f` to pairs of entries of the samples.
     fn pairwise_mut<F: FnMut(&mut Self::Item, &Self::Item)>(&mut self, rhs: Self, mut f: F) {
-        Self::for_each(|index| f(&mut self[index], &rhs[index]));
+        Self::for_each(|index| f(self._index_mut(index), &rhs[index]));
     }
 
     /// Initializes an array filled with the specified value.
@@ -239,7 +247,7 @@ pub unsafe trait Array:
     }
 }
 
-/// A trait for either [`Mono`], [`Stereo`], or [`Env`] samples.
+/// A trait for [`Mono`], [`Stereo`], or [`Env`] samples.
 ///
 /// [`Mono`] and [`Stereo`] samples may be used for audio, while [`Env`] samples can be used for
 /// envelopes such as in an LFO.
@@ -261,7 +269,7 @@ pub trait Sample: SampleBase + Array<Item = f64> {
 
     /// Gets a mutable reference to the value from the first channel.
     fn fst_mut(&mut self) -> &mut f64 {
-        &mut self[0]
+        self._index_mut(0)
     }
 
     /// Gets the value from the second channel, defaulting to the first.
@@ -276,9 +284,9 @@ pub trait Sample: SampleBase + Array<Item = f64> {
     /// Gets a mutable reference to the value from the second channel, defaulting to the first.
     fn snd_mut(&mut self) -> &mut f64 {
         if Self::SIZE >= 2 {
-            &mut self[1]
+            self._index_mut(1)
         } else {
-            &mut self[0]
+            self.fst_mut()
         }
     }
 
@@ -595,11 +603,12 @@ impl Stereo {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::mem::{align_of, size_of};
 
     /// Tests that all the [`Sample`] types have the expected size and alignment.
     #[test]
     fn size_align() {
+        use std::mem::{align_of, size_of};
+
         assert_eq!(size_of::<Mono>(), 8);
         assert_eq!(align_of::<Mono>(), 8);
         assert_eq!(size_of::<Stereo>(), 16);
@@ -609,7 +618,7 @@ mod test {
     }
 
     /// Tests that we can transmute an array of [`Mono`] into an array of [`Stereo`]. This is needed
-    /// for reading a stereo [`Buffer`](crate::curves::buffer::Buffer).
+    /// for reading a stereo [`Buffer`](crate::buf::Buffer) from a WAV file.
     #[test]
     fn transmute_test() {
         let stereo: [Stereo; 2] = unsafe { std::mem::transmute(Mono::array([1.0, 2.0, 3.0, 4.0])) };
