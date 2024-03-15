@@ -1,8 +1,8 @@
 [package]
-name = "macros"
+name = "pointillism-macros"
 authors = ["Violeta Hernández Palacios <vi.hdz.p@gmail.com>"]
 categories = ["multimedia", "multimedia::audio"]
-description = "A compositional library for musical composition."
+description = "Macros for the pointillism crate."
 edition = "2021"
 keywords = ["pointillism", "music", "audio", "modular", "synthesizer", "macros"]
 license = "MIT OR Apache-2.0"

@@ -14,7 +14,7 @@ version = "0.4.2"
 # Required dependencies.
 derive_more = "0.99"
 rand = "0.8"
-macros = { path = "../macros" }
+pointillism-macros = "0.1"
 
 # Optional dependencies.
 cpal = { version = "0.15", optional = true }
