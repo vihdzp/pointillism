@@ -117,8 +117,6 @@ pub use with_hound::*;
 // Needed so that the docs render properly.
 use crate::prelude::*;
 
-/// A generic error message for an IO error in [`create`].
-pub const IO_ERROR: &str = "IO error";
 /// A generic "out of bounds" error message.
 pub const OOB: &str = "index out of bounds";
 
@@ -131,6 +129,154 @@ pub(crate) fn mod_inc(len: usize, value: &mut usize) {
 
     if *value == len {
         *value = 0;
+    }
+}
+
+/// A trait for some function that returns samples frame by frame.
+pub trait SongFunc {
+    /// The type of samples returned.
+    type Sample: Audio;
+
+    /// Gets the next sample.
+    fn eval(&mut self, time: unt::Time) -> Self::Sample;
+}
+
+/// Wraps a `FnMut(unt::Time) -> A` so that it implements the [`SongFunc`] trait.
+pub struct Func<T>(T);
+
+/// Wraps a [`SignalMut`] so that it implements the [`SongFunc`] trait.
+pub struct Sgn<S>(S);
+
+/// Wraps a [`&mut SignalMut`](SignalMut) so that it implements the [`SongFunc`] trait.
+pub struct SgnMut<'a, S>(&'a mut S);
+
+impl<A: Audio, T: FnMut(unt::Time) -> A> SongFunc for Func<T> {
+    type Sample = A;
+    fn eval(&mut self, time: units::Time) -> Self::Sample {
+        (self.0)(time)
+    }
+}
+
+impl<S: SignalMut> SongFunc for Sgn<S>
+where
+    S::Sample: Audio,
+{
+    type Sample = S::Sample;
+    fn eval(&mut self, _: units::Time) -> Self::Sample {
+        self.0.next()
+    }
+}
+
+impl<'a, S: SignalMut> SongFunc for SgnMut<'a, S>
+where
+    S::Sample: Audio,
+{
+    type Sample = S::Sample;
+    fn eval(&mut self, _: units::Time) -> Self::Sample {
+        self.0.next()
+    }
+}
+
+/// Represents a song, a piece of code that can be evaluated frame by frame to generate succesive
+/// samples. The duration of the file is exactly rounded down to the sample. The song will be mono
+/// or stereo, depending on whether the passed function returns [`smp::Mono`] or [`smp::Stereo`].
+///
+/// See the `examples` folder for example creations.
+///
+/// ## Example
+///
+/// We make the most basic song possible: a single sine wave.
+///
+/// ```
+/// # use pointillism::prelude::*;
+/// // Project sample rate.
+/// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
+///
+/// // File duration.
+/// let length = unt::Time::from_sec(1.0, SAMPLE_RATE);
+/// // Sine wave frequency.
+/// let freq = unt::Freq::from_hz(440.0, SAMPLE_RATE);
+///
+/// // We create a mono signal that loops through a sine curve at the specified frequency.
+/// let mut sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
+///
+/// // Export to file.
+/// Song::new_sgn(length, SAMPLE_RATE, &mut sgn).export_unwrap("examples/sine.wav");
+/// ```
+pub struct Song<F: SongFunc> {
+    /// The length of the song in samples.
+    length: unt::Time,
+    /// The sample rate of the song.
+    sample_rate: unt::SampleRate,
+    /// The [`SongFunc`] that generates the song.
+    song: F,
+}
+
+impl<F: SongFunc> Song<F> {
+    pub const fn new_raw(length: unt::Time, sample_rate: unt::SampleRate, song: F) -> Self {
+        Self {
+            length,
+            sample_rate,
+            song,
+        }
+    }
+}
+
+impl<A: Audio, F: FnMut(unt::Time) -> A> Song<Func<F>> {
+    /// Creates a new [`Song`] from a function, taking the elapsed time as an argument. To instead
+    /// take in a signal, see [`Self::new_sgn`].
+    ///
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
+    /// returns [`smp::Mono`] or [`smp::Stereo`].
+    ///
+    /// ## Example
+    ///
+    /// For an example, see the [`Song`] docs.
+    pub const fn new(length: unt::Time, sample_rate: unt::SampleRate, song: F) -> Self {
+        Self::new_raw(length, sample_rate, Func(song))
+    }
+}
+
+impl<'a, S: SignalMut> Song<SgnMut<'a, S>>
+where
+    S::Sample: Audio,
+{
+    /// A convenience function to create a [`new`](Self::new) song from a given signal. The signal
+    /// is not consumed. To instead take in a function, see [`Self::new`]. If you have to own the
+    /// song, use [`Self::new_sgn_owned`].
+    ///
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
+    /// returns [`smp::Mono`] or [`smp::Stereo`].
+    ///
+    /// ## Example
+    ///
+    /// For an example, see the [`Song`] docs.
+    pub fn new_sgn(length: unt::Time, sample_rate: unt::SampleRate, sgn: &'a mut S) -> Self
+    where
+        S::Sample: Audio,
+    {
+        Self::new_raw(length, sample_rate, SgnMut(sgn))
+    }
+}
+
+impl<S: SignalMut> Song<Sgn<S>>
+where
+    S::Sample: Audio,
+{
+    /// A convenience function to create a [`new`](Self::new) song from a given signal. The signal
+    /// is consumed. To instead take in a function, see [`Self::new`].
+    ///
+    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
+    /// returns [`smp::Mono`] or [`smp::Stereo`].
+    ///
+    /// ## Example
+    ///
+    /// For an example, see the [`Song`] docs.
+    pub fn new_sgn_owned(length: unt::Time, sample_rate: unt::SampleRate, sgn: S) -> Self
+    where
+        S::Sample: Audio,
+    {
+        Self::new_raw(length, sample_rate, Sgn(sgn))
     }
 }
 
@@ -150,79 +296,34 @@ mod with_hound {
         }
     }
 
-    /// Creates a song with a given duration, writing down each sample as it comes. The duration of
-    /// the file is exactly rounded down to the sample.
-    ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`smp::Mono`] or [`smp::Stereo`].
-    ///
-    /// See the `examples` folder for example creations.
-    ///
-    /// ## Errors
-    ///
-    /// This should only return an error in case of an IO error.
-    ///
-    /// ## Example
-    ///
-    /// We make the most basic song possible: a single sine wave.
-    ///
-    /// ```
-    /// # use pointillism::prelude::*;
-    /// // Project sample rate.
-    /// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
-    ///
-    /// // File duration.
-    /// let length = unt::Time::from_sec(1.0, SAMPLE_RATE);
-    /// // Sine wave frequency.
-    /// let freq = unt::Freq::from_hz(440.0, SAMPLE_RATE);
-    ///
-    /// // We create a mono signal that loops through a sine curve at the specified frequency.
-    /// let mut sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
-    ///
-    /// // Export to file.
-    /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
-    ///     .expect(pointillism::IO_ERROR);
-    /// ```
-    pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(unt::Time) -> A>(
-        filename: P,
-        length: unt::Time,
-        sample_rate: unt::SampleRate,
-        mut song: F,
-    ) -> hound::Result<()> {
-        let length = length.samples.int();
-        let mut writer = hound::WavWriter::create(filename, spec(A::size_u8(), sample_rate))?;
+    impl<F: SongFunc> Song<F> {
+        /// Exports a song as a WAV file. Requires the [`hound`] feature.
+        ///
+        /// ## Errors
+        ///
+        /// This should only return an error in the case of an IO error.
+        pub fn export<P: AsRef<std::path::Path>>(&mut self, filename: P) -> hound::Result<()> {
+            let length = self.length.samples.int();
+            let mut writer =
+                hound::WavWriter::create(filename, spec(F::Sample::size_u8(), self.sample_rate))?;
 
-        let mut time = unt::Time::ZERO;
-        for _ in 0..length {
-            song(time).write(&mut writer)?;
-            time.advance();
+            let mut time = unt::Time::ZERO;
+            for _ in 0..length {
+                self.song.eval(time).write(&mut writer)?;
+                time.advance();
+            }
+
+            writer.finalize()
         }
 
-        writer.finalize()
-    }
-
-    /// A convenience function to [`create`] a song from a given signal. The signal is not consumed.
-    ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`smp::Mono`] or [`smp::Stereo`].
-    ///
-    /// ## Errors
-    ///
-    /// This should only return an error in case of an IO error.
-    ///
-    /// ## Example
-    ///
-    /// For an example, see [`create`].
-    pub fn create_from_sgn<P: AsRef<std::path::Path>, S: SignalMut>(
-        filename: P,
-        length: unt::Time,
-        sample_rate: unt::SampleRate,
-        sgn: &mut S,
-    ) -> hound::Result<()>
-    where
-        S::Sample: Audio,
-    {
-        create(filename, length, sample_rate, |_| sgn.next())
+        /// A convenience function for calling [`Self::export`], panicking in case of an IO error.
+        ///
+        /// ## Panics
+        ///
+        /// Panics in case of an IO error.
+        pub fn export_expect<P: AsRef<std::path::Path>>(&mut self, filename: P) {
+            self.export(filename).expect("IO error");
+        }
     }
 }
 
@@ -243,6 +344,7 @@ pub mod prelude {
         map::{Env, Map, Mut},
         sgn::{Base, Done, Frequency, Panic, Signal, SignalMut, Stop},
         smp::{Array, Audio, Sample, SampleBase},
+        Song, SongFunc,
     };
     pub(crate) use sgn::impl_base;
 }

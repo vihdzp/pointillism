@@ -106,23 +106,17 @@ fn main() {
     let melody_time = unt::Time::from_raw_default(MELODY_TIME);
     let fade_time = unt::Time::from_raw_default(FADE);
 
-    pointillism::create(
-        "pointillism/examples/primavera_c.wav",
-        length,
-        unt::SampleRate::CD,
-        |time| {
-            let mut sample = binaural.next() * fade(time, length, fade_time);
+    Song::new(length, unt::SampleRate::CD, |time| {
+        let mut sample = binaural.next() * fade(time, length, fade_time);
 
-            // The triangle waves start playing 2 minutes in.
-            if time > melody_time {
-                sample += (melody.next()
-                    * fade(time - melody_time, length - melody_time, fade_time))
+        // The triangle waves start playing 2 minutes in.
+        if time > melody_time {
+            sample += (melody.next() * fade(time - melody_time, length - melody_time, fade_time))
                 .duplicate()
-                    / 10.0;
-            }
+                / 10.0;
+        }
 
-            sample / 2.0
-        },
-    )
-    .expect(pointillism::IO_ERROR);
+        sample / 2.0
+    })
+    .export_expect("pointillism/examples/primavera_c.wav");
 }

@@ -103,12 +103,11 @@ fn main() {
         }),
     );
 
-    pointillism::create_from_sgn(
-        "pointillism/examples/continuum.wav",
+    Song::new_sgn(
         NOTE_COUNT_LEN * note_len,
         unt::SampleRate::default(),
         // 10.0 might be too much, but just to be safe from clipping.
         &mut eff::Volume::new(poly_loop, unt::Vol::new(1.0 / 10.0)),
     )
-    .expect(pointillism::IO_ERROR);
+    .export_expect("pointillism/examples/continuum.wav");
 }

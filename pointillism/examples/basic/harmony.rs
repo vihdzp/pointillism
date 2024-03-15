@@ -63,11 +63,10 @@ fn main() {
         }),
     );
 
-    pointillism::create(
-        "pointillism/examples/harmony.wav",
+    Song::new(
         note_len * chords.len() as f64 + unt::Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
         |_| seq.next() / 6.0,
     )
-    .expect(pointillism::IO_ERROR);
+    .export_expect("pointillism/examples/harmony.wav");
 }

@@ -28,7 +28,8 @@
 //! let sample_rate: unt::SampleRate = supported_config.sample_rate().into();
 //!
 //! // Length of the sine wave.
-//! let duration = std::time::Duration::from_secs(1);
+//! let raw_length = unt::RawTime::SEC;
+//! let length = unt::Time::from_raw(raw_length, sample_rate);
 //! // A reasonable buffer size.
 //! let buffer_size = cpal::BufferSize::Fixed(1024);
 //! // Note frequency.
@@ -38,25 +39,21 @@
 //! let sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
 //!
 //! // Creates the stream and plays it.
-//! let stream = pointillism::cpal::build_output_stream_from_sgn(
+//! let stream = Song::new_sgn_owned(length, sample_rate, sgn).build_output_stream(
 //!     &device,
-//!     Some(duration),
-//!     sample_rate,
 //!     buffer_size,
 //!     |err| eprintln!("{err}"),
-//!     sgn,
 //! )
 //! .expect("stream could not be created");
 //! stream.play().expect("stream could not be played");
 //!
 //! // Make sure we don't exit before the file ends playing.
-//! std::thread::sleep(duration);
+//! std::thread::sleep(raw_length.into());
 //! # }
 //! ```
 
-use cpal::{traits::DeviceTrait, StreamConfig};
-
 use crate::prelude::*;
+use cpal::{traits::DeviceTrait, StreamConfig};
 
 /// A type alias for the return type of these functions.
 pub type CpalResult = Result<<cpal::Device as DeviceTrait>::Stream, cpal::BuildStreamError>;
@@ -73,84 +70,57 @@ impl From<cpal::SampleRate> for unt::SampleRate {
     }
 }
 
-/// Builds a [`cpal`] output stream for a song.
-///
-/// For the meaning of the parameters and possible errors, see [`DeviceTrait::build_output_stream`].
-///
-/// ## Example
-///
-/// See the [module docs](self) for an example.
-#[allow(clippy::missing_errors_doc)]
-pub fn build_output_stream<
-    A: Audio,
-    F: Send + 'static + FnMut(unt::Time) -> A,
-    E: FnMut(cpal::StreamError) + Send + 'static,
->(
-    device: &cpal::Device,
-    timeout: Option<std::time::Duration>,
-    sample_rate: unt::SampleRate,
-    buffer_size: cpal::BufferSize,
-    error_callback: E,
-    mut song: F,
-) -> CpalResult {
-    let channels = A::size_u8();
-    let mut time = unt::Time::ZERO;
+impl<F: Send + 'static + SongFunc> Song<F> {
+    /// Builds a [`cpal`] output stream for a song. The sample rate and length are queried directly
+    /// from the [`Song`]. Use a length of [`unt::Time::MAX`] for an infinite stream.
+    ///
+    /// Note that you'll probably need to use [`Self::new_sgn_owned`] to define the song and use
+    /// this.  
+    ///
+    /// For the meaning of the parameters and possible errors, see [`cpal::BuildStreamError`].
+    ///
+    /// ## Example
+    ///
+    /// See the [module docs](self) for an example.
+    #[allow(clippy::missing_errors_doc)]
+    pub fn build_output_stream<E: FnMut(cpal::StreamError) + Send + 'static>(
+        mut self,
+        device: &cpal::Device,
+        buffer_size: cpal::BufferSize,
+        error_callback: E,
+    ) -> CpalResult {
+        let channels = F::Sample::size_u8();
+        let mut time = unt::Time::ZERO;
+        let timeout = if self.length == unt::Time::MAX {
+            None
+        } else {
+            Some(self.length.into_raw(self.sample_rate).into())
+        };
 
-    device.build_output_stream(
-        &StreamConfig {
-            channels: u16::from(channels),
-            sample_rate: sample_rate.into(),
-            buffer_size,
-        },
-        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-            let mut idx = 0;
-            while idx < data.len() {
-                let sample = song(time);
-                for j in 0..A::SIZE {
-                    // Truncation shouldn't happen in practice.
-                    #[allow(clippy::cast_possible_truncation)]
-                    {
-                        data[idx] = sample[j] as f32;
+        device.build_output_stream(
+            &StreamConfig {
+                channels: u16::from(channels),
+                sample_rate: self.sample_rate.into(),
+                buffer_size,
+            },
+            move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+                let mut idx = 0;
+                while idx < data.len() {
+                    let sample = self.song.eval(time);
+                    for j in 0..(channels as usize) {
+                        // Truncation shouldn't happen in practice.
+                        #[allow(clippy::cast_possible_truncation)]
+                        {
+                            data[idx] = sample[j] as f32;
+                        }
+                        idx += 1;
                     }
-                    idx += 1;
                 }
-            }
 
-            time.advance();
-        },
-        error_callback,
-        timeout,
-    )
-}
-
-/// Builds a [`cpal`] output stream for a signal.
-///
-/// For the meaning of the parameters and possible errors, see [`DeviceTrait::build_output_stream`].
-///
-/// ## Example
-///
-/// See the [module docs](self) for an example.
-#[allow(clippy::missing_errors_doc)]
-pub fn build_output_stream_from_sgn<
-    S: SignalMut + Send + 'static,
-    E: FnMut(cpal::StreamError) + Send + 'static,
->(
-    device: &cpal::Device,
-    timeout: Option<std::time::Duration>,
-    sample_rate: unt::SampleRate,
-    buffer_size: cpal::BufferSize,
-    error_callback: E,
-    mut sgn: S,
-) -> CpalResult
-where
-    S::Sample: Audio,
-{
-    build_output_stream(
-        device,
-        timeout,
-        sample_rate,
-        buffer_size,
-        error_callback,
-        move |_| sgn.next(),
-    )
+                time.advance();
+            },
+            error_callback,
+            timeout,
+        )
+    }
 }

@@ -100,14 +100,9 @@ fn main() {
 
     // Fades from dry to wet.
     let length = unt::Time::from_sec_default(10.0);
-    pointillism::create(
-        "pointillism/examples/schroeder.wav",
-        length,
-        unt::SampleRate::CD,
-        |time| {
-            let p = time / length;
-            (reverb_3.base().get() * p + reverb_3.next() * (1.0 - p)) / 2.0
-        },
-    )
-    .expect(pointillism::IO_ERROR);
+    Song::new(length, unt::SampleRate::CD, |time| {
+        let p = time / length;
+        (reverb_3.base().get() * p + reverb_3.next() * (1.0 - p)) / 2.0
+    })
+    .export_expect("pointillism/examples/schroeder.wav");
 }

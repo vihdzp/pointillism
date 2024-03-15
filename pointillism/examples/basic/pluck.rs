@@ -55,11 +55,6 @@ fn main() {
         map::Func::new(|sgn: &mut eff::MutSgn<_, _, _>| sgn.retrigger()),
     );
 
-    pointillism::create_from_sgn(
-        "pointillism/examples/pluck.wav",
-        NOTES * note_time,
-        SAMPLE_RATE,
-        &mut env_loop,
-    )
-    .expect(pointillism::IO_ERROR);
+    Song::new_sgn(NOTES * note_time, SAMPLE_RATE, &mut env_loop)
+        .export_expect("pointillism/examples/pluck.wav");
 }

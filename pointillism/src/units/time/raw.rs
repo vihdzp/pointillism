@@ -94,6 +94,12 @@ impl RawTime {
     }
 }
 
+impl From<RawTime> for std::time::Duration {
+    fn from(value: RawTime) -> Self {
+        Self::from_secs_f64(value.seconds)
+    }
+}
+
 impl std::fmt::Display for RawTime {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         #[cfg(feature = "human-duration")]
