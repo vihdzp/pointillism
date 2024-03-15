@@ -25,17 +25,17 @@
 //!     .next()
 //!     .expect("no supported config?!")
 //!     .with_max_sample_rate();
-//! let sample_rate: SampleRate = supported_config.sample_rate().into();
+//! let sample_rate: unt::SampleRate = supported_config.sample_rate().into();
 //!
 //! // Length of the sine wave.
 //! let duration = std::time::Duration::from_secs(1);
 //! // A reasonable buffer size.
 //! let buffer_size = cpal::BufferSize::Fixed(1024);
 //! // Note frequency.
-//! let freq = Freq::from_hz(440.0, sample_rate);
+//! let freq = unt::Freq::from_hz(440.0, sample_rate);
 //!
 //! // Play a sine wave with a specified frequency.
-//! let sgn = gen::Loop::<Mono, _>::new(Sin, freq);
+//! let sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
 //!
 //! // Creates the stream and plays it.
 //! let stream = pointillism::cpal::build_output_stream_from_sgn(

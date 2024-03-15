@@ -152,10 +152,10 @@ impl<S: SignalMut> Stop for Stopping<S> {
 /// This exists for convenience use in loops or sequences, such as:
 ///
 /// ```
-/// # use pointillism::{prelude::*, effects::trailing::Retrigger}; // TODO: eff::tri::Retrigger ?
+/// # use pointillism::prelude::*;
 /// # let osc = gen::Loop::<smp::Mono, crv::Sin>::default();
 /// // Retriggers the oscillator `osc` once per second.
-/// let mut song_loop = ctr::Loop::new(vec![unt::Time::from_sec_default(1.0)], osc, Retrigger);
+/// let mut song_loop = ctr::Loop::new(vec![unt::Time::from_sec_default(1.0)], osc, eff::Retrigger);
 /// ```
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Retrigger;

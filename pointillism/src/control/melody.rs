@@ -9,7 +9,7 @@
 //! We load "Twinkle Twinkle Little Star" as a melody, and play it on a simple synth.
 //!
 //! ```
-//! # use pointillism::{prelude::*, traits::*};
+//! # use pointillism::prelude::*;
 //! // Project sample rate.
 //! const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 //!
@@ -22,21 +22,21 @@
 //!
 //! // The notes that make up the melody.
 //! let notes = [
-//!     ctr::mel::Note::new(unt::Time::ZERO, q, unt::RawFreq::C3), // Twin-
-//!     ctr::mel::Note::new(q, q, unt::RawFreq::C3),               // kle
-//!     ctr::mel::Note::new(2u8 * q, q, unt::RawFreq::G3),         // Twin-
-//!     ctr::mel::Note::new(3u8 * q, q, unt::RawFreq::G3),         // kle
-//!     ctr::mel::Note::new(4u8 * q, q, unt::RawFreq::A3),         // Li-
-//!     ctr::mel::Note::new(5u8 * q, q, unt::RawFreq::A3),         // ttle
-//!     ctr::mel::Note::new(6u8 * q, 2u8 * q, unt::RawFreq::G3),   // star,
-//!     ctr::mel::Note::new(8u8 * q, q, unt::RawFreq::F3),         // How
-//!     ctr::mel::Note::new(9u8 * q, q, unt::RawFreq::F3),         // I
-//!     ctr::mel::Note::new(10u8 * q, q, unt::RawFreq::E3),        // won-
-//!     ctr::mel::Note::new(11u8 * q, q, unt::RawFreq::E3),        // der
-//!     ctr::mel::Note::new(12u8 * q, q, unt::RawFreq::D3),        // what
-//!     ctr::mel::Note::new(13u8 * q, q, unt::RawFreq::D3),        // you
-//!     ctr::mel::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::C3),  // are!
-//!     ctr::mel::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::G3),
+//!     ctr::Note::new(unt::Time::ZERO, q, unt::RawFreq::C3), // Twin-
+//!     ctr::Note::new(q, q, unt::RawFreq::C3),               // kle
+//!     ctr::Note::new(2u8 * q, q, unt::RawFreq::G3),         // Twin-
+//!     ctr::Note::new(3u8 * q, q, unt::RawFreq::G3),         // kle
+//!     ctr::Note::new(4u8 * q, q, unt::RawFreq::A3),         // Li-
+//!     ctr::Note::new(5u8 * q, q, unt::RawFreq::A3),         // ttle
+//!     ctr::Note::new(6u8 * q, 2u8 * q, unt::RawFreq::G3),   // star,
+//!     ctr::Note::new(8u8 * q, q, unt::RawFreq::F3),         // How
+//!     ctr::Note::new(9u8 * q, q, unt::RawFreq::F3),         // I
+//!     ctr::Note::new(10u8 * q, q, unt::RawFreq::E3),        // won-
+//!     ctr::Note::new(11u8 * q, q, unt::RawFreq::E3),        // der
+//!     ctr::Note::new(12u8 * q, q, unt::RawFreq::D3),        // what
+//!     ctr::Note::new(13u8 * q, q, unt::RawFreq::D3),        // you
+//!     ctr::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::C3),  // are!
+//!     ctr::Note::new(14u8 * q, 2u8 * q, unt::RawFreq::G3),
 //! ]
 //! .map(|note| note.map_data(|raw| unt::Freq::from_raw(raw, SAMPLE_RATE)));
 //!
@@ -53,8 +53,8 @@
 //!     )
 //! };
 //!
-//! let melody = ctr::mel::Melody::piano_roll(notes, |idx| idx as u8);
-//! let mut melody_loop = ctr::mel::MelodyLoop::new_melody(melody, map::Func::new(func));
+//! let melody = ctr::Melody::piano_roll(notes, |idx| idx as u8);
+//! let mut melody_loop = ctr::MelLoop::new_melody(melody, map::Func::new(func));
 //! let mut timer = ctr::Timer::new(2u8 * length);
 //!
 //! // We play the melody twice.
@@ -292,13 +292,12 @@ where
 }
 
 /// A melody that plays from start to end.
-pub type MelodySeq<K, D, F> = ctr::Seq<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
+pub type MelSeq<K, D, F> = ctr::Seq<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
-pub type MelodyLoop<K, D, F> =
-    ctr::Loop<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
+pub type MelLoop<K, D, F> = ctr::Loop<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
 
-/// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`MelodySeq`] or a
-/// [`MelodyLoop`].
+/// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`ctr::MelSeq`] or a
+/// [`ctr::mel::Loop`].
 ///
 /// There's two main ways to build a [`Melody`]. You can provide the times and
 /// [`NoteEvents`](NoteEvent) explicitly through [`Self::new`], though this is not very intuitive.
@@ -544,7 +543,7 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodySeq<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelSeq<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -571,7 +570,7 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodyLoop<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelLoop<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {

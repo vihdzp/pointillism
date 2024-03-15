@@ -17,7 +17,9 @@
 mod melody;
 mod timer;
 
-pub use melody::{Melody, MelodyLoop, MelodySeq, Note, NoteEvent, NoteReader};
+#[cfg(feature = "midly")]
+pub use melody::MidiNoteData;
+pub use melody::{MelLoop, MelSeq, Melody, Note, NoteEvent, NoteReader};
 pub use timer::{Metronome, Timer};
 
 use crate::prelude::*;
@@ -357,7 +359,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// We create a single arpeggio which plays two chords.
 ///
 /// ```
-/// # use pointillism::{prelude::*, traits::*};
+/// # use pointillism::prelude::*;
 /// // Basic parameters.
 /// const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 /// const NOTE_TIME: unt::RawTime = unt::RawTime::new(3.0 / 32.0);

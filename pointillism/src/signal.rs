@@ -5,7 +5,7 @@
 //! The following example is a simplified implementation of [`NoiseGen`](crate::gen::NoiseGen).
 //!
 //! ```
-//! # use pointillism::{prelude::*, traits::*};
+//! # use pointillism::prelude::*;
 //! /// A signal that produces random envelope data.
 //! struct NoiseGen {
 //!     /// The current random value.

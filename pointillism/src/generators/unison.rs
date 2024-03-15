@@ -363,8 +363,7 @@ impl<
 /// In this example, we progressively detune some saw waves, and then pan them left to right.
 ///
 /// ```
-/// use pointillism::{prelude::*, traits::*};
-///
+/// # use pointillism::prelude::*;
 /// /// The number of waves playing.
 /// const NUM: u8 = 7;
 /// const SCALE: f64 = 1.0 / NUM as f64;

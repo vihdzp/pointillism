@@ -16,7 +16,7 @@
 //! We load a buffer from a file, and read it back slower.
 //!
 //! ```
-//! # use pointillism::{prelude::*, traits::*};
+//! # use pointillism::prelude::*;
 //! const FILENAME: &str = "examples/buffer.wav";
 //!
 //! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.

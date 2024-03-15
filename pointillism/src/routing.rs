@@ -144,10 +144,11 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// This can be used as a simple and efficient way to "clone" a signal, in order to use its output
 /// across various other signals.
 ///
-/// Note that due to Rust's aliasing rules, once a `Ref<S>` is created, the original signal can't be
-/// modified until it's dropped. For this same reason, `Ref<S>` does not implement `SignalMut`, even
-/// if `S` does. The only way to "advance" a signal is to re-build it for each sample. If this
-/// restriction is unacceptable, [`Cell`] can be used to provide interior mutability.
+/// Note that due to Rust's aliasing rules, once a [`Ref<S>`] is created, the original signal can't
+/// be modified until it's dropped. For this same reason, [`Ref<S>`] does not implement
+/// [`SignalMut`], even if `S` does. The only way to "advance" a signal is to re-build it for each
+/// sample. If this restriction is unacceptable, [`Cell`] can be used to provide interior
+/// mutability.
 ///
 /// ## Examples
 ///
@@ -165,9 +166,9 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 ///     |_| {
 ///         // Thanks to `Ref`, we're able to re-use our signal.
 ///         // However, we need to re-define it for every sample.
-///         let sgn1 = eff::PwMapSgn::inf_clip(mix::Ref::new(&signal));
-///         let sgn2 = eff::PwMapSgn::cubic(mix::Ref::new(&signal));
-///         let stereo = mix::Stereo::new(sgn1, sgn2);
+///         let sgn1 = eff::PwMapSgn::inf_clip(rtn::Ref::new(&signal));
+///         let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&signal));
+///         let stereo = rtn::Stereo::new(sgn1, sgn2);
 ///
 ///         // However, we must manually advance them.
 ///         let res = stereo.get();
@@ -185,13 +186,13 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// # use pointillism::prelude::*;
 /// // The original signal.
 /// let signal = gen::Loop::new(crv::Sin, unt::Freq::from_raw_default(unt::RawFreq::A3));
-/// let cell = mix::Cell::new(signal);
+/// let cell = rtn::Cell::new(signal);
 ///
 /// // Thanks to `Ref`, we're able to re-use our signal.
 /// // And thanks to `Cell`, we only need to define our mix once.
-/// let sgn1 = eff::PwMapSgn::inf_clip(mix::Ref::new(&cell));
-/// let sgn2 = eff::PwMapSgn::cubic(mix::Ref::new(&cell));
-/// let stereo = mix::Stereo::new(sgn1, sgn2);
+/// let sgn1 = eff::PwMapSgn::inf_clip(rtn::Ref::new(&cell));
+/// let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&cell));
+/// let stereo = rtn::Stereo::new(sgn1, sgn2);
 ///
 /// pointillism::create(
 ///     "examples/routing_cell.wav",

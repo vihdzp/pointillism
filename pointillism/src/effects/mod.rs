@@ -21,7 +21,7 @@ pub use filter as flt;
 pub mod pan;
 
 pub use freq::{Vib, Vibrato};
-pub use trailing::{Stopping, Trailing};
+pub use trailing::{Retrigger, Stopping, Trailing};
 pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
 use crate::prelude::*;

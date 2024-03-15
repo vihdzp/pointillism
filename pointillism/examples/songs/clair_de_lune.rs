@@ -13,7 +13,7 @@ fn main() {
 
     // Soft triangle waves with a piano-like envelope.
     let release = unt::Time::from_sec_default(0.3);
-    let func = |data: ctr::mel::MidiNoteData| {
+    let func = |data: ctr::MidiNoteData| {
         // Add a bit of octave compression just for fun.
         let mut raw = unt::RawFreq::new_midi(data.key.into()).bend(0.5);
         raw.hz = raw.hz.powf(0.995);
@@ -36,19 +36,18 @@ fn main() {
 
     // The first track is empty.
     tracks.next();
-
     let main_track = tracks.next().unwrap().unwrap();
     let bass_track = tracks.next().unwrap().unwrap();
 
     // There will not be more than 256 notes playing at once.
     let idx_cast = |idx: usize| idx as u8;
 
-    let mut main_melody = ctr::mel::MelodySeq::new_melody(
-        ctr::mel::Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
+    let mut main_melody = ctr::MelSeq::new_melody(
+        ctr::Melody::from_midi(main_track, tick_time, idx_cast).unwrap(),
         map::Func::new(func),
     );
-    let mut bass_melody = ctr::mel::MelodySeq::new_melody(
-        ctr::mel::Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
+    let mut bass_melody = ctr::MelSeq::new_melody(
+        ctr::Melody::from_midi(bass_track, tick_time, idx_cast).unwrap(),
         map::Func::new(func),
     );
 
