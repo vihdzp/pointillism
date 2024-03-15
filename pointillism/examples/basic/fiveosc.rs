@@ -49,5 +49,5 @@ fn main() {
                 / NUM_OSC as f64
         },
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }

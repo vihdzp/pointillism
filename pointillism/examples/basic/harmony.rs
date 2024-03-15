@@ -69,5 +69,5 @@ fn main() {
         SAMPLE_RATE,
         |_| seq.next() / 6.0,
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }

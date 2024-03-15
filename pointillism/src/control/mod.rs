@@ -233,7 +233,7 @@ impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
     ///
     /// Panics if the loop is empty.
     pub fn current_time(&self) -> unt::Time {
-        self.seq.current_time().unwrap()
+        self.seq.current_time().expect("loop can't be empty")
     }
 
     /// Returns a reference to the modified signal.
@@ -392,7 +392,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 ///
 ///     arp.next()
 /// })
-/// .expect("IO error");
+/// .expect(pointillism::IO_ERROR);
 /// ```
 pub type Arpeggio<S> = Loop<S, Arp>;
 

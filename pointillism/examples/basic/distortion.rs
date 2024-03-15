@@ -67,5 +67,5 @@ fn main() {
         SAMPLE_RATE,
         &mut dist,
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }

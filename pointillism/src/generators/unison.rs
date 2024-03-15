@@ -397,7 +397,7 @@ impl<S: smp::Sample, C: Map<Input = unt::Val, Output = f64>, E: SignalMut<Sample
 ///     unison.advance();
 ///     sgn * SCALE
 /// })
-/// .expect("IO error!");
+/// .expect(pointillism::IO_ERROR);
 /// ```
 pub struct UnisonRef<'a, C: Map<Input = unt::Val>>
 where

@@ -32,7 +32,9 @@ fn main() {
         )
     };
 
-    let mut tracks = midly::parse(include_bytes!("clair_de_lune.mid")).unwrap().1;
+    let mut tracks = midly::parse(include_bytes!("clair_de_lune.mid"))
+        .expect("could not parse MIDI")
+        .1;
 
     // The first track is empty.
     tracks.next();
@@ -60,7 +62,7 @@ fn main() {
         unt::SampleRate::default(),
         |_| (main_melody.next() + bass_melody.next() * 0.8) * 0.15,
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }
 
 #[cfg(not(feature = "midly"))]

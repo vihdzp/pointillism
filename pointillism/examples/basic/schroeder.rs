@@ -109,5 +109,5 @@ fn main() {
             (reverb_3.base().get() * p + reverb_3.next() * (1.0 - p)) / 2.0
         },
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }

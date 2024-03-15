@@ -5,8 +5,8 @@ A compositional library for musical composition.
 ## Examples
 
 If you want to see pointillism in action and what it's capable of, run the examples in the
-`examples` folder. There's also many simple examples scattered throughout the source code,
-showing off different features.
+`examples` folder. There's also many simple examples scattered throughout the source code, showing
+off different features.
 
 For a starting example, see the [`create`] docs.
 
@@ -18,17 +18,16 @@ The default way in which pointillism outputs audio is by writing sample by sampl
 floating point `.wav` file. Internal calculations use 64-bit floating points.
 
 For convenience, the [`Signal`] trait is provided. Types implementing this trait generate sample
-data frame by frame. If the type also implements [`SignalMut`], it can be advanced or
-retriggered.
+data frame by frame. If the type also implements [`SignalMut`], it can be advanced or retriggered.
 
-Signals may be composed to create more complex signals, using for instance the [`eff::MapSgn`]
-and [`eff::MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits
-for your own structs, giving you vast control over the samples you're producing.
+Signals may be composed to create more complex signals, using for instance the [`eff::MapSgn`] and
+[`eff::MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits for
+your own structs, giving you vast control over the samples you're producing.
 
 ### Naming scheme
 
-The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because
-of this, we rely on the `prelude` to categorize things neatly.
+The `pointillism` code has a lot of moving parts, and a bunch of similarly named types. Because of
+this, we rely on the `prelude` to categorize things neatly.
 
 Every type has a three-letter namespace which helps categorizes it. The main namespaces are as
 follows:
@@ -49,19 +48,19 @@ follows:
 Note that traits are always imported when the prelude is imported. This simplifies some complex
 `impl` declarations, and also makes the trait methods available whenever.
 
-Some of these namespaces also contain further nested namespaces, almost always three letters.
-See the documentation for the full breakdown.
+Some of these namespaces also contain further nested namespaces, almost always three letters. See
+the documentation for the full breakdown.
 
 ### Compile-time
 
-You can think of pointillism as a compile-time modular synthesizer, where every new struct is
-its own module.
+You can think of pointillism as a compile-time modular synthesizer, where every new struct is its
+own module.
 
-Advantages of this design are extensibility and generality. It's relatively easy to create a
-highly customizable and complex signal with many layers by composing some functions together.
+Advantages of this design are extensibility and generality. It's relatively easy to create a highly
+customizable and complex signal with many layers by composing some functions together.
 
-The downside is that these synths end up having unwieldy type signatures. Moreso, it's really
-hard to build synths in real time.
+The downside is that these synths end up having unwieldy type signatures. Moreso, it's really hard
+to build synths in real time.
 
 ### Features
 
@@ -86,12 +85,12 @@ Future goals of pointillism are:
 
 ## Disclaimer
 
-This is a passion project made by one college student learning about DSP. I make no guarantees
-on it being well-designed, well-maintained, or usable for your own goals.
+This is a passion project made by one college student learning about DSP. I make no guarantees on it
+being well-designed, well-maintained, or usable for your own goals.
 
 If you just want to make music with code, and especially if you enjoy live feedback,
-[SuperCollider](https://supercollider.github.io) and [Pure Data](https://puredata.info) will
-most likely be better alternatives for you.
+[SuperCollider](https://supercollider.github.io) and [Pure Data](https://puredata.info) will most
+likely be better alternatives for you.
 
 That said, if you happen to stumble across this and make something cool, please let me know!
 

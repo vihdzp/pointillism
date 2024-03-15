@@ -176,7 +176,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 ///         res
 ///     }
 /// )
-/// .unwrap();
+/// .expect(pointillism::IO_ERROR);
 /// ```
 ///
 /// The next example rewrites our previous code in terms of [`Cell`]. If our wrappers had non-zero
@@ -204,7 +204,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 ///         res
 ///     }
 /// )
-/// .expect("IO error!");
+/// .expect(pointillism::IO_ERROR);
 /// ```
 pub struct Ref<'a, S: Signal>(pub &'a S);
 

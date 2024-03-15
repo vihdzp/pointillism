@@ -124,5 +124,5 @@ fn main() {
             sample / 2.0
         },
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }

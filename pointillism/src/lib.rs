@@ -117,6 +117,11 @@ pub use with_hound::*;
 // Needed so that the docs render properly.
 use crate::prelude::*;
 
+/// A generic error message for an IO error in [`create`].
+pub const IO_ERROR: &str = "IO error";
+/// A generic "out of bounds" error message.
+pub const OOB: &str = "index out of bounds";
+
 /// Increments a value in `0..len` by one, and wraps it around.
 ///
 /// This should be marginally more efficient than `value = (value + 1) % len`, as it avoids the more
@@ -176,7 +181,7 @@ mod with_hound {
     ///
     /// // Export to file.
     /// pointillism::create_from_sgn("examples/sine.wav", length, SAMPLE_RATE, &mut sgn)  
-    ///     .expect("IO error");
+    ///     .expect(pointillism::IO_ERROR);
     /// ```
     pub fn create<P: AsRef<std::path::Path>, A: Audio, F: FnMut(unt::Time) -> A>(
         filename: P,

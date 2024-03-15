@@ -26,18 +26,25 @@
 //!     unt::SampleRate::default(),
 //!     &mut gen::Loop::<smp::Mono, crv::Sin>::default(),
 //! )
-//! .expect("IO error!");
+//! .expect(pointillism::IO_ERROR);
 //!
 //! // Read back the file, stretch it to 3 seconds.
 //! //
 //! // This lowers the pitch, and may introduce some artifacts depending on the interpolation method.
 //! const FACTOR: f64 = 3.0;
-//! let buf_sgn = gen::OnceBuf::new(buf::Dyn::<smp::Mono>::from_wav(FILENAME).unwrap());
+//! let buf_sgn = gen::OnceBuf::new(buf::Dyn::<smp::Mono>::from_wav(FILENAME)
+//!     .expect("could not read file back"));
 //! let time = buf_sgn.buffer.time();
 //!
 //! // We can change the interpolation method here.
 //! let mut sgn = buf::int::Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-//! pointillism::create_from_sgn(FILENAME, time * FACTOR, unt::SampleRate::default(), &mut sgn).unwrap();
+//! pointillism::create_from_sgn(
+//!     FILENAME,
+//!     time * FACTOR,
+//!     unt::SampleRate::default(),
+//!     &mut sgn
+//! )
+//! .expect(pointillism::IO_ERROR);
 //! ```
 
 use crate::{prelude::*, sample::WavSample};
@@ -113,7 +120,8 @@ impl buf::Dyn<smp::Mono> {
             return std::ptr::null_mut();
         }
 
-        let layout = std::alloc::Layout::array::<smp::Mono>(length).unwrap();
+        let layout =
+            std::alloc::Layout::array::<smp::Mono>(length).expect("could not allocate buffer");
 
         // Safety: the layout is nonempty, the alignment is set explicitly.
         #[allow(clippy::cast_ptr_alignment)]

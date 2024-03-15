@@ -534,19 +534,19 @@ dependencies = [
  "hound",
  "human-duration",
  "midly",
- "pointillism-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pointillism-macros 0.1.0",
  "rand",
 ]
 
 [[package]]
 name = "pointillism-macros"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ac67baae9cc3b72dd1a76ab187d7f01f793e39c623c60bec202fe8d2283c10e"
 
 [[package]]
 name = "pointillism-macros"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ac67baae9cc3b72dd1a76ab187d7f01f793e39c623c60bec202fe8d2283c10e"
+version = "0.1.1"
 
 [[package]]
 name = "ppv-lite86"

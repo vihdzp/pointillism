@@ -1,6 +1,7 @@
-//! This package hosts any procedural macros used by `pointillism`. At the moment, this only
-//! includes the macros [`midi!`] and [`freq!`] for generating the `MidiNote` and `RawFreq`
-//! constants.
+//! This package hosts any procedural macros used by `pointillism`.
+//!
+//! At the moment, this only includes the macros [`midi!`] and [`freq!`] for generating the
+//! `MidiNote` and `RawFreq` constants.
 
 extern crate proc_macro;
 use proc_macro::TokenStream;
@@ -43,6 +44,9 @@ const NOTE_FREQS: [f64; 12] = [
     15.433_853_164_253_879,
 ];
 
+/// Error message when `write!` throws an error. This really shouldn't happen.
+const WRITE_FAIL: &str = "writing failed";
+
 /// For every note in our range, writes
 ///
 /// ```rs
@@ -52,7 +56,9 @@ const NOTE_FREQS: [f64; 12] = [
 ///
 /// The variables `note_name` and `var_name` are calculated within the function, while `value` is
 /// calculated from the function `f`.
-fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStream {
+fn for_all_notes<F: FnMut(&mut String, i16)>(
+    mut f: F,
+) -> Result<proc_macro::TokenStream, std::fmt::Error> {
     let mut code = String::new();
 
     for octave in MIN_OCTAVE..=MAX_OCTAVE {
@@ -71,16 +77,14 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
                     code,
                     "/// The note {name}{nat_symbol}<sub>{octave}</sub>.
                     pub const {name}{symbol}"
-                )
-                .unwrap();
+                )?;
 
                 // Write negative signs as N.
                 if octave < 0 {
                     write!(code, "N{}", -octave)
                 } else {
                     write!(code, "{octave}")
-                }
-                .unwrap();
+                }?;
 
                 code.push_str(": Self = ");
                 f(&mut code, note);
@@ -89,15 +93,16 @@ fn for_all_notes<F: FnMut(&mut String, i16)>(mut f: F) -> proc_macro::TokenStrea
         }
     }
 
-    code.parse().expect("code could not be parsed")
+    Ok(code.parse().expect("code could not be parsed"))
 }
 
 /// Defines the constants for `MidiNote`.
 #[proc_macro]
 pub fn midi(_: TokenStream) -> TokenStream {
     for_all_notes(|code, note| {
-        write!(code, "Self::new({note})").unwrap();
+        write!(code, "Self::new({note})").expect(WRITE_FAIL);
     })
+    .expect(WRITE_FAIL)
 }
 
 /// Defines the constants for `RawFreq`.
@@ -107,7 +112,6 @@ pub fn freq(_: TokenStream) -> TokenStream {
         // Octaves raised relative to the least note.
         let octave = (note - MIN_NOTE).div_euclid(12) as u8;
         let index = note.rem_euclid(12) as usize;
-
         // Build the floating point 2 ^ octave.
         let pow = f64::from_bits((octave as u64 + 1023) << (f64::MANTISSA_DIGITS - 1));
 
@@ -116,6 +120,7 @@ pub fn freq(_: TokenStream) -> TokenStream {
             code,
             "{{#[allow(clippy::excessive_precision)] Self::new({freq:.15})}}"
         )
-        .unwrap();
+        .expect(WRITE_FAIL);
     })
+    .expect(WRITE_FAIL)
 }

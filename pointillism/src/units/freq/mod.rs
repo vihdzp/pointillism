@@ -300,7 +300,7 @@ mod test {
     /// Test parsing a note.
     #[test]
     fn parse_a4() {
-        let a4: RawFreq = "A4".parse().unwrap();
+        let a4: RawFreq = "A4".parse().expect("note could not be parsed");
         assert_approx_eq::assert_approx_eq!(a4.hz, RawFreq::A4.hz);
     }
 

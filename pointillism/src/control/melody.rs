@@ -78,7 +78,7 @@
 //!         smp * 0.5 // TODO: get multiplication on the LHS working
 //!     },
 //! )
-//! .expect("IO error!");
+//! .expect(pointillism::IO_ERROR);
 //! ```
 
 use crate::prelude::*;
@@ -413,7 +413,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
         time_events.sort_by_key(|(time, _)| *time);
 
         // We can now retrieve the events and the time intervals between them.
-        let last_time = time_events.last().unwrap().0;
+        let last_time = time_events.last().expect("notes can't be empty").0;
         let mut prev_time = unt::Time::ZERO;
         let mut times = Vec::with_capacity(event_len + 1);
         let mut events = Vec::with_capacity(event_len + 1);

@@ -181,7 +181,7 @@ pub unsafe trait Array:
     /// Currently, `rust-analyzer` trips up sometimes that `&mut self[index]` is called directly,
     /// complaining that `self` is immutable. This hack bypasses this.
     fn _index_mut(&mut self, index: usize) -> &mut Self::Item {
-        self.get_mut(index).unwrap()
+        self.get_mut(index).expect(crate::OOB)
     }
 
     /// Executes a function for each element in the array type.
@@ -454,13 +454,13 @@ macro_rules! impl_index {
             type Output = f64;
 
             fn index(&self, index: usize) -> &f64 {
-                self.get(index).unwrap()
+                self.get(index).expect(crate::OOB)
             }
         }
 
         impl std::ops::IndexMut<usize> for $ty {
             fn index_mut(&mut self, index: usize) -> &mut f64 {
-                self.get_mut(index).unwrap()
+                self.get_mut(index).expect(crate::OOB)
             }
         }
     };

@@ -61,5 +61,5 @@ fn main() {
         SAMPLE_RATE,
         &mut env_loop,
     )
-    .unwrap();
+    .expect(pointillism::IO_ERROR);
 }
