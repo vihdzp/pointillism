@@ -20,8 +20,8 @@ fn main() {
 
     // Play a C major chord.
     let chord = eff::Volume::new(
-        eff::Mix::new(
-            eff::Mix::new(saw(unt::RawFreq::C3), saw(unt::RawFreq::E3)),
+        rtn::Mix::new(
+            rtn::Mix::new(saw(unt::RawFreq::C3), saw(unt::RawFreq::E3)),
             saw(unt::RawFreq::G3),
         ),
         unt::Vol::MDB10,

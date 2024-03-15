@@ -33,7 +33,8 @@ midly = ["dep:midly"]
 # Disables some code that won't/can't work on Github actions.
 github-actions-hack = []
 # All features to test code with.
-github-actions-all-features = ["cpal", "midly", "github-actions-hack"]
+all-features = ["cpal", "midly"]
+github-actions-all-features = ["all-features", "github-actions-hack"]
 
 # Basic examples
 [[example]]

@@ -11,17 +11,16 @@ pub mod distortion;
 pub mod envelopes;
 pub mod filter;
 mod freq;
-pub mod mix;
-pub mod pan;
-pub mod trailing;
+mod trailing;
 mod vol;
 
 pub use delay as dly;
 pub use distortion as dst;
 pub use envelopes as env;
 pub use filter as flt;
+pub mod pan;
+
 pub use freq::{Vib, Vibrato};
-pub use mix::{Cell, Dup, Duplicate, Mix, Ref, Stereo};
 pub use trailing::{Stopping, Trailing};
 pub use vol::{Gate, StopTremolo, Trem, Tremolo, Volume};
 
@@ -165,7 +164,7 @@ where
     }
 }
 
-/// A [`MapSgn`] taking in a [`Pw`] function.
+/// A [`MapSgn`] taking in a [`map::Pw`] function.
 pub type PwMapSgn<S, F> = MapSgn<S, map::Pw<<S as Signal>::Sample, F>>;
 
 impl<S: Signal, F: map::Map<Input = f64, Output = f64>> PwMapSgn<S, F> {

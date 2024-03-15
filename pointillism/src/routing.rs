@@ -1,4 +1,4 @@
-//! Functions for mixing signals together.
+//! Structures for mixing or combining different signals together.
 
 use crate::prelude::*;
 use std::cell::UnsafeCell;

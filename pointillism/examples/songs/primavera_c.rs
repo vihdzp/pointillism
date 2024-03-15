@@ -51,7 +51,7 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
     };
 
     // Binaural beats.
-    eff::Stereo::new(wave(base * 0.985), vib(base))
+    rtn::Stereo::new(wave(base * 0.985), vib(base))
 }
 
 /// The melody that starts two minutes in.

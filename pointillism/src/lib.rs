@@ -16,6 +16,7 @@ pub mod curves;
 pub mod effects;
 pub mod generators;
 pub mod map;
+pub mod routing;
 pub mod sample;
 pub mod signal;
 pub mod units;
@@ -140,7 +141,7 @@ pub mod prelude {
     // Abbreviate module names.
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, generators as gen, map,
-        sample as smp, units as unt,
+        routing as rtn, sample as smp, units as unt,
     };
     // Import traits.
     pub use crate::{

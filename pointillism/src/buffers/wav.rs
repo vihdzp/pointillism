@@ -290,7 +290,7 @@ impl buf::Dyn<smp::Stereo> {
         }
     }
 
-    /// Creates a [`Stereo`] buffer from a wav file.
+    /// Creates a [`smp::Stereo`] buffer from a wav file.
     ///
     /// See [`Self::from_wav_gen`] for a generic version.
     ///

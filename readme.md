@@ -42,6 +42,7 @@ follows:
 | [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
 | [`sgn`] | `signal` | Traits on signals, including the basic [`Signal`] and [`SignalMut`].
 | [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
+| [`rtn`] | `routing` | Structures for mixing or combining different signals together.
 | [`unt`] | `units` | Different units for musical measurement, and associated arithmetical boilerplate.
 
 Note that traits are always imported when the prelude is imported. This simplifies some complex
