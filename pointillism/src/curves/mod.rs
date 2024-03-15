@@ -327,10 +327,7 @@ impl Map for SawTri {
 ///
 /// Take note of [phase cancellation](https://en.wikipedia.org/wiki/Wave_interference)! Adding two
 /// waves won't always result in an "average" sound.
-pub struct Morph<
-    C: Map<Input = unt::Val, Output = f64>,
-    D: Map<Input = unt::Val, Output = f64>,
-> {
+pub struct Morph<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>> {
     /// The first curve.
     pub fst: C,
     /// The second curve.
@@ -339,9 +336,7 @@ pub struct Morph<
     pub morph: unt::Val,
 }
 
-impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>>
-    Morph<C, D>
-{
+impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>> Morph<C, D> {
     /// Morphs between two curves.
     pub const fn new(fst: C, snd: D, morph: unt::Val) -> Self {
         Self { fst, snd, morph }
@@ -363,8 +358,8 @@ impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f
     }
 }
 
-impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>>
-    Map for Morph<C, D>
+impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>> Map
+    for Morph<C, D>
 {
     type Input = unt::Val;
     type Output = f64;

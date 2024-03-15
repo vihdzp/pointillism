@@ -1,4 +1,6 @@
-
+//! Defines structures that modify the volume of a signal.
+//!
+//! These include [`Volume`], [`Tremolo`], and the related [`StopTremolo`].
 
 use crate::prelude::*;
 use std::marker::PhantomData;

@@ -144,7 +144,6 @@ pub mod prelude {
     };
 
     // Import traits.
-    pub(crate) use sgn::impl_base;
     pub use crate::{
         buf::{Buffer, BufferMut, Ring},
         eff::flt::FilterMap,
@@ -152,4 +151,5 @@ pub mod prelude {
         sgn::{Base, Done, Frequency, Panic, Signal, SignalMut, Stop},
         smp::{Array, Audio, Sample, SampleBase},
     };
+    pub(crate) use sgn::impl_base;
 }

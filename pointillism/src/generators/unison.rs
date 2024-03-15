@@ -341,11 +341,8 @@ where
     }
 }
 
-impl<
-        S: smp::Sample,
-        C: Map<Input = unt::Val, Output = f64>,
-        E: SignalMut<Sample = smp::Env>,
-    > DetuneSgn<S, C, E>
+impl<S: smp::Sample, C: Map<Input = unt::Val, Output = f64>, E: SignalMut<Sample = smp::Env>>
+    DetuneSgn<S, C, E>
 {
     /// Initializes a [`DetuneSgn`].
     pub fn new_detune(map: C, base: unt::Freq, num: u8, env: E) -> Self {
