@@ -1,3 +1,8 @@
+## Version 0.4.2
+
+Generalized filters to allow for higher order designs. Standardized the naming scheme further and
+employed it throughout all the code.
+
 ## Version 0.4.1
 
 Added ring buffers, modified filters and delay to use them.

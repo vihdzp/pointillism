@@ -8,7 +8,7 @@ keywords = ["pointillism", "music", "audio", "modular", "synthesizer"]
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
 repository = "https://github.com/vihdzp/pointillism"
-version = "0.3.7"
+version = "0.4.2"
 
 [dependencies]
 # Required dependencies.
