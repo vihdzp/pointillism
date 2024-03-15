@@ -82,7 +82,7 @@ impl RawFreq {
         Self { hz }
     }
 
-    macros::freq!();
+    pointillism_macros::freq!();
 
     /// The period, which equals the reciprocal of the frequency.
     #[must_use]

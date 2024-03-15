@@ -389,10 +389,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "macros"
-version = "0.1.0"
-
-[[package]]
 name = "memchr"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -537,10 +533,20 @@ dependencies = [
  "derive_more",
  "hound",
  "human-duration",
- "macros",
  "midly",
+ "pointillism-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand",
 ]
+
+[[package]]
+name = "pointillism-macros"
+version = "0.1.0"
+
+[[package]]
+name = "pointillism-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ac67baae9cc3b72dd1a76ab187d7f01f793e39c623c60bec202fe8d2283c10e"
 
 [[package]]
 name = "ppv-lite86"

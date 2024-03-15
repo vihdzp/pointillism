@@ -27,7 +27,7 @@ impl MidiNote {
         Self { note }
     }
 
-    macros::midi!();
+    pointillism_macros::midi!();
 }
 
 /// We use `A4` as a default note.
