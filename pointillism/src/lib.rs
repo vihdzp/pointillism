@@ -201,7 +201,7 @@ where
 /// let mut sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
 ///
 /// // Export to file.
-/// Song::new_sgn(length, SAMPLE_RATE, &mut sgn).export_unwrap("examples/sine.wav");
+/// Song::new_sgn(length, SAMPLE_RATE, &mut sgn).export("examples/sine.wav");
 /// ```
 pub struct Song<F: SongFunc> {
     /// The length of the song in samples.
@@ -264,7 +264,8 @@ where
     S::Sample: Audio,
 {
     /// A convenience function to create a [`new`](Self::new) song from a given signal. The signal
-    /// is consumed. To instead take in a function, see [`Self::new`].
+    /// is consumed. To instead take in a function, see [`Self::new`]. If you don't have to own the
+    /// song, use [`Self::new_sgn`].
     ///
     /// The resulting WAV file will be mono or stereo, depending on whether the passed function
     /// returns [`smp::Mono`] or [`smp::Stereo`].
@@ -302,7 +303,7 @@ mod with_hound {
         /// ## Errors
         ///
         /// This should only return an error in the case of an IO error.
-        pub fn export<P: AsRef<std::path::Path>>(&mut self, filename: P) -> hound::Result<()> {
+        pub fn export_res<P: AsRef<std::path::Path>>(&mut self, filename: P) -> hound::Result<()> {
             let length = self.length.samples.int();
             let mut writer =
                 hound::WavWriter::create(filename, spec(F::Sample::size_u8(), self.sample_rate))?;
@@ -316,13 +317,14 @@ mod with_hound {
             writer.finalize()
         }
 
-        /// A convenience function for calling [`Self::export`], panicking in case of an IO error.
+        /// A convenience function for calling [`Self::export_res`], panicking in case of an IO
+        /// error.
         ///
         /// ## Panics
         ///
         /// Panics in case of an IO error.
-        pub fn export_expect<P: AsRef<std::path::Path>>(&mut self, filename: P) {
-            self.export(filename).expect("IO error");
+        pub fn export<P: AsRef<std::path::Path>>(&mut self, filename: P) {
+            self.export_res(filename).expect("IO error");
         }
     }
 }

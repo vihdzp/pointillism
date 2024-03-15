@@ -384,7 +384,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 /// arp.skip();
 ///
 /// let mut timer = ctr::Timer::new(length);
-/// pointillism::create("examples/arpeggio.wav", 2u8 * length, SAMPLE_RATE, |time| {
+/// Song::new(2u8 * length, SAMPLE_RATE, |time| {
 ///     // We switch up the arpeggio after the first phrase.
 ///     if timer.tick(time) {
 ///         arp.notes_mut()[2] = unt::Freq::from_raw(unt::RawFreq::F4, SAMPLE_RATE);
@@ -392,7 +392,7 @@ impl<S: Frequency> map::Mut<S> for Arp {
 ///
 ///     arp.next()
 /// })
-/// .expect(pointillism::IO_ERROR);
+/// .export("examples/arpeggio.wav");
 /// ```
 pub type Arpeggio<S> = Loop<S, Arp>;
 

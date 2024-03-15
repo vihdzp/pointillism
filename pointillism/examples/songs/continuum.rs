@@ -109,5 +109,5 @@ fn main() {
         // 10.0 might be too much, but just to be safe from clipping.
         &mut eff::Volume::new(poly_loop, unt::Vol::new(1.0 / 10.0)),
     )
-    .export_expect("pointillism/examples/continuum.wav");
+    .export("pointillism/examples/continuum.wav");
 }

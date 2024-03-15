@@ -44,5 +44,5 @@ fn main() {
             .sum::<smp::Mono>()
             / NUM_OSC as f64
     })
-    .export_expect("pointillism/examples/fiveosc.wav");
+    .export("pointillism/examples/fiveosc.wav");
 }

@@ -58,27 +58,22 @@
 //! let mut timer = ctr::Timer::new(2u8 * length);
 //!
 //! // We play the melody twice.
-//! pointillism::create(
-//!     "examples/twinkle.wav",
-//!     2u8 * length + release,
-//!     SAMPLE_RATE,
-//!     |time| {
-//!         // After the melody has been played twice, stop all voices.
-//!         if timer.tick(time) {
-//!             melody_loop.sgn_mut().stop_all();
-//!         }
+//! Song::new(2u8 * length + release, SAMPLE_RATE, |time| {
+//!     // After the melody has been played twice, stop all voices.
+//!     if timer.tick(time) {
+//!         melody_loop.sgn_mut().stop_all();
+//!     }
 //!
-//!         let smp = if time < 2u8 * length {
-//!             // Play as usual.
-//!             melody_loop.next()
-//!         } else {
-//!             // Stop the loop, just play the inner fading signal instead.
-//!             melody_loop.sgn_mut().next()
-//!         };
-//!         smp * 0.5 // TODO: get multiplication on the LHS working
-//!     },
-//! )
-//! .expect(pointillism::IO_ERROR);
+//!      let smp = if time < 2u8 * length {
+//!         // Play as usual.
+//!         melody_loop.next()
+//!     } else {
+//!         // Stop the loop, just play the inner fading signal instead.
+//!         melody_loop.sgn_mut().next()
+//!     };
+//!     smp * 0.5 // TODO: get multiplication on the LHS working
+//! })
+//! .export("examples/twinkle.wav");
 //! ```
 
 use crate::prelude::*;

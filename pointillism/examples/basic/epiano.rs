@@ -125,5 +125,5 @@ fn main() {
 
         sgn / 3.0
     })
-    .export_expect("pointillism/examples/epiano.wav");
+    .export("pointillism/examples/epiano.wav");
 }

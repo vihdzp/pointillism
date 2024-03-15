@@ -56,5 +56,5 @@ fn main() {
     );
 
     Song::new_sgn(NOTES * note_time, SAMPLE_RATE, &mut env_loop)
-        .export_expect("pointillism/examples/pluck.wav");
+        .export("pointillism/examples/pluck.wav");
 }

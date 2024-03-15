@@ -56,13 +56,10 @@ fn main() {
     // Length of the file.
     let length = main_melody.total_time() + release;
 
-    pointillism::create(
-        "pointillism/examples/clair_de_lune.wav",
-        length,
-        unt::SampleRate::default(),
-        |_| (main_melody.next() + bass_melody.next() * 0.8) * 0.15,
-    )
-    .expect(pointillism::IO_ERROR);
+    Song::new(length, unt::SampleRate::default(), |_| {
+        (main_melody.next() + bass_melody.next() * 0.8) * 0.15
+    })
+    .export("pointillism/examples/clair_de_lune.wav");
 }
 
 #[cfg(not(feature = "midly"))]

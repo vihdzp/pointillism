@@ -118,5 +118,5 @@ fn main() {
 
         sample / 2.0
     })
-    .export_expect("pointillism/examples/primavera_c.wav");
+    .export("pointillism/examples/primavera_c.wav");
 }

@@ -20,13 +20,12 @@
 //! const FILENAME: &str = "examples/buffer.wav";
 //!
 //! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
-//! pointillism::create_from_sgn(
-//!     FILENAME,
+//! Song::new_sgn(
 //!     unt::Time::from_raw_default(unt::RawTime::SEC),
 //!     unt::SampleRate::default(),
 //!     &mut gen::Loop::<smp::Mono, crv::Sin>::default(),
 //! )
-//! .expect(pointillism::IO_ERROR);
+//! .export(FILENAME);
 //!
 //! // Read back the file, stretch it to 3 seconds.
 //! //
@@ -38,13 +37,7 @@
 //!
 //! // We can change the interpolation method here.
 //! let mut sgn = buf::int::Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-//! pointillism::create_from_sgn(
-//!     FILENAME,
-//!     time * FACTOR,
-//!     unt::SampleRate::default(),
-//!     &mut sgn
-//! )
-//! .expect(pointillism::IO_ERROR);
+//! Song::new_sgn(time * FACTOR, unt::SampleRate::default(), &mut sgn).export(FILENAME);
 //! ```
 
 use crate::{prelude::*, sample::WavSample};

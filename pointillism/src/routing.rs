@@ -160,23 +160,19 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// // The original signal.
 /// let mut signal = gen::Loop::new(crv::Sin, unt::Freq::from_raw_default(unt::RawFreq::A3));
 ///
-/// pointillism::create(
-///     "examples/routing.wav",
-///     unt::Time::from_sec_default(3.0), unt::SampleRate::default(),
-///     |_| {
-///         // Thanks to `Ref`, we're able to re-use our signal.
-///         // However, we need to re-define it for every sample.
-///         let sgn1 = eff::PwMapSgn::inf_clip(rtn::Ref::new(&signal));
-///         let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&signal));
-///         let stereo = rtn::Stereo::new(sgn1, sgn2);
+/// Song::new(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
+///     // Thanks to `Ref`, we're able to re-use our signal.
+///     // However, we need to re-define it for every sample.
+///     let sgn1 = eff::PwMapSgn::inf_clip(rtn::Ref::new(&signal));
+///     let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&signal));
+///     let stereo = rtn::Stereo::new(sgn1, sgn2);
 ///
-///         // However, we must manually advance them.
-///         let res = stereo.get();
-///         signal.advance();
-///         res
-///     }
-/// )
-/// .expect(pointillism::IO_ERROR);
+///     // However, we must manually advance them.
+///     let res = stereo.get();
+///     signal.advance();
+///     res
+/// })
+/// .export("examples/routing.wav");
 /// ```
 ///
 /// The next example rewrites our previous code in terms of [`Cell`]. If our wrappers had non-zero
@@ -194,17 +190,13 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&cell));
 /// let stereo = rtn::Stereo::new(sgn1, sgn2);
 ///
-/// pointillism::create(
-///     "examples/routing_cell.wav",
-///     unt::Time::from_sec_default(3.0), unt::SampleRate::default(),
-///     |_| {
-///         // The `advance` method here uses interior mutability.
-///         let res = stereo.get();
-///         cell.advance();
-///         res
-///     }
-/// )
-/// .expect(pointillism::IO_ERROR);
+/// Song::new(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
+///     // The `advance` method here uses interior mutability.
+///     let res = stereo.get();
+///     cell.advance();
+///     res
+/// })
+/// .export("examples/routing_cell.wav");
 /// ```
 pub struct Ref<'a, S: Signal>(pub &'a S);
 

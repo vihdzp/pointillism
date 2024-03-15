@@ -104,5 +104,5 @@ fn main() {
         let p = time / length;
         (reverb_3.base().get() * p + reverb_3.next() * (1.0 - p)) / 2.0
     })
-    .export_expect("pointillism/examples/schroeder.wav");
+    .export("pointillism/examples/schroeder.wav");
 }

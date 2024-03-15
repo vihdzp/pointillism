@@ -68,5 +68,5 @@ fn main() {
         SAMPLE_RATE,
         |_| seq.next() / 6.0,
     )
-    .export_expect("pointillism/examples/harmony.wav");
+    .export("pointillism/examples/harmony.wav");
 }
