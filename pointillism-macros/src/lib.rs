@@ -1,4 +1,6 @@
-//! Implements the [`midi!`] and [`freq!`] macros.
+//! This package hosts any procedural macros used by `pointillism`. At the moment, this only
+//! includes the macros [`midi!`] and [`freq!`] for generating the `MidiNote` and `RawFreq`
+//! constants.
 
 extern crate proc_macro;
 use proc_macro::TokenStream;
@@ -24,7 +26,8 @@ const NOTE_NAMES: [(char, i16); 7] = [
     ('B', 11),
 ];
 
-/// Frequencies of notes in the first MIDI octave. These are exact within floating point precision.
+/// Frequencies of notes in the first MIDI octave. These should be exact within floating point
+/// precision.
 const NOTE_FREQS: [f64; 12] = [
     8.175_798_915_643_707,
     8.661_957_218_027_252,
