@@ -20,9 +20,9 @@ floating point `.wav` file. Internal calculations use 64-bit floating points.
 For convenience, the [`Signal`] trait is provided. Types implementing this trait generate sample
 data frame by frame. If the type also implements [`SignalMut`], it can be advanced or retriggered.
 
-Signals may be composed to create more complex signals, using for instance the [`MapSgn`] and
-[`MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits for your own
-structs, giving you vast control over the samples you're producing.
+Signals may be composed to create more complex signals, using for instance the [`eff::MapSgn`] and
+[`eff::MutSgn`] structs. Moreover, you can implement the [`Signal`] and [`SignalMut`] traits for
+your own structs, giving you vast control over the samples you're producing.
 
 ### Naming scheme
 
@@ -71,7 +71,7 @@ The project uses the following features:
 | [`hound`](https://docs.rs/hound/latest/hound)* | Saving songs as WAV files. |
 | [`cpal`](https://docs.rs/cpal/latest/cpal) | Playing songs in a dedicated thread. |
 | [`midly`](https://docs.rs/midly/latest/midly) | Reading and playing back MIDI files. |
-| [`human-duration`](https://docs.rs/human-duration/latest/human_duration)* | Pretty-printing for the [`RawTime`] type. |
+| [`human-duration`](https://docs.rs/human-duration/latest/human_duration)* | Pretty-printing for the [`unt::RawTime`] type. |
 
 \* Features marked with an asterisk are enabled by default.
 

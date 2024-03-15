@@ -46,7 +46,7 @@ pub fn hermite<S: smp::SampleBase>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 pub trait Interpolate:
-    map::Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + Ring + Sized
+    Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + Ring + Sized
 {
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -129,7 +129,7 @@ impl<A: Audio> Drop<A> {
     }
 }
 
-impl<A: Audio> map::Map for Drop<A> {
+impl<A: Audio> Map for Drop<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -174,7 +174,7 @@ impl<A: Audio> Linear<A> {
     }
 }
 
-impl<A: Audio> map::Map for Linear<A> {
+impl<A: Audio> Map for Linear<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -219,7 +219,7 @@ impl<A: Audio> Cubic<A> {
     }
 }
 
-impl<A: Audio> map::Map for Cubic<A> {
+impl<A: Audio> Map for Cubic<A> {
     type Input = unt::Val;
     type Output = A;
 
@@ -265,7 +265,7 @@ impl<A: Audio> Hermite<A> {
     }
 }
 
-impl<A: Audio> map::Map for Hermite<A> {
+impl<A: Audio> Map for Hermite<A> {
     type Input = unt::Val;
     type Output = A;
 

@@ -148,7 +148,7 @@ impl<A: Audio, P: Law> Wrapper<A, P> {
     }
 }
 
-impl<A: Audio, P: Law> map::Map for Wrapper<A, P> {
+impl<A: Audio, P: Law> Map for Wrapper<A, P> {
     type Input = A;
     type Output = smp::Stereo;
 

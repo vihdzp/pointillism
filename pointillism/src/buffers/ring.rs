@@ -1,28 +1,26 @@
 //! Implements ring or cyclic buffers.
-//!
-//! These are meant to be used when you continually need to store the last few samples output from
-//! some signal, such as for a delay effect.
-//!
-//! ## Kinds of ring buffers
-//!
-//! We implement two kinds of ring buffers:
-//!
-//! - [`Shift`] buffers push new data and the start, and shift all pre-existing data by one entry.
-//!   These are fast when they are very small (≤ 4), but are entirely impractical for larger
-//!   buffers.
-//! - [`Circ`] buffers write data into consecutive positions of a buffer, then loop around when they
-//!   reach the end. The branching incurs some small overhead, but this is well worth it for large
-//!   buffers.
-//!
-//! ## Todo
-//!
-//! Actually test that [`Shift`] buffers are more efficient!
 
 use crate::{mod_inc, prelude::*};
 
 /// A trait for ring or cyclic buffers.
 ///
-/// See the [module docs](self) for more info.
+/// These are meant to be used when you continually need to store the last few samples output from
+/// some signal, such as for a delay effect.
+///
+/// ## Kinds of ring buffers
+///
+/// We implement two kinds of ring buffers:
+///
+/// - [`Shift`] buffers push new data and the start, and shift all pre-existing data by one entry.
+///   These are fast when they are very small (≤ 4), but are entirely impractical for larger
+///   buffers.
+/// - [`Circ`] buffers write data into consecutive positions of a buffer, then loop around when they
+///   reach the end. The branching incurs some small overhead, but this is well worth it for large
+///   buffers.
+///
+/// ## Todo
+///
+/// Actually test that [`Shift`] buffers are more efficient!
 pub trait Ring {
     /// The backing buffer type.
     type Buf: buf::BufferMut;

@@ -4,7 +4,7 @@
 use pointillism::prelude::*;
 
 /// A single Schroeder all-pass filter.
-struct SchroederUnit<S: Signal>(eff::dly::ExpDelay<S, buf::Dyn<S::Sample>>)
+struct SchroederUnit<S: Signal>(eff::dly::Exp<S, buf::Dyn<S::Sample>>)
 where
     S::Sample: Audio;
 
@@ -14,7 +14,7 @@ where
 {
     /// Initializes a Schroeder reverberation unit.
     fn new(sgn: S, gain: unt::Vol, delay: unt::Time) -> Self {
-        Self(eff::dly::ExpDelay::new_exp_owned(sgn, delay, gain))
+        Self(eff::dly::Exp::new_exp_owned(sgn, delay, gain))
     }
 
     /// A reference to the inner signal.

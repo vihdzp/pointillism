@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Flip;
 
-impl map::Map for Flip {
+impl Map for Flip {
     type Input = smp::Stereo;
     type Output = smp::Stereo;
 
@@ -18,7 +18,7 @@ impl map::Map for Flip {
 
 /// Converts a function into one applied pointwise to the entries of a [`Sample`].
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Pw<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> {
+pub struct Pw<S: smp::Sample, F: Map<Input = f64, Output = f64>> {
     /// The function to apply.
     pub func: F,
 
@@ -26,7 +26,7 @@ pub struct Pw<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> {
     phantom: PhantomData<S>,
 }
 
-impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
+impl<S: smp::Sample, F: Map<Input = f64, Output = f64>> Pw<S, F> {
     /// Initializes a new [`Pw`] function.
     pub const fn new(func: F) -> Self {
         Self {
@@ -36,7 +36,7 @@ impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> Pw<S, F> {
     }
 }
 
-impl<S: smp::Sample, F: map::Map<Input = f64, Output = f64>> map::Map for Pw<S, F> {
+impl<S: smp::Sample, F: Map<Input = f64, Output = f64>> Map for Pw<S, F> {
     type Input = S;
     type Output = S;
 

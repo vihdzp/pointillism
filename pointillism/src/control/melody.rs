@@ -44,11 +44,13 @@
 //! let func = |freq: unt::Freq| {
 //!     eff::env::AdsrEnv::new_adsr(
 //!         gen::Loop::<smp::Mono, _>::new(crv::Tri, freq),
-//!         eff::env::Adsr::new(unt::Time::from_sec(0.1, SAMPLE_RATE),
-//!         q,
-//!         unt::Vol::new(0.2),
-//!         release,
-//!     )) // TODO: FIX INDENTING HERE
+//!         eff::env::Adsr::new(
+//!             unt::Time::from_sec(0.1, SAMPLE_RATE),
+//!             q,
+//!             unt::Vol::new(0.2),
+//!             release,
+//!         ),
+//!     )
 //! };
 //!
 //! let melody = ctr::mel::Melody::piano_roll(notes, |idx| idx as u8);
@@ -97,7 +99,6 @@ pub enum NoteEvent<K: Eq + Hash + Clone, D> {
     Add { key: K, data: D },
     /// Stops a note with a certain index.
     Stop { key: K },
-
     /// Does nothing. This exists so that loops can work properly.
     Skip,
 }
@@ -105,8 +106,8 @@ pub enum NoteEvent<K: Eq + Hash + Clone, D> {
 /// A note in a piano roll, which has a start time, some length, and some associated data. The note
 /// can potentially be trailing.
 ///
-/// This data can be [frequency](Freq), [volume](Vol), MIDI data, velocity, or anything else you
-/// might associate with a note on a piano roll.
+/// This data can be [frequency](unt::Freq), [volume](unt::Vol), MIDI data, velocity, or anything
+/// else you might associate with a note on a piano roll.
 #[derive(Clone, Copy)]
 pub struct Note<D: Clone> {
     /// Note start time.
@@ -207,11 +208,11 @@ impl MidiNoteData {
 }
 
 /// A "note reader" function that reads through different note events in order, and modifies a
-/// [`Polyphony`] struct accordingly.
+/// [`gen::Polyphony`] struct accordingly.
 ///
 /// This is used to implement [`MelodySeq`] and [`MelodyLoop`].
 #[derive(Clone, Debug)]
-pub struct NoteReader<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>>
+pub struct NoteReader<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -225,7 +226,7 @@ where
     pub func: F,
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> NoteReader<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -272,7 +273,7 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> map::Mut<gen::Polyphony<K, F::Output>>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> map::Mut<gen::Polyphony<K, F::Output>>
     for NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
@@ -291,11 +292,10 @@ where
 }
 
 /// A melody that plays from start to end.
-pub type MelodySeq<K, D, F> =
-    ctr::Seq<gen::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+pub type MelodySeq<K, D, F> = ctr::Seq<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
 /// A melody that loops.
 pub type MelodyLoop<K, D, F> =
-    ctr::Loop<gen::Polyphony<K, <F as map::Map>::Output>, NoteReader<K, D, F>>;
+    ctr::Loop<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
 
 /// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`MelodySeq`] or a
 /// [`MelodyLoop`].
@@ -544,7 +544,7 @@ impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> MelodySeq<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodySeq<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
@@ -571,7 +571,7 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: map::Map<Input = D>> MelodyLoop<K, D, F>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelodyLoop<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {

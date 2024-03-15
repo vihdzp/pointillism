@@ -128,12 +128,12 @@ pub type SparseDyn = Sparse<Vec<f64>>;
 /// ```
 ///
 /// The values `x[n]` are the inputs, while the values `y[n]` are the outputs. These can be used to
-/// build a [`Filter`]. `T` is the length of `b`, while `U` is the length of `a`.
+/// build a [`eff::flt::Filter`]. `T` is the length of `b`, while `U` is the length of `a`.
 ///
 /// Some sources separate out a value `a[0]`, which essentially serves as a normalization factor.
 /// The "real" coefficients result by dividing everything else out by `a[0]`.
 ///
-/// For common filter designs, see [`Biquad`].
+/// For common filter designs, see [`eff::flt::Biquad`].
 ///
 /// ## Transfer function
 ///

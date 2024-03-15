@@ -1,7 +1,7 @@
 //! Defines different kinds of signal distortion.
 //!
 //! No new signal structs are defined in this file. Instead, we define new initiailzations for
-//! [`PwMapSgn`].
+//! [`eff::PwMapSgn`].
 
 use crate::prelude::*;
 
@@ -11,7 +11,7 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InfClip;
 
-impl map::Map for InfClip {
+impl Map for InfClip {
     type Input = f64;
     type Output = f64;
 
@@ -50,7 +50,7 @@ impl Default for Clip {
     }
 }
 
-impl map::Map for Clip {
+impl Map for Clip {
     type Input = f64;
     type Output = f64;
 
@@ -89,7 +89,7 @@ impl Default for Atan {
     }
 }
 
-impl map::Map for Atan {
+impl Map for Atan {
     type Input = f64;
     type Output = f64;
 
@@ -138,7 +138,7 @@ impl Default for Pow {
     }
 }
 
-impl map::Map for Pow {
+impl Map for Pow {
     type Input = f64;
     type Output = f64;
 

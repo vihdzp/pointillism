@@ -10,10 +10,10 @@
 //! ## Terminology
 //!
 //! We distinguish between two kinds of curves. The most basic curves like [`Sin`], [`SawTri`],
-//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing [`map::Map`]
+//! [`Pulse`], etc.) are all examples of **(plain) curves**, meaning types implementing [`Map`]
 //! where the input is [`unt::Val`] both the input and output are `f64`.
 //!
-//! On the other hand, **sample curves**, are types implementing [`map::Map`] where the input is
+//! On the other hand, **sample curves**, are types implementing [`Map`] where the input is
 //! [`unt::Val`] and the output is a [`smp::Sample`]. One can create a sample curve from a plain
 //! curve by using [`CurvePlayer`](gen::CurvePlayer).
 
@@ -31,7 +31,7 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Saw;
 
-impl map::Map for Saw {
+impl Map for Saw {
     type Input = unt::Val;
     type Output = f64;
 
@@ -52,7 +52,7 @@ impl map::Map for Saw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InvSaw;
 
-impl map::Map for InvSaw {
+impl Map for InvSaw {
     type Input = unt::Val;
     type Output = f64;
 
@@ -73,7 +73,7 @@ impl map::Map for InvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PosSaw;
 
-impl map::Map for PosSaw {
+impl Map for PosSaw {
     type Input = unt::Val;
     type Output = f64;
 
@@ -94,7 +94,7 @@ impl map::Map for PosSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct PosInvSaw;
 
-impl map::Map for PosInvSaw {
+impl Map for PosInvSaw {
     type Input = unt::Val;
     type Output = f64;
 
@@ -109,7 +109,7 @@ impl map::Map for PosInvSaw {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sin;
 
-impl map::Map for Sin {
+impl Map for Sin {
     type Input = unt::Val;
     type Output = f64;
 
@@ -132,7 +132,7 @@ impl Cos {
     }
 }
 
-impl map::Map for Cos {
+impl Map for Cos {
     type Input = unt::Val;
     type Output = f64;
 
@@ -165,7 +165,7 @@ pub fn pulse(x: f64, shape: f64) -> f64 {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sq;
 
-impl map::Map for Sq {
+impl Map for Sq {
     type Input = unt::Val;
     type Output = f64;
 
@@ -205,7 +205,7 @@ impl Default for Pulse {
     }
 }
 
-impl map::Map for Pulse {
+impl Map for Pulse {
     type Input = unt::Val;
     type Output = f64;
 
@@ -249,7 +249,7 @@ pub fn saw_tri(x: f64, shape: unt::Val) -> f64 {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Tri;
 
-impl map::Map for Tri {
+impl Map for Tri {
     type Input = unt::Val;
     type Output = f64;
 
@@ -314,7 +314,7 @@ impl Default for SawTri {
     }
 }
 
-impl map::Map for SawTri {
+impl Map for SawTri {
     type Input = unt::Val;
     type Output = f64;
 
@@ -328,8 +328,8 @@ impl map::Map for SawTri {
 /// Take note of [phase cancellation](https://en.wikipedia.org/wiki/Wave_interference)! Adding two
 /// waves won't always result in an "average" sound.
 pub struct Morph<
-    C: map::Map<Input = unt::Val, Output = f64>,
-    D: map::Map<Input = unt::Val, Output = f64>,
+    C: Map<Input = unt::Val, Output = f64>,
+    D: Map<Input = unt::Val, Output = f64>,
 > {
     /// The first curve.
     pub fst: C,
@@ -339,7 +339,7 @@ pub struct Morph<
     pub morph: unt::Val,
 }
 
-impl<C: map::Map<Input = unt::Val, Output = f64>, D: map::Map<Input = unt::Val, Output = f64>>
+impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>>
     Morph<C, D>
 {
     /// Morphs between two curves.
@@ -363,8 +363,8 @@ impl<C: map::Map<Input = unt::Val, Output = f64>, D: map::Map<Input = unt::Val, 
     }
 }
 
-impl<C: map::Map<Input = unt::Val, Output = f64>, D: map::Map<Input = unt::Val, Output = f64>>
-    map::Map for Morph<C, D>
+impl<C: Map<Input = unt::Val, Output = f64>, D: Map<Input = unt::Val, Output = f64>>
+    Map for Morph<C, D>
 {
     type Input = unt::Val;
     type Output = f64;

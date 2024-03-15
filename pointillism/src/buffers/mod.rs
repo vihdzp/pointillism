@@ -2,12 +2,12 @@
 //!
 //! You can load a buffer from a WAV file (if the `hound` feature is enabled), or you can create
 //! your own buffer and write a signal into it, to then read it back. This can be useful if you want
-//! to loop an expensive to compute signal. This is also used in [`Delay`].
+//! to loop an expensive to compute signal. This is also used in [`eff::dly::Delay`].
 //!
 //! You can also use a buffer if you want to process large amounts of audio data before playing it
 //! back. This is useful for certain algorithms, such as the
 //! [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform). Convenience methods such as
-//! [`buf::Mut::overwrite`] are provided for loading a buffer.
+//! [`BufferMut::overwrite`] are provided for loading a buffer.
 //!
 //! We distinguish three different kinds of buffers: those that hold a reference to its data, those
 //! that hold a mutable reference to its data, and those that own its data.
@@ -314,7 +314,7 @@ impl<'a, A: Audio> Slice<'a, A> {
 }
 
 impl<'a, A: Audio> SliceMut<'a, A> {
-    /// Initializes a new [`buf::MutSlice`].
+    /// Initializes a new [`buf::SliceMut`].
     pub fn new(data: &'a mut [A]) -> Self {
         Self { data }
     }

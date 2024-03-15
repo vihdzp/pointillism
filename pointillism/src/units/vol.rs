@@ -7,7 +7,7 @@ use crate::prelude::*;
 /// You can use [`Self::from_db`] and [`Self::db`] to convert gain into decibels, and viceversa. A
 /// unit gain corresponds to 0 dB.
 ///
-/// This also implements the [`map::Map`] trait, thus doubling as a function that multiplies the
+/// This also implements the [`Map`] trait, thus doubling as a function that multiplies the
 /// volume of a signal.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Vol {
@@ -85,7 +85,7 @@ impl Default for Vol {
     }
 }
 
-impl map::Map for Vol {
+impl Map for Vol {
     type Input = f64;
     type Output = f64;
 

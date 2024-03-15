@@ -51,7 +51,7 @@ pub type WavFileReader = hound::WavReader<std::io::BufReader<std::fs::File>>;
 pub enum Error {
     /// The number of channels got was different from the expected.
     ChannelMismatch {
-        /// True if [`Mono`] was expected, false if [`Stereo`] was expected.
+        /// True if [`smp::Mono`] was expected, false if [`smp::Stereo`] was expected.
         expected_mono: bool,
     },
 
@@ -192,7 +192,7 @@ impl buf::Dyn<smp::Mono> {
         }
     }
 
-    /// Creates a [`Mono`] buffer from a wav file, with a given [`WavSample`] format.
+    /// Creates a [`smp::Mono`] buffer from a wav file, with a given [`WavSample`] format.
     ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///
@@ -216,7 +216,7 @@ impl buf::Dyn<smp::Mono> {
         }
     }
 
-    /// Creates a [`Mono`] buffer from a wav file.
+    /// Creates a [`smp::Mono`] buffer from a wav file.
     ///
     /// See [`Self::from_wav_gen`] for a generic version.
     ///
@@ -266,7 +266,7 @@ impl buf::Dyn<smp::Stereo> {
         }
     }
 
-    /// Creates a [`Stereo`] buffer from a wav file, with a given [`WavSample`] format.
+    /// Creates a [`smp::Stereo`] buffer from a wav file, with a given [`WavSample`] format.
     ///
     /// See [`Self::from_wav`] for a non-generic version.
     ///

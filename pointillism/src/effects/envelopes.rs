@@ -1,4 +1,6 @@
 //! Signal envelopes, notably including the [`ArEnv`] and [`AdsrEnv`].
+//! 
+//! TODO: aren't Ar and Adsr generators?
 
 use crate::prelude::*;
 

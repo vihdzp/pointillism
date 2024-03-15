@@ -1,7 +1,7 @@
 //! Implements many effects one can use to modify signals.
 //!
-//! Effects are structures that wrap around [`Signals`](crate::prelude::Signal) and modify the
-//! samples they produce, be they envelope or audio data.
+//! Effects are structures that wrap around [`Signals`](Signal) and modify the samples they
+//! produce, be they envelope or audio data.
 //!
 //! The module file implements the most basic structures for transforming a signal, including
 //! [`MapSgn`], [`MutSgn`], and [`ModSgn`].
@@ -34,7 +34,7 @@ use crate::prelude::*;
 /// Note that the map here takes in a sample and outputs a sample. If you instead want to map the
 /// floating point values of the sample pointwise, wrap the function in [`map::Pw`].
 #[derive(Clone, Copy, Debug, Default)]
-pub struct MapSgn<S: Signal, F: map::Map<Input = S::Sample>>
+pub struct MapSgn<S: Signal, F: Map<Input = S::Sample>>
 where
     F::Output: smp::Sample,
 {
@@ -44,7 +44,7 @@ where
     map: F,
 }
 
-impl<S: Signal, F: map::Map<Input = S::Sample>> MapSgn<S, F>
+impl<S: Signal, F: Map<Input = S::Sample>> MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -85,7 +85,7 @@ where
     }
 }
 
-impl<S: Signal, F: map::Map<Input = S::Sample>> Signal for MapSgn<S, F>
+impl<S: Signal, F: Map<Input = S::Sample>> Signal for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -96,7 +96,7 @@ where
     }
 }
 
-impl<S: SignalMut, F: map::Map<Input = S::Sample>> SignalMut for MapSgn<S, F>
+impl<S: SignalMut, F: Map<Input = S::Sample>> SignalMut for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -109,7 +109,7 @@ where
     }
 }
 
-impl<S: Frequency, F: map::Map<Input = S::Sample>> Frequency for MapSgn<S, F>
+impl<S: Frequency, F: Map<Input = S::Sample>> Frequency for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -122,7 +122,7 @@ where
     }
 }
 
-impl<S: Base, F: map::Map<Input = S::Sample>> Base for MapSgn<S, F>
+impl<S: Base, F: Map<Input = S::Sample>> Base for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -137,7 +137,7 @@ where
     }
 }
 
-impl<S: Stop, F: map::Map<Input = S::Sample>> Stop for MapSgn<S, F>
+impl<S: Stop, F: Map<Input = S::Sample>> Stop for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -146,7 +146,7 @@ where
     }
 }
 
-impl<S: Done, F: map::Map<Input = S::Sample>> Done for MapSgn<S, F>
+impl<S: Done, F: Map<Input = S::Sample>> Done for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -155,7 +155,7 @@ where
     }
 }
 
-impl<S: Panic, F: map::Map<Input = S::Sample>> Panic for MapSgn<S, F>
+impl<S: Panic, F: Map<Input = S::Sample>> Panic for MapSgn<S, F>
 where
     F::Output: smp::Sample,
 {
@@ -167,7 +167,7 @@ where
 /// A [`MapSgn`] taking in a [`map::Pw`] function.
 pub type PwMapSgn<S, F> = MapSgn<S, map::Pw<<S as Signal>::Sample, F>>;
 
-impl<S: Signal, F: map::Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
+impl<S: Signal, F: Map<Input = f64, Output = f64>> PwMapSgn<S, F> {
     /// Initializes a [`MapSgn`] from a pointwise function.
     pub const fn new_pw(sgn: S, map: F) -> Self {
         Self::new(sgn, map::Pw::new(map))

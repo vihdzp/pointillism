@@ -26,7 +26,7 @@ impl<X> Default for Id<X> {
     }
 }
 
-impl<X> map::Map for Id<X> {
+impl<X> Map for Id<X> {
     type Input = X;
     type Output = X;
 
@@ -66,7 +66,7 @@ impl<X, S: smp::Sample> Default for Zero<X, S> {
     }
 }
 
-impl<X, S: smp::Sample> map::Map for Zero<X, S> {
+impl<X, S: smp::Sample> Map for Zero<X, S> {
     type Input = X;
     type Output = S;
 
@@ -95,7 +95,7 @@ impl<X, Y: Clone> Const<X, Y> {
     }
 }
 
-impl<X, Y: Clone> map::Map for Const<X, Y> {
+impl<X, Y: Clone> Map for Const<X, Y> {
     type Input = X;
     type Output = Y;
 
@@ -106,21 +106,21 @@ impl<X, Y: Clone> map::Map for Const<X, Y> {
 
 /// Function composition g ⚬ f.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Comp<F: map::Map, G: map::Map<Input = F::Output>> {
+pub struct Comp<F: Map, G: Map<Input = F::Output>> {
     /// The inner function.
     pub inner: F,
     /// The outer function.
     pub outer: G,
 }
 
-impl<F: map::Map, G: map::Map<Input = F::Output>> Comp<F, G> {
+impl<F: Map, G: Map<Input = F::Output>> Comp<F, G> {
     /// Composes two functions.
     pub const fn new(inner: F, outer: G) -> Self {
         Self { inner, outer }
     }
 }
 
-impl<F: map::Map, G: map::Map<Input = F::Output>> map::Map for Comp<F, G> {
+impl<F: Map, G: Map<Input = F::Output>> Map for Comp<F, G> {
     type Input = F::Input;
     type Output = G::Output;
 
@@ -133,7 +133,7 @@ impl<F: map::Map, G: map::Map<Input = F::Output>> map::Map for Comp<F, G> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Pos;
 
-impl map::Map for Pos {
+impl Map for Pos {
     type Input = f64;
     type Output = f64;
 
@@ -142,7 +142,7 @@ impl map::Map for Pos {
     }
 }
 
-impl<F: map::Map<Output = f64>> map::Comp<F, Pos> {
+impl<F: Map<Output = f64>> map::Comp<F, Pos> {
     /// Composes a function with [`Pos`].
     pub const fn pos(f: F) -> Self {
         Self::new(f, Pos)
@@ -153,7 +153,7 @@ impl<F: map::Map<Output = f64>> map::Comp<F, Pos> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sgn;
 
-impl map::Map for Sgn {
+impl Map for Sgn {
     type Input = f64;
     type Output = f64;
 
@@ -162,7 +162,7 @@ impl map::Map for Sgn {
     }
 }
 
-impl<F: map::Map<Output = f64>> map::Comp<F, Sgn> {
+impl<F: Map<Output = f64>> map::Comp<F, Sgn> {
     /// Composes a function with [`Sgn`].
     pub const fn sgn(f: F) -> Self {
         Self::new(f, Sgn)
@@ -181,7 +181,7 @@ impl Neg {
     }
 }
 
-impl map::Map for Neg {
+impl Map for Neg {
     type Input = f64;
     type Output = f64;
 
@@ -190,7 +190,7 @@ impl map::Map for Neg {
     }
 }
 
-impl<F: map::Map<Output = f64>> map::Comp<F, Neg> {
+impl<F: Map<Output = f64>> map::Comp<F, Neg> {
     /// Composes a function with [`Neg`].
     pub const fn neg(f: F) -> Self {
         Self::new(f, Neg)
@@ -236,7 +236,7 @@ impl Linear {
     }
 }
 
-impl map::Map for Linear {
+impl Map for Linear {
     type Input = f64;
     type Output = f64;
 
