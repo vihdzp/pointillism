@@ -1,3 +1,7 @@
+## Version 0.4.3
+
+Got rid of `pointillism::create` in favor of a `Song` type.
+
 ## Version 0.4.2
 
 Generalized filters to allow for higher order designs. Standardized the naming scheme further and
