@@ -3,7 +3,6 @@
 //! These include [`Dense`] for polynomials with mostly non-zero entries, and [`Sparse`] for
 //! anything else.
 
-use super::FilterMap;
 use crate::prelude::*;
 
 /// A trait for the coefficients in a [`DiffEq`].
@@ -144,9 +143,9 @@ pub type SparseDyn = Sparse<Vec<f64>>;
 /// H(z) = (b[0] + b[1] * z⁻¹ + ...) / (1 + a[0] * z⁻¹ + ...)
 /// ```
 ///
-/// Suppose a [`Filter`] is built from these coefficients. Let `f` be the [`Freq`] of some signal
-/// (measured in samples<sup>–1</sup>). Let `z = exp(τi * f)`, where `τ ≈ 6.28` and `i` is the
-/// imaginary unit. Then:
+/// Suppose a [`Filter`](super::Filter) is built from these coefficients. Let `f` be the
+/// [`unt::Freq`] of some signal (measured in samples<sup>–1</sup>). Let `z = exp(τi * f)`, where `τ
+/// ≈ 6.28` and `i` is the imaginary unit. Then:
 ///
 /// - `|H(z)|` is the filter gain at this frequency,
 /// - `arg H(z)` is the phase shift.

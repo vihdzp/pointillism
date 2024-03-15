@@ -137,17 +137,19 @@ mod with_hound {
 ///
 /// See the readme for a full list of abbreviations.
 pub mod prelude {
-
     // Abbreviate module names.
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, generators as gen, map,
-        routing as rtn, sample as smp, units as unt,
+        routing as rtn, sample as smp, signal as sgn, units as unt,
     };
+
     // Import traits.
+    pub(crate) use sgn::impl_base;
     pub use crate::{
         buf::{Buffer, BufferMut, Ring},
+        eff::flt::FilterMap,
         map::{Env, Map, Mut},
-        sample::{Array, Audio, Sample, SampleBase},
-        signal::*,
+        sgn::{Base, Done, Frequency, Panic, Signal, SignalMut, Stop},
+        smp::{Array, Audio, Sample, SampleBase},
     };
 }

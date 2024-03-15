@@ -44,7 +44,7 @@ pub struct Vibrato<S: Frequency, E: SignalMut<Sample = smp::Env>> {
 }
 
 impl<S: Frequency, E: SignalMut<Sample = smp::Env>> Vibrato<S, E> {
-    /// Initializes a new [`Tremolo`].
+    /// Initializes a new [`Vibrato`].
     pub fn new(sgn: S, base: unt::Freq, env: E) -> Self {
         Self {
             inner: eff::MutSgn::new(sgn, env, Vib::new(base)),

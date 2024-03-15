@@ -21,7 +21,7 @@ pub trait FilterMap {
 
 /// In its most general form, a filter is defined by its previous inputs, its previous outputs, and
 /// a function that maps these to a new output. Traditionally, this function would take the form of
-/// a difference equation [`flt::DifEq`],
+/// a difference equation [`DiffEq`],
 ///
 /// The inputs and outputs can be stored in any kind of ring buffer. These include [`buf::Shift`]
 /// and [`buf::Circ`], where the former is preferred for very small buffers, while the latter is
