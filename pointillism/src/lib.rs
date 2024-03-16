@@ -232,6 +232,7 @@ impl<A: Audio, F: FnMut(unt::Time) -> A> Song<Func<F>> {
     /// ## Example
     ///
     /// For an example, see the [`Song`] docs.
+    #[must_use]
     pub const fn new(length: unt::Time, sample_rate: unt::SampleRate, song: F) -> Self {
         Self::new_raw(length, sample_rate, Func(song))
     }
@@ -251,6 +252,7 @@ where
     /// ## Example
     ///
     /// For an example, see the [`Song`] docs.
+    #[must_use]
     pub fn new_sgn(length: unt::Time, sample_rate: unt::SampleRate, sgn: &'a mut S) -> Self
     where
         S::Sample: Audio,
@@ -273,6 +275,7 @@ where
     /// ## Example
     ///
     /// For an example, see the [`Song`] docs.
+    #[must_use]
     pub fn new_sgn_owned(length: unt::Time, sample_rate: unt::SampleRate, sgn: S) -> Self
     where
         S::Sample: Audio,

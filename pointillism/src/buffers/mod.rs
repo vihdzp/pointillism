@@ -53,7 +53,7 @@ pub trait Buffer: AsRef<[Self::Item]> + std::ops::Index<usize, Output = Self::It
     /// Gets a sample at a given index.
     #[must_use]
     fn get(&self, index: usize) -> Option<Self::Item> {
-        self.as_ref().get(index).copied()
+        self.as_slice().get(index).copied()
     }
 
     // TODO: move these elsewhere?
@@ -407,36 +407,25 @@ impl<A: Audio> Dyn<A> {
     pub fn iter_mut(&mut self) -> std::slice::IterMut<A> {
         self.into_iter()
     }
+}
 
+impl<F: SongFunc> Song<F> {
     /// Creates a buffer from the output of a song.
-    ///
-    /// Compare to [`crate::create`].
     ///
     /// ## Panics
     ///
     /// Panics if a buffer of this size can't be created.
-    pub fn create<F: FnMut(unt::Time) -> A>(length: unt::Time, mut song: F) -> Self {
-        let length = length.samples.int();
+    pub fn write(&mut self) -> Dyn<F::Sample> {
+        let length = self.length.samples.int();
         let mut data = Vec::with_capacity(usize::try_from(length).expect("buffer too large"));
 
         let mut time = unt::Time::ZERO;
         for _ in 0..length {
-            data.push(song(time));
+            data.push(self.song.eval(time));
             time.advance();
         }
 
-        Self::from_data(data)
-    }
-
-    /// Creates a buffer from the output of a signal. The signal is not consumed.
-    ///
-    /// Compare to [`crate::create_from_sgn`].
-    ///
-    /// ## Panics
-    ///
-    /// Panics if a buffer of this size can't be created.
-    pub fn create_from_sgn<S: SignalMut<Sample = A>>(length: unt::Time, sgn: &mut S) -> Self {
-        Self::create(length, |_| sgn.next())
+        Dyn::from_data(data)
     }
 }
 

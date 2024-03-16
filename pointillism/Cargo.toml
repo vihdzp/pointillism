@@ -58,6 +58,9 @@ path = "examples/basic/schroeder.rs"
 
 # Song examples
 [[example]]
+name = "boron"
+path = "examples/songs/boron.rs"
+[[example]]
 name = "clair_de_lune"
 path = "examples/songs/clair_de_lune.rs"
 [[example]]

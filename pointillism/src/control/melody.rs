@@ -205,7 +205,7 @@ impl MidiNoteData {
 /// A "note reader" function that reads through different note events in order, and modifies a
 /// [`gen::Polyphony`] struct accordingly.
 ///
-/// This is used to implement [`MelodySeq`] and [`MelodyLoop`].
+/// This is used to implement [`MelSeq`] and [`MelLoop`].
 #[derive(Clone, Debug)]
 pub struct NoteReader<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>>
 where
@@ -292,7 +292,7 @@ pub type MelSeq<K, D, F> = ctr::Seq<gen::Polyphony<K, <F as Map>::Output>, NoteR
 pub type MelLoop<K, D, F> = ctr::Loop<gen::Polyphony<K, <F as Map>::Output>, NoteReader<K, D, F>>;
 
 /// A series of timed [`NoteEvents`](NoteEvent). This can be used to build a [`ctr::MelSeq`] or a
-/// [`ctr::mel::Loop`].
+/// [`ctr::MelLoop`].
 ///
 /// There's two main ways to build a [`Melody`]. You can provide the times and
 /// [`NoteEvents`](NoteEvent) explicitly through [`Self::new`], though this is not very intuitive.
@@ -324,7 +324,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
     /// This is somewhat expensive to initialize, but is the easiest way to build a complex melody.
     /// Alternatively, you can input the raw [`NoteEvents`](NoteEvent) by using [`Self::new`].
     ///
-    /// If used in a [`MelodyLoop`], the melody will immediately start from the beginning after the
+    /// If used in a [`MelLoop`], the melody will immediately start from the beginning after the
     /// very last note stops. If this isn't what you want, or if you want notes that can end after
     /// the loop restarts, use [`Self::piano_roll_loop`] instead.
     pub fn piano_roll<N: IntoIterator<Item = Note<D>>, G: FnMut(usize) -> K>(
@@ -542,12 +542,12 @@ impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelSeq<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
-    /// Turns a [`NoteReader`] into a [`MelodySeq`].
+    /// Turns a [`NoteReader`] into a [`MelSeq`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
         Self::new(times, gen::Polyphony::new(), note_reader)
     }
 
-    /// Initializes a new [`MelodySeq`] from a [`Melody`].
+    /// Initializes a new [`MelSeq`] from a [`Melody`].
     ///
     /// The passed function builds signals from the given note data.
     pub fn new_melody(melody: Melody<K, D>, func: F) -> Self {
@@ -569,12 +569,12 @@ impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> MelLoop<K, D, F>
 where
     F::Output: Frequency + Stop + Done,
 {
-    /// Turns a [`NoteReader`] into a [`MelodyLoop`].
+    /// Turns a [`NoteReader`] into a [`MelLoop`].
     pub fn new_note_reader(times: Vec<unt::Time>, note_reader: NoteReader<K, D, F>) -> Self {
         Self::new(times, gen::Polyphony::new(), note_reader)
     }
 
-    /// Initializes a new [`MelodyLoop`] from a [`Melody`].
+    /// Initializes a new [`MelLoop`] from a [`Melody`].
     ///
     /// The passed function builds signals from the given note data.
     pub fn new_melody(melody: Melody<K, D>, func: F) -> Self {

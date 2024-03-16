@@ -1,9 +1,10 @@
 //! Declares control structures, which can be used to execute events at specified time intervals.
 //!
 //! The main control structures are [`Seq`] and [`Loop`]. These can be used to modify a [`Signal`]
-//! at regular time intervals. Note that the [`Signal`] won't be immediately modified when the [`Seq`] or [`Loop`] is
-//! initialized. It will only be modified after the first time interval transpires. You can call
-//! [`Seq::skip`] or [`Loop::skip`] in order to immediately skip to and apply the first event.
+//! at regular time intervals. Note that the [`Signal`] won't be immediately modified when the
+//! [`Seq`] or [`Loop`] is initialized. It will only be modified after the first time interval
+//! transpires. You can call [`Seq::skip`] or [`Loop::skip`] in order to immediately skip to and
+//! apply the first event.
 //!
 //! Also note that the time interval between events can be zero. The effect of this is to execute
 //! these events simultaneously.
@@ -11,8 +12,8 @@
 //! ## Type aliases
 //!
 //! This file also defines various useful type aliases. [`Arpeggio`] serves to arpeggiate a signal
-//! by changing its frequency in periodic intervals. [`MelodySeq`] and [`MelodyLoop`] both
-//! functionally serve as piano rolls for a polyphonic signal.
+//! by changing its frequency in periodic intervals. [`MelSeq`] and [`MelLoop`] both functionally
+//! serve as piano rolls for a polyphonic signal.
 
 mod melody;
 mod timer;

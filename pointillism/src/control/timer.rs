@@ -119,7 +119,7 @@ impl Metronome {
 
     /// Whether the metronome should activate, given the current time elapsed. A timer can only
     /// activate once per frame.
-    pub fn tick(&mut self, time: unt::Time) -> bool {
+    pub fn tick(&self, time: unt::Time) -> bool {
         time % self.period < unt::Time::SAMPLE
     }
 }
