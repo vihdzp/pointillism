@@ -5,17 +5,8 @@
 
 use pointillism::prelude::*;
 
-// Base note for binaural beats.
-const BASE: unt::RawFreq = unt::RawFreq::new(222.2);
-// Fade-in / fade-out time for instruments.
-const FADE: unt::RawTime = unt::RawTime::new(20.0);
-// Period for the vibrato.
-const VIB_FREQ: unt::RawFreq = unt::RawFreq::new(1.0 / 40.0);
-
-// RawTime until the melody starts.
-const MELODY_TIME: unt::RawTime = unt::RawTime::new(120.0);
-// Length of the song.
-const LENGTH: unt::RawTime = unt::RawTime::new(5.0 * 60.0);
+/// Project sample rate.
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
 
 /// A fade-in and fade-out effect.
 ///
@@ -32,8 +23,8 @@ fn fade(time: unt::Time, length: unt::Time, fade: unt::Time) -> f64 {
 
 /// Binaural beat generator.
 fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
-    let base = unt::Freq::from_raw_default(BASE);
-    let vib_freq = unt::Freq::from_raw_default(VIB_FREQ);
+    let base = unt::Freq::from_hz(222.2, SAMPLE_RATE);
+    let vib_freq = unt::Freq::from_hz(1.0 / 40.0, SAMPLE_RATE);
 
     // A sine wave.
     let wave = |freq| gen::Loop::new(crv::Sin, freq);
@@ -57,8 +48,9 @@ fn binaural() -> impl SignalMut<Sample = smp::Stereo> {
 /// The melody that starts two minutes in.
 fn melody() -> impl SignalMut<Sample = smp::Mono> {
     // The melody is lowered by a chromatic semitone 24/25 every repetition.
-    let mut freq = 2.0 * unt::Freq::from_raw_default(unt::RawFreq::A4);
-    let intervals = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
+    const INTERVALS: [f64; 4] = [3.0 / 2.0, 4.0 / 5.0, 4.0 / 3.0, 3.0 / 5.0];
+    let mut freq = 2.0 * unt::Freq::from_raw(unt::RawFreq::A4, SAMPLE_RATE);
+    let sec = unt::Time::from_sec(1.0, SAMPLE_RATE);
 
     // Our waves are saw-triangle morphs.
     let wave = |freq| gen::Loop::new(crv::SawTri::tri(), freq);
@@ -68,7 +60,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     let shape = move |freq| {
         eff::MutSgn::new(
             wave(freq),
-            gen::Once::new(crv::PosSaw, unt::Time::from_sec_default(5.0)),
+            gen::Once::new(crv::PosSaw, sec * 5u32),
             map::Func::new(|sgn: &mut gen::Loop<_, crv::SawTri>, val: smp::Env| {
                 sgn.curve_mut().shape = unt::Val::new(1.0 - val.0.powf(0.2) / 2.0);
             }),
@@ -76,12 +68,8 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     };
 
     // Make each note fade out.
-    let trem = move |freq| {
-        eff::StopTremolo::new(
-            shape(freq),
-            gen::Once::new(crv::PosInvSaw, unt::Time::from_sec_default(10.0)),
-        )
-    };
+    let trem =
+        move |freq| eff::StopTremolo::new(shape(freq), gen::Once::new(crv::PosInvSaw, sec * 10u32));
 
     let poly = gen::Polyphony::new();
     let mut index = 0;
@@ -91,7 +79,7 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
         vec![unt::Time::from_sec_default(4.0)],
         poly,
         map::Func::new(move |poly: &mut gen::Polyphony<_, _>| {
-            freq *= intervals[index % intervals.len()];
+            freq *= INTERVALS[index % INTERVALS.len()];
             poly.add(index, trem(freq));
             index += 1;
         }),
@@ -102,11 +90,11 @@ fn main() {
     let mut binaural = binaural();
     let mut melody = melody();
 
-    let length = unt::Time::from_raw_default(LENGTH);
-    let melody_time = unt::Time::from_raw_default(MELODY_TIME);
-    let fade_time = unt::Time::from_raw_default(FADE);
+    let length = unt::Time::from_min(5.0, SAMPLE_RATE);
+    let melody_time = unt::Time::from_sec(120.0, SAMPLE_RATE);
+    let fade_time = unt::Time::from_sec(20.0, SAMPLE_RATE);
 
-    Song::new(length, unt::SampleRate::CD, |time| {
+    Song::new(length, SAMPLE_RATE, |time| {
         let mut sample = binaural.next() * fade(time, length, fade_time);
 
         // The triangle waves start playing 2 minutes in.

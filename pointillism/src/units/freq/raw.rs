@@ -74,7 +74,7 @@ impl Display for RawFreq {
 }
 
 impl RawFreq {
-    /// Initializes a given frequency.
+    /// Initializes a given frequency in **hertz**.
     ///
     /// Note that the frequency will generally be assumed to be positive.
     #[must_use]

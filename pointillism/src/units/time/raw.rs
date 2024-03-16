@@ -6,6 +6,8 @@ use std::{
     time::Duration,
 };
 
+/// Number of milliseconds in a second.
+const SECS_MSEC: f64 = 1000.0;
 /// Number of seconds in a minute.
 const MIN_SECS: f64 = 60.0;
 /// Number of seconds in an hour.
@@ -59,12 +61,44 @@ impl RawTime {
     /// A year.
     pub const YR: Self = Self::new(YR_SECS);
 
-    /// Initializes a time variable for the number of seconds.
+    /// Initializes a time variable, in **seconds**.
     ///
     /// This number must be nonnegative, although this isn't checked.
     #[must_use]
     pub const fn new(seconds: f64) -> Self {
         Self { seconds }
+    }
+
+    /// Initializes a time variable for the number of hours.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
+    #[must_use]
+    pub fn new_hr(hours: f64) -> Self {
+        Self::new(hours * HR_SECS)
+    }
+
+    /// Initializes a time variable for the number of minutes.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
+    #[must_use]
+    pub fn new_min(minutes: f64) -> Self {
+        Self::new(minutes * MIN_SECS)
+    }
+
+    /// Initializes a time variable for the number of seconds.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
+    #[must_use]
+    pub const fn new_sec(seconds: f64) -> Self {
+        Self::new(seconds)
+    }
+
+    /// Initializes a time variable for the number of milliseconds.
+    ///
+    /// This number must be nonnegative, although this isn't checked.
+    #[must_use]
+    pub fn new_msec(millis: f64) -> Self {
+        Self::new(millis / SECS_MSEC)
     }
 
     /// The time for a single beat at a given BPM.
@@ -75,10 +109,28 @@ impl RawTime {
         Self::new(MIN_SECS / bpm)
     }
 
+    /// The time in hours.
+    #[must_use]
+    pub fn hours(&self) -> f64 {
+        self.seconds / HR_SECS
+    }
+
+    /// The time in minutes.
+    #[must_use]
+    pub fn minutes(&self) -> f64 {
+        self.seconds / MIN_SECS
+    }
+
+    /// The time in seconds.
+    #[must_use]
+    pub const fn seconds(&self) -> f64 {
+        self.seconds
+    }
+
     /// The time in milliseconds.
     #[must_use]
     pub fn milliseconds(&self) -> f64 {
-        1e3 * self.seconds
+        SECS_MSEC * self.seconds
     }
 
     /// Converts a [`Duration`] into [`RawTime`].

@@ -89,6 +89,30 @@ impl Time {
         Self::from_raw(raw, unt::SampleRate::default())
     }
 
+    /// Initializes a [`Time`] from the value in hours, and a sample rate.
+    #[must_use]
+    pub fn from_hr(hours: f64, sample_rate: unt::SampleRate) -> Self {
+        Self::from_raw(RawTime::new_hr(hours), sample_rate)
+    }
+
+    /// Initializes a [`Time`] from the value in hours, using the default sample rate.
+    #[must_use]
+    pub fn from_hr_default(hours: f64) -> Self {
+        Self::from_hr(hours, unt::SampleRate::default())
+    }
+
+    /// Initializes a [`Time`] from the value in minutes, and a sample rate.
+    #[must_use]
+    pub fn from_min(minutes: f64, sample_rate: unt::SampleRate) -> Self {
+        Self::from_raw(RawTime::new_min(minutes), sample_rate)
+    }
+
+    /// Initializes a [`Time`] from the value in minutes, using the default sample rate.
+    #[must_use]
+    pub fn from_min_default(minutes: f64) -> Self {
+        Self::from_min(minutes, unt::SampleRate::default())
+    }
+
     /// Initializes a [`Time`] from the value in seconds, and a sample rate.
     #[must_use]
     pub fn from_sec(seconds: f64, sample_rate: unt::SampleRate) -> Self {
@@ -104,7 +128,7 @@ impl Time {
     /// Initializes a [`Time`] from the value in milliseconds, and a sample rate.
     #[must_use]
     pub fn from_msec(millis: f64, sample_rate: unt::SampleRate) -> Self {
-        Self::from_raw(RawTime::new(millis / 1000.0), sample_rate)
+        Self::from_raw(RawTime::new_msec(millis), sample_rate)
     }
 
     /// Initializes a [`Time`] from the value in milliseconds, using the default sample rate.
