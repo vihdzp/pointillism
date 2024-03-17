@@ -70,12 +70,12 @@ impl From<cpal::SampleRate> for unt::SampleRate {
     }
 }
 
-impl<F: Send + 'static + SongFunc> Song<F> {
+impl<S: Send + 'static + SignalMut> Song<S>
+where
+    S::Sample: Audio,
+{
     /// Builds a [`cpal`] output stream for a song. The sample rate and length are queried directly
     /// from the [`Song`]. Use a length of [`unt::Time::MAX`] for an infinite stream.
-    ///
-    /// Note that you'll probably need to use [`Self::new_sgn_owned`] to define the song and use
-    /// this.  
     ///
     /// For the meaning of the parameters and possible errors, see [`cpal::BuildStreamError`].
     ///
@@ -89,8 +89,7 @@ impl<F: Send + 'static + SongFunc> Song<F> {
         buffer_size: cpal::BufferSize,
         error_callback: E,
     ) -> CpalResult {
-        let channels = F::Sample::size_u8();
-        let mut time = unt::Time::ZERO;
+        let channels = S::Sample::size_u8();
         let timeout = if self.length == unt::Time::MAX {
             None
         } else {
@@ -106,7 +105,7 @@ impl<F: Send + 'static + SongFunc> Song<F> {
             move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                 let mut idx = 0;
                 while idx < data.len() {
-                    let sample = self.song.eval(time);
+                    let sample = self.sgn.next();
                     for j in 0..(channels as usize) {
                         // Truncation shouldn't happen in practice.
                         #[allow(clippy::cast_possible_truncation)]
@@ -116,8 +115,6 @@ impl<F: Send + 'static + SongFunc> Song<F> {
                         idx += 1;
                     }
                 }
-
-                time.advance();
             },
             error_callback,
             timeout,

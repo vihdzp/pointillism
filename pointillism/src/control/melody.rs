@@ -173,11 +173,11 @@ impl<D: Clone> Note<D> {
 ///
 /// You can use this data in varied and creative ways, but the "standard" use is as follows:
 ///
-/// - The key can be converted into a [`RawFreq`] using `RawFreq::new_midi(key.into())`, and this
-///   can be then converted into [`Freq`] in the standard ways.
+/// - The key can be converted into a [`unt::RawFreq`] using `RawFreq::new_midi(key.into())`, and
+///   this can be then converted into [`unt::Freq`] in the standard ways.
 /// - Velocity can be used to attenuate or otherwise modify the sound. This mapping is not specified
 ///   in the MIDI specification, and you can use whatever you want (or nothing at all), but an
-///   obvious choice is to use [`Vol::from_vel`].
+///   obvious choice is to use [`unt::Vol::from_vel`].
 /// - The channel can optionally be used to switch between different instruments or sounds.
 #[derive(Clone, Copy, Debug)]
 #[cfg(feature = "midly")]
@@ -431,7 +431,7 @@ impl<K: Eq + Hash + Clone, D: Clone> Melody<K, D> {
 impl<K: Eq + Hash + Clone> Melody<K, MidiNoteData> {
     /// Builds a melody from a MIDI file.
     ///
-    /// If used in a [`MelodyLoop`], the melody will immediately start from the beginning after the
+    /// If used in a [`MelLoop`], the melody will immediately start from the beginning after the
     /// very last note stops. If this isn't what you want, use [`Self::from_midi_loop`] instead.
     ///
     /// ## Errors
