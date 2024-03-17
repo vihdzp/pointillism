@@ -390,3 +390,81 @@ impl<S: smp::Sample> SignalMut for NoiseGen<S> {
 impl<S: smp::Sample> Base for NoiseGen<S> {
     impl_base!();
 }
+
+/// Turns a function into a generator.
+///
+/// Note that retriggering this signal won't do anything.
+pub struct Func<A: Audio, F: FnMut() -> A> {
+    /// The function generating the samples.
+    func: F,
+    /// The last output.
+    val: A,
+}
+
+impl<A: Audio, F: FnMut() -> A> Func<A, F> {
+    /// Initializes a new signal from a function.
+    pub fn new(mut func: F) -> Self {
+        let val = (func)();
+        Self { func, val }
+    }
+}
+
+impl<A: Audio, F: FnMut() -> A> Signal for Func<A, F> {
+    type Sample = A;
+
+    fn get(&self) -> Self::Sample {
+        self.val
+    }
+}
+
+impl<A: Audio, F: FnMut() -> A> SignalMut for Func<A, F> {
+    fn advance(&mut self) {
+        self.val = (self.func)();
+    }
+
+    fn retrigger(&mut self) {
+        // No-op.
+    }
+}
+
+/// Turns a function, which takes in a time stamp, into a generator.
+///
+/// Note that retriggering this signal won't do anything.
+pub struct TimeFunc<A: Audio, F: FnMut(unt::Time) -> A> {
+    /// The function generating the samples.
+    func: F,
+    /// The last output.
+    val: A,
+    /// Elapsed time.
+    time: unt::Time,
+}
+
+impl<A: Audio, F: FnMut(unt::Time) -> A> TimeFunc<A, F> {
+    /// Initializes a new signal from a function.
+    pub fn new(mut func: F) -> Self {
+        let val = func(unt::Time::ZERO);
+        Self {
+            func,
+            val,
+            time: unt::Time::ZERO,
+        }
+    }
+}
+
+impl<A: Audio, F: FnMut(unt::Time) -> A> Signal for TimeFunc<A, F> {
+    type Sample = A;
+
+    fn get(&self) -> Self::Sample {
+        self.val
+    }
+}
+
+impl<A: Audio, F: FnMut(unt::Time) -> A> SignalMut for TimeFunc<A, F> {
+    fn advance(&mut self) {
+        self.val = (self.func)(self.time);
+    }
+
+    fn retrigger(&mut self) {
+        // No-op.
+    }
+}

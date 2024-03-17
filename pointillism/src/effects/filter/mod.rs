@@ -38,6 +38,9 @@ where
     inputs: I,
     /// Previous outputs to the filter.
     outputs: O,
+
+    /// If the output buffer is empty, we can't get the last output by calling `get` on it. So we're forced to store the value manually in that case. Hopefully this should be an unused variable that's optimized away in all other cases.
+    last_output: A,
 }
 
 impl<A: Audio, I: Ring, O: Ring, F: FilterMap> Filter<A, I, O, F>
@@ -51,15 +54,16 @@ where
             func,
             inputs,
             outputs,
+            last_output: A::ZERO,
         }
     }
 
     /// Takes in a new input, returns a new output.
     pub fn eval(&mut self, input: A) -> A {
         self.inputs.push(input);
-        let output = self.func.eval(&self.inputs, &self.outputs);
-        self.outputs.push(output);
-        output
+        self.last_output = self.func.eval(&self.inputs, &self.outputs);
+        self.outputs.push(self.last_output);
+        self.last_output
     }
 
     /// A reference to the previous input values.
@@ -74,7 +78,13 @@ where
 
     /// Gets the last output value.
     pub fn get(&self) -> A {
-        self.outputs.fst()
+        // Under "normal" circumstances, where buffers don't change size, this branch should be
+        // optimized away.
+        if self.outputs.is_empty() {
+            self.last_output
+        } else {
+            self.outputs.fst()
+        }
     }
 
     /// Resets the previous values to zero.

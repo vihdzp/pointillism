@@ -9,6 +9,9 @@
 use pointillism::prelude::*;
 use rand::Rng;
 
+/// Project sample rate.
+const SAMPLE_RATE: unt::SampleRate = unt::SampleRate::CD;
+
 /// Possible values to multiply a frequency by.
 const MULTS: [f64; 6] = [
     4.0 / 3.0,
@@ -32,7 +35,7 @@ fn main() {
     // Number of notes actually played (accounting for fade-out).
     const NOTE_COUNT: u16 = 185;
 
-    let note_len = unt::Time::from_raw_default(NOTE_LEN);
+    let note_len = unt::Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // Envelope for the wave shape.
     let shape_env = map::Comp::new(crv::Saw, map::Linear::rescale_sgn(0.75, 0.5));
@@ -49,7 +52,7 @@ fn main() {
                         note_len,
                         unt::Time::ZERO,
                         unt::Vol::FULL,
-                        unt::Time::from_raw_default(RELEASE_LEN),
+                        unt::Time::from_raw(RELEASE_LEN, SAMPLE_RATE),
                     ),
                 ),
                 gen::Once::new(shape_env, note_len),
@@ -66,7 +69,7 @@ fn main() {
     };
 
     // Base frequency.
-    let base = unt::Freq::from_raw_default(BASE);
+    let base = unt::Freq::from_raw(BASE, SAMPLE_RATE);
     // Frequency of note being played.
     let mut freq = base;
 
@@ -75,7 +78,7 @@ fn main() {
     let mut index = 0;
     poly.add(index, osc(freq, 0.5));
 
-    let note_len = unt::Time::from_raw_default(NOTE_LEN);
+    let note_len = unt::Time::from_raw(NOTE_LEN, SAMPLE_RATE);
 
     // The song loop.
     let poly_loop = ctr::Loop::new(
@@ -103,11 +106,11 @@ fn main() {
         }),
     );
 
-    Song::new_sgn(
+    Song::new(
         NOTE_COUNT_LEN * note_len,
-        unt::SampleRate::default(),
+        SAMPLE_RATE,
         // 10.0 might be too much, but just to be safe from clipping.
-        &mut eff::Volume::new(poly_loop, unt::Vol::new(1.0 / 10.0)),
+        eff::Volume::new(poly_loop, unt::Vol::new(1.0 / 10.0)),
     )
     .export("pointillism/examples/continuum.wav");
 }

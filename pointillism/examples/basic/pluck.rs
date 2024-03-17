@@ -49,12 +49,7 @@ fn main() {
 
     // Retrigger the pluck in a loop.
     let note_time = unt::Time::from_sec(NOTE_TIME, SAMPLE_RATE);
-    let mut env_loop = ctr::Loop::new(
-        vec![note_time],
-        env,
-        map::Func::new(|sgn: &mut eff::MutSgn<_, _, _>| sgn.retrigger()),
-    );
+    let env_loop = ctr::Loop::new(vec![note_time], env, eff::Retrigger);
 
-    Song::new_sgn(NOTES * note_time, SAMPLE_RATE, &mut env_loop)
-        .export("pointillism/examples/pluck.wav");
+    Song::new(NOTES * note_time, SAMPLE_RATE, env_loop).export("pointillism/examples/pluck.wav");
 }

@@ -18,15 +18,18 @@ pub trait Coefficients {
     fn eval<A: Audio, B: Ring>(&self, inputs: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>;
+
+    /// Scales all coefficients by a given factor.
+    fn scale(&mut self, factor: f64);
 }
 
 /// An array of [`Coefficients`], stored in sequence from least to greatest degree.
 ///
 /// This is recommended when most of these coefficients are non-zero.
 #[derive(Clone, Default, Debug)]
-pub struct Dense<T: AsRef<[f64]>>(pub T);
+pub struct Dense<T: AsRef<[f64]> + AsMut<[f64]>>(pub T);
 
-impl<T: AsRef<[f64]>> Dense<T> {
+impl<T: AsRef<[f64]> + AsMut<[f64]>> Dense<T> {
     /// Initializes a new [`Dense`] from the coefficients.
     pub const fn new(inner: T) -> Self {
         Self(inner)
@@ -38,7 +41,7 @@ impl<T: AsRef<[f64]>> Dense<T> {
     }
 }
 
-impl<T: AsRef<[f64]>> Coefficients for Dense<T> {
+impl<T: AsRef<[f64]> + AsMut<[f64]>> Coefficients for Dense<T> {
     fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>,
@@ -49,6 +52,12 @@ impl<T: AsRef<[f64]>> Coefficients for Dense<T> {
             .enumerate()
             .map(|(k, &c)| samples.get(k) * c)
             .sum()
+    }
+
+    fn scale(&mut self, factor: f64) {
+        for v in self.0.as_mut() {
+            *v *= factor;
+        }
     }
 }
 
@@ -71,9 +80,9 @@ impl<const N: usize> DenseStc<N> {
 ///
 /// This is recommended when most of these coefficients are zero.
 #[derive(Clone, Default, Debug)]
-pub struct Sparse<T: AsRef<[(usize, f64)]>>(pub T);
+pub struct Sparse<T: AsRef<[(usize, f64)]> + AsMut<[(usize, f64)]>>(pub T);
 
-impl<T: AsRef<[(usize, f64)]>> Sparse<T> {
+impl<T: AsRef<[(usize, f64)]> + AsMut<[(usize, f64)]>> Sparse<T> {
     /// Initializes a new [`Sparse`] from the coefficients.
     pub const fn new(inner: T) -> Self {
         Self(inner)
@@ -102,7 +111,7 @@ impl<T: AsRef<[(usize, f64)]>> Sparse<T> {
     }
 }
 
-impl<T: AsRef<[(usize, f64)]>> Coefficients for Sparse<T> {
+impl<T: AsRef<[(usize, f64)]> + AsMut<[(usize, f64)]>> Coefficients for Sparse<T> {
     fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
         B::Buf: buf::Buffer<Item = A>,
@@ -112,6 +121,12 @@ impl<T: AsRef<[(usize, f64)]>> Coefficients for Sparse<T> {
             .iter()
             .map(|&(k, c)| samples.get(k) * c)
             .sum()
+    }
+
+    fn scale(&mut self, factor: f64) {
+        for (_, v) in self.0.as_mut() {
+            *v *= factor;
+        }
     }
 }
 
@@ -164,6 +179,17 @@ impl<T: Coefficients, U: Coefficients> DiffEq<T, U> {
     #[must_use]
     pub const fn new_raw(input: T, feedback: U) -> Self {
         Self { input, feedback }
+    }
+
+    /// Mutably applies an overall gain factor.
+    pub fn gain(&mut self, gain: unt::Vol) {
+        self.input.scale(gain.gain);
+    }
+
+    /// Applies an overall gain factor. Returns `self`.
+    pub fn with_gain(mut self, gain: unt::Vol) -> Self {
+        self.gain(gain);
+        self
     }
 }
 

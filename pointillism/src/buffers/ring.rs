@@ -31,11 +31,16 @@ pub trait Ring {
     /// Returns a mutable reference to the backing buffer.
     fn buffer_mut(&mut self) -> &mut Self::Buf;
 
-    /// The capacity of the buffer.
+    /// The capacity of the backing buffer.
     ///
     /// This is the number of samples that can be pushed before the first one is deleted.
     fn capacity(&self) -> usize {
         self.buffer().len()
+    }
+
+    /// Whether the backing buffer is empty.
+    fn is_empty(&self) -> bool {
+        self.buffer().is_empty()
     }
 
     /// Clears a buffer, without changing its length.
@@ -133,11 +138,13 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
 
     /// This has linear time complexity on the size of the buffer, so be careful!
     fn push(&mut self, value: B::Item) {
-        for i in (0..(self.capacity() - 1)).rev() {
-            shift(self, i, 1);
-        }
+        if !self.is_empty() {
+            for i in (1..self.capacity()).rev() {
+                shift(self, i - 1, 1);
+            }
 
-        self.inner[0] = value;
+            self.inner[0] = value;
+        }
     }
 
     fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(

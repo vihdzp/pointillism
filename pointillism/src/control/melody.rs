@@ -268,7 +268,7 @@ where
     }
 }
 
-impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> map::Mut<gen::Polyphony<K, F::Output>>
+impl<K: Eq + Hash + Clone, D: Clone, F: Map<Input = D>> Mut<gen::Polyphony<K, F::Output>>
     for NoteReader<K, D, F>
 where
     F::Output: Frequency + Stop + Done,

@@ -122,8 +122,9 @@ impl<S: Signal> Default for Trem<S> {
     }
 }
 
-impl<S: Signal> Env<Volume<S>> for Trem<S> {
-    fn modify_env(&mut self, sgn: &mut Volume<S>, gain: smp::Env) {
+impl<S: Signal> Val<Volume<S>> for Trem<S> {
+    type Val = smp::Env;
+    fn modify_val(&mut self, sgn: &mut Volume<S>, gain: smp::Env) {
         sgn.vol_mut().gain = gain.0;
     }
 }

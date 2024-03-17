@@ -409,20 +409,21 @@ impl<A: Audio> Dyn<A> {
     }
 }
 
-impl<F: SongFunc> Song<F> {
+impl<S: SignalMut> Song<S>
+where
+    S::Sample: Audio,
+{
     /// Creates a buffer from the output of a song.
     ///
     /// ## Panics
     ///
     /// Panics if a buffer of this size can't be created.
-    pub fn write(&mut self) -> Dyn<F::Sample> {
+    pub fn write(&mut self) -> Dyn<S::Sample> {
         let length = self.length.samples.int();
         let mut data = Vec::with_capacity(usize::try_from(length).expect("buffer too large"));
 
-        let mut time = unt::Time::ZERO;
         for _ in 0..length {
-            data.push(self.song.eval(time));
-            time.advance();
+            data.push(self.sgn.next());
         }
 
         Dyn::from_data(data)

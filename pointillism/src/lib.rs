@@ -132,54 +132,8 @@ pub(crate) fn mod_inc(len: usize, value: &mut usize) {
     }
 }
 
-/// A trait for some function that returns samples frame by frame.
-pub trait SongFunc {
-    /// The type of samples returned.
-    type Sample: Audio;
-
-    /// Gets the next sample.
-    fn eval(&mut self, time: unt::Time) -> Self::Sample;
-}
-
-/// Wraps a `FnMut(unt::Time) -> A` so that it implements the [`SongFunc`] trait.
-pub struct Func<T>(T);
-
-/// Wraps a [`SignalMut`] so that it implements the [`SongFunc`] trait.
-pub struct Sgn<S>(S);
-
-/// Wraps a [`&mut SignalMut`](SignalMut) so that it implements the [`SongFunc`] trait.
-pub struct SgnMut<'a, S>(&'a mut S);
-
-impl<A: Audio, T: FnMut(unt::Time) -> A> SongFunc for Func<T> {
-    type Sample = A;
-    fn eval(&mut self, time: units::Time) -> Self::Sample {
-        (self.0)(time)
-    }
-}
-
-impl<S: SignalMut> SongFunc for Sgn<S>
-where
-    S::Sample: Audio,
-{
-    type Sample = S::Sample;
-    fn eval(&mut self, _: units::Time) -> Self::Sample {
-        self.0.next()
-    }
-}
-
-impl<'a, S: SignalMut> SongFunc for SgnMut<'a, S>
-where
-    S::Sample: Audio,
-{
-    type Sample = S::Sample;
-    fn eval(&mut self, _: units::Time) -> Self::Sample {
-        self.0.next()
-    }
-}
-
-/// Represents a song, a piece of code that can be evaluated frame by frame to generate succesive
-/// samples. The duration of the file is exactly rounded down to the sample. The song will be mono
-/// or stereo, depending on whether the passed function returns [`smp::Mono`] or [`smp::Stereo`].
+/// A [`Song`] bundles a [`SignalMut`] with the information needed to properly play it back. The
+/// song will be mono or stereo depending on whether the passed signal is.
 ///
 /// See the `examples` folder for example creations.
 ///
@@ -201,86 +155,60 @@ where
 /// let mut sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
 ///
 /// // Export to file.
-/// Song::new_sgn(length, SAMPLE_RATE, &mut sgn).export("examples/sine.wav");
+/// Song::new(length, SAMPLE_RATE, sgn).export("examples/sine.wav");
 /// ```
-pub struct Song<F: SongFunc> {
+pub struct Song<S: SignalMut>
+where
+    S::Sample: Audio,
+{
     /// The length of the song in samples.
     length: unt::Time,
     /// The sample rate of the song.
     sample_rate: unt::SampleRate,
-    /// The [`SongFunc`] that generates the song.
-    song: F,
+    /// The [`SignalMut`] that generates the song.
+    sgn: S,
 }
 
-impl<F: SongFunc> Song<F> {
-    pub const fn new_raw(length: unt::Time, sample_rate: unt::SampleRate, song: F) -> Self {
+impl<S: SignalMut> Song<S>
+where
+    S::Sample: Audio,
+{
+    /// Creates a new [`Song`] from a signal. The resulting WAV file will be mono or stereo,
+    /// depending on whether the signal returns [`smp::Mono`] or [`smp::Stereo`].
+    ///
+    /// ## Example
+    ///
+    /// For an example, see the [`Song`] docs.
+    pub const fn new(length: unt::Time, sample_rate: unt::SampleRate, sgn: S) -> Self {
         Self {
             length,
             sample_rate,
-            song,
+            sgn,
         }
     }
 }
 
-impl<A: Audio, F: FnMut(unt::Time) -> A> Song<Func<F>> {
-    /// Creates a new [`Song`] from a function, taking the elapsed time as an argument. To instead
-    /// take in a signal, see [`Self::new_sgn`].
-    ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`smp::Mono`] or [`smp::Stereo`].
-    ///
-    /// ## Example
-    ///
-    /// For an example, see the [`Song`] docs.
-    #[must_use]
-    pub const fn new(length: unt::Time, sample_rate: unt::SampleRate, song: F) -> Self {
-        Self::new_raw(length, sample_rate, Func(song))
-    }
-}
-
-impl<'a, S: SignalMut> Song<SgnMut<'a, S>>
+impl<'a, S: SignalMut> Song<rtn::Mut<'a, S>>
 where
     S::Sample: Audio,
 {
-    /// A convenience function to create a [`new`](Self::new) song from a given signal. The signal
-    /// is not consumed. To instead take in a function, see [`Self::new`]. If you have to own the
-    /// song, use [`Self::new_sgn_owned`].
-    ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`smp::Mono`] or [`smp::Stereo`].
-    ///
-    /// ## Example
-    ///
-    /// For an example, see the [`Song`] docs.
+    /// A convenience function to create a [`new`](Self::new) song from a given signal, without
+    /// consuming it.
     #[must_use]
-    pub fn new_sgn(length: unt::Time, sample_rate: unt::SampleRate, sgn: &'a mut S) -> Self
+    pub fn new_mut(length: unt::Time, sample_rate: unt::SampleRate, sgn: &'a mut S) -> Self
     where
         S::Sample: Audio,
     {
-        Self::new_raw(length, sample_rate, SgnMut(sgn))
+        Self::new(length, sample_rate, rtn::Mut(sgn))
     }
 }
 
-impl<S: SignalMut> Song<Sgn<S>>
-where
-    S::Sample: Audio,
-{
-    /// A convenience function to create a [`new`](Self::new) song from a given signal. The signal
-    /// is consumed. To instead take in a function, see [`Self::new`]. If you don't have to own the
-    /// song, use [`Self::new_sgn`].
-    ///
-    /// The resulting WAV file will be mono or stereo, depending on whether the passed function
-    /// returns [`smp::Mono`] or [`smp::Stereo`].
-    ///
-    /// ## Example
-    ///
-    /// For an example, see the [`Song`] docs.
+impl<'a, A: Audio, F: FnMut(unt::Time) -> A> Song<gen::TimeFunc<A, F>> {
+    /// A convenience function to create a [`new`](Self::new) song from a function taking in a time
+    /// stamp.
     #[must_use]
-    pub fn new_sgn_owned(length: unt::Time, sample_rate: unt::SampleRate, sgn: S) -> Self
-    where
-        S::Sample: Audio,
-    {
-        Self::new_raw(length, sample_rate, Sgn(sgn))
+    pub fn new_func(length: unt::Time, sample_rate: unt::SampleRate, func: F) -> Self {
+        Self::new(length, sample_rate, gen::TimeFunc::new(func))
     }
 }
 
@@ -300,7 +228,10 @@ mod with_hound {
         }
     }
 
-    impl<F: SongFunc> Song<F> {
+    impl<S: SignalMut> Song<S>
+    where
+        S::Sample: Audio,
+    {
         /// Exports a song as a WAV file. Requires the [`hound`] feature.
         ///
         /// ## Errors
@@ -309,12 +240,10 @@ mod with_hound {
         pub fn export_res<P: AsRef<std::path::Path>>(&mut self, filename: P) -> hound::Result<()> {
             let length = self.length.samples.int();
             let mut writer =
-                hound::WavWriter::create(filename, spec(F::Sample::size_u8(), self.sample_rate))?;
+                hound::WavWriter::create(filename, spec(S::Sample::size_u8(), self.sample_rate))?;
 
-            let mut time = unt::Time::ZERO;
             for _ in 0..length {
-                self.song.eval(time).write(&mut writer)?;
-                time.advance();
+                self.sgn.next().write(&mut writer)?;
             }
 
             writer.finalize()
@@ -346,10 +275,10 @@ pub mod prelude {
     pub use crate::{
         buf::{Buffer, BufferMut, Ring},
         eff::flt::FilterMap,
-        map::{Env, Map, Mut},
+        map::{Map, Mut, Val},
         sgn::{Base, Done, Frequency, Panic, Signal, SignalMut, Stop},
         smp::{Array, Audio, Sample, SampleBase},
-        Song, SongFunc,
+        Song,
     };
     pub(crate) use sgn::impl_base;
 }

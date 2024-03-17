@@ -71,13 +71,11 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     let trem =
         move |freq| eff::StopTremolo::new(shape(freq), gen::Once::new(crv::PosInvSaw, sec * 10u32));
 
-    let poly = gen::Polyphony::new();
-    let mut index = 0;
-
     // Play a new note every four seconds.
+    let mut index = 0;
     ctr::Loop::new(
         vec![unt::Time::from_sec_default(4.0)],
-        poly,
+        gen::Polyphony::new(),
         map::Func::new(move |poly: &mut gen::Polyphony<_, _>| {
             freq *= INTERVALS[index % INTERVALS.len()];
             poly.add(index, trem(freq));
@@ -94,7 +92,7 @@ fn main() {
     let melody_time = unt::Time::from_sec(120.0, SAMPLE_RATE);
     let fade_time = unt::Time::from_sec(20.0, SAMPLE_RATE);
 
-    Song::new(length, SAMPLE_RATE, |time| {
+    Song::new_func(length, SAMPLE_RATE, |time| {
         let mut sample = binaural.next() * fade(time, length, fade_time);
 
         // The triangle waves start playing 2 minutes in.

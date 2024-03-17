@@ -93,7 +93,7 @@ fn trem_piano(freq: unt::Freq, vib_freq: unt::Freq) -> impl Stop<Sample = smp::M
 
 fn main() {
     let c3 = unt::Freq::from_raw(unt::RawFreq::C3, SAMPLE_RATE);
-    let sec = unt::Time::from_raw(unt::RawTime::SEC, SAMPLE_RATE);
+    let sec = unt::Time::from_sec(1.0, SAMPLE_RATE);
 
     // One piano for each note.
     let (mut p1, mut p2, mut p3) = (
@@ -103,7 +103,7 @@ fn main() {
     );
 
     let mut timer = ctr::Timer::new(5.0 * sec);
-    Song::new(5.2 * sec, SAMPLE_RATE, |time| {
+    Song::new_func(5.2 * sec, SAMPLE_RATE, |time| {
         let mut sgn = p1.next();
 
         // Play the second note after one second.

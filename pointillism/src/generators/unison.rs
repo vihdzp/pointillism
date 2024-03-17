@@ -288,11 +288,12 @@ impl<S: smp::Sample, C: Map<Input = unt::Val, Output = f64>> Unison<S, C> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Detune;
 
-impl<C: Map<Input = unt::Val>> Env<UnisonCurve<C>> for Detune
+impl<C: Map<Input = unt::Val>> Val<UnisonCurve<C>> for Detune
 where
     C::Output: smp::Sample,
 {
-    fn modify_env(&mut self, sgn: &mut UnisonCurve<C>, val: smp::Env) {
+    type Val = smp::Env;
+    fn modify_val(&mut self, sgn: &mut UnisonCurve<C>, val: smp::Env) {
         // Assuming you've used [`DetuneCurveSgn::new_detune_curve`], this should not result in
         // truncation.
         #[allow(clippy::cast_possible_truncation)]

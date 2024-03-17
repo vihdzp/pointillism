@@ -15,9 +15,7 @@
 use super::{coefficients::DenseStc, DiffEq};
 use crate::prelude::*;
 
-/// [`DiffEq`] with small order.
-///
-/// This is backed by two [`DenseStcs`](DenseStc).
+/// [`DiffEq`] with small order, backed by two [`DenseStcs`](DenseStc).
 pub type LoDiffEq<const T: usize, const U: usize> = DiffEq<DenseStc<T>, DenseStc<U>>;
 
 /// [`DiffEq`] for an order 1 zero.

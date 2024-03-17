@@ -10,6 +10,12 @@ use crate::prelude::*;
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct QFactor(pub f64);
 
+impl Default for QFactor {
+    fn default() -> Self {
+        Self::new(1.0)
+    }
+}
+
 impl QFactor {
     /// Initializes a Q factor.
     ///

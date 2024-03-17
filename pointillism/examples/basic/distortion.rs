@@ -60,7 +60,6 @@ fn main() {
     );
 
     // This gives a really weird effect.
-    let mut dist = eff::PwMapSgn::cubic(poly_loop);
-    Song::new_sgn(10u8 * note_len, SAMPLE_RATE, &mut dist)
-        .export("pointillism/examples/distortion.wav");
+    let dist = eff::PwMapSgn::cubic(poly_loop);
+    Song::new(10u8 * note_len, SAMPLE_RATE, dist).export("pointillism/examples/distortion.wav");
 }

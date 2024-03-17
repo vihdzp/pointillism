@@ -58,16 +58,19 @@ pub trait Mut<S: Signal> {
 }
 
 /// An abstract trait for a structure representing a function which modifies a [`Signal`] according
-/// to an envelope.
+/// to some value. This is often envelope data [`smp::Env`] or a [`unt::Time`]. This is not the same
+/// as [`unt::Val`]!
 ///
 /// Due to orphan rules, this trait can't be implemented directly for Rust functions. Instead, you
 /// must wrap your function in a [`Func`].
-pub trait Env<S: Signal> {
+pub trait Val<S: Signal> {
+    type Val;
+
     /// Modifies `sgn` according to `val`.
-    fn modify_env(&mut self, sgn: &mut S, val: smp::Env);
+    fn modify_val(&mut self, sgn: &mut S, val: Self::Val);
 }
 
-/// A wrapper for a Rust function which converts it into a [`Map`] or [`Mut`].
+/// A wrapper for a Rust function which converts it into a [`Map`], [`Mut`], or [`Val`].
 ///
 /// Unfortunately, it may be necessary to explicitly write down the types of the arguments to the
 /// function.
@@ -99,8 +102,9 @@ impl<X, Y, F: Fn(X) -> Y> Map for Func<X, Y, F> {
     }
 }
 
-impl<S: Signal, F: FnMut(&mut S, smp::Env)> Env<S> for Func<S, smp::Env, F> {
-    fn modify_env(&mut self, x: &mut S, y: smp::Env) {
+impl<S: Signal, V, F: FnMut(&mut S, V)> Val<S> for Func<S, V, F> {
+    type Val = V;
+    fn modify_val(&mut self, x: &mut S, y: V) {
         (self.func)(x, y);
     }
 }

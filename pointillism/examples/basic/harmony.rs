@@ -43,7 +43,7 @@ fn main() {
     }
 
     let mut idx = 1;
-    let mut seq = ctr::Seq::new(
+    let seq = ctr::Seq::new(
         vec![note_len; chords.len()],
         poly,
         map::Func::new(|poly: &mut gen::Polyphony<_, _>| {
@@ -66,7 +66,7 @@ fn main() {
     Song::new(
         note_len * chords.len() as f64 + unt::Time::from_sec(3.0, SAMPLE_RATE),
         SAMPLE_RATE,
-        |_| seq.next() / 6.0,
+        eff::Volume::new(seq, unt::Vol::new(1.0 / 6.0)),
     )
     .export("pointillism/examples/harmony.wav");
 }

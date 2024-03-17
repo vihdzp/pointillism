@@ -1,13 +1,18 @@
 //! Declares control structures, which can be used to execute events at specified time intervals.
 //!
-//! The main control structures are [`Seq`] and [`Loop`]. These can be used to modify a [`Signal`]
-//! at regular time intervals. Note that the [`Signal`] won't be immediately modified when the
-//! [`Seq`] or [`Loop`] is initialized. It will only be modified after the first time interval
-//! transpires. You can call [`Seq::skip`] or [`Loop::skip`] in order to immediately skip to and
-//! apply the first event.
+//! ## Sequences and loops
+//!
+//! The main control structures defined in this file are [`Seq`] and [`Loop`]. These can be used to
+//! modify a [`Signal`] at regular time intervals. Note that the [`Signal`] won't be immediately
+//! modified when the [`Seq`] or [`Loop`] is initialized. It will only be modified after the first
+//! time interval transpires. You can call [`Seq::skip`] or [`Loop::skip`] in order to immediately
+//! skip to and apply the first event.
 //!
 //! Also note that the time interval between events can be zero. The effect of this is to execute
 //! these events simultaneously.
+//!
+//! If more granularity is needed, we also offer [`Time`], which allows you to modify a signal on
+//! every single frame, according to the number of elapsed samples.
 //!
 //! ## Type aliases
 //!
@@ -29,7 +34,7 @@ use crate::prelude::*;
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Seq<S: SignalMut, F: map::Mut<S>> {
+pub struct Seq<S: SignalMut, F: Mut<S>> {
     /// A list of time intervals between an event and the next.
     pub times: Vec<unt::Time>,
     /// Time since last event.
@@ -43,7 +48,7 @@ pub struct Seq<S: SignalMut, F: map::Mut<S>> {
     func: F,
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Seq<S, F> {
+impl<S: SignalMut, F: Mut<S>> Seq<S, F> {
     /// Initializes a new sequence.
     pub const fn new(times: Vec<unt::Time>, sgn: S, func: F) -> Self {
         Self {
@@ -149,7 +154,7 @@ impl<S: SignalMut, F: map::Mut<S>> Seq<S, F> {
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Signal for Seq<S, F> {
+impl<S: SignalMut, F: Mut<S>> Signal for Seq<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> S::Sample {
@@ -157,7 +162,7 @@ impl<S: SignalMut, F: map::Mut<S>> Signal for Seq<S, F> {
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> SignalMut for Seq<S, F> {
+impl<S: SignalMut, F: Mut<S>> SignalMut for Seq<S, F> {
     fn advance(&mut self) {
         self.sgn.advance();
         self.since.advance();
@@ -178,12 +183,12 @@ impl<S: SignalMut, F: map::Mut<S>> SignalMut for Seq<S, F> {
 ///
 /// See the [module docs](self) for more information.
 #[derive(Clone, Debug)]
-pub struct Loop<S: SignalMut, F: map::Mut<S>> {
+pub struct Loop<S: SignalMut, F: Mut<S>> {
     /// The internal sequence.
     seq: Seq<S, F>,
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> Loop<S, F> {
     /// Turns a sequence into a loop.
     ///
     /// ## Panics
@@ -284,15 +289,15 @@ impl<S: SignalMut, F: map::Mut<S>> Loop<S, F> {
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> Signal for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> Signal for Loop<S, F> {
     type Sample = S::Sample;
 
     fn get(&self) -> Self::Sample {
-        self.seq.sgn.get()
+        self.sgn().get()
     }
 }
 
-impl<S: SignalMut, F: map::Mut<S>> SignalMut for Loop<S, F> {
+impl<S: SignalMut, F: Mut<S>> SignalMut for Loop<S, F> {
     fn advance(&mut self) {
         self.seq.advance();
 
@@ -346,7 +351,7 @@ impl Arp {
     }
 }
 
-impl<S: Frequency> map::Mut<S> for Arp {
+impl<S: Frequency> Mut<S> for Arp {
     fn modify(&mut self, sgn: &mut S) {
         *sgn.freq_mut() = self.current();
         crate::mod_inc(self.len(), &mut self.index);
@@ -428,5 +433,72 @@ impl<S: Frequency> Arpeggio<S> {
     /// Returns a mutable reference to the notes.
     pub fn notes_mut(&mut self) -> &mut [unt::Freq] {
         &mut self.arp_mut().notes
+    }
+}
+
+/// Changes a signal according to a specified function, evaluated on every frame.
+pub struct Time<S: SignalMut, F: Val<S, Val = unt::Time>> {
+    /// Time elapsed.
+    time: unt::Time,
+    /// The signal being modified.
+    sgn: S,
+    /// The function modifying the signal.
+    func: F,
+}
+
+impl<S: SignalMut, F: Val<S, Val = unt::Time>> Time<S, F> {
+    /// Initializes a new [`Time`].
+    pub const fn new(sgn: S, func: F) -> Self {
+        Self {
+            time: unt::Time::ZERO,
+            sgn,
+            func,
+        }
+    }
+
+    /// Returns a reference to the modified signal.
+    pub const fn sgn(&self) -> &S {
+        &self.sgn
+    }
+
+    /// Returns a mutable reference to the modified signal.
+    pub fn sgn_mut(&mut self) -> &mut S {
+        &mut self.sgn
+    }
+
+    /// Returns a reference to the function modifying the signal.
+    pub const fn func(&self) -> &F {
+        &self.func
+    }
+
+    /// Returns a mutable reference to the function modifying the signal.
+    pub fn func_mut(&mut self) -> &mut F {
+        &mut self.func
+    }
+
+    /// Modifies the signal according to the function.
+    fn modify(&mut self) {
+        self.func.modify_val(&mut self.sgn, self.time);
+    }
+}
+
+impl<S: SignalMut, F: Val<S, Val = unt::Time>> Signal for Time<S, F> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> Self::Sample {
+        self.sgn.get()
+    }
+}
+
+impl<S: SignalMut, F: Val<S, Val = unt::Time>> SignalMut for Time<S, F> {
+    fn advance(&mut self) {
+        self.sgn.advance();
+        self.time.advance();
+        self.modify();
+    }
+
+    fn retrigger(&mut self) {
+        self.sgn.retrigger();
+        self.time = unt::Time::ZERO;
     }
 }

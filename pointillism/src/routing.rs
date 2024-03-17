@@ -153,7 +153,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// ## Examples
 ///
 /// In this example, we apply two different distortion effects to a single sine wave, and play them
-/// in both ears. The left ear should be noticeably louder.
+/// in both ears.
 ///
 /// ```
 /// # use pointillism::prelude::*;
@@ -176,7 +176,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// ```
 ///
 /// The next example rewrites our previous code in terms of [`Cell`]. If our wrappers had non-zero
-/// cost, this would most likely give a noticeable improvement in performance.
+/// cost, or couldn't easily be rebuilt, this would give a noticeable improvement in performance.
 ///
 /// ```
 /// # use pointillism::prelude::*;
@@ -218,6 +218,76 @@ impl<'a, S: Signal> Signal for Ref<'a, S> {
 impl<'a, S: Done> Done for Ref<'a, S> {
     fn is_done(&self) -> bool {
         self.0.is_done()
+    }
+}
+
+/// A mutable reference to another signal.
+///
+/// This is a simple way to reuse a signal. TODO: continue writing
+pub struct Mut<'a, S: Signal>(pub &'a mut S);
+
+impl<'a, S: Signal> Mut<'a, S> {
+    /// Initializes a new [`Mut`].
+    pub fn new(sgn: &'a mut S) -> Self {
+        Self(sgn)
+    }
+}
+
+impl<'a, S: Signal> Signal for Mut<'a, S> {
+    type Sample = S::Sample;
+
+    fn get(&self) -> S::Sample {
+        self.0._get()
+    }
+}
+
+impl<'a, S: SignalMut> SignalMut for Mut<'a, S> {
+    fn advance(&mut self) {
+        self.0.advance();
+    }
+
+    fn retrigger(&mut self) {
+        self.0.retrigger();
+    }
+}
+
+impl<'a, S: Frequency> Frequency for Mut<'a, S> {
+    fn freq(&self) -> unt::Freq {
+        self.0.freq()
+    }
+
+    fn freq_mut(&mut self) -> &mut unt::Freq {
+        self.0.freq_mut()
+    }
+}
+
+impl<'a, S: Base> Base for Mut<'a, S> {
+    type Base = S::Base;
+
+    fn base(&self) -> &Self::Base {
+        self.0.base()
+    }
+
+    fn base_mut(&mut self) -> &mut Self::Base {
+        self.0.base_mut()
+    }
+}
+
+impl<'a, S: Done> Done for Mut<'a, S> {
+    fn is_done(&self) -> bool {
+        self.0.is_done()
+    }
+}
+
+impl<'a, S: Stop> Stop for Mut<'a, S> {
+    fn stop(&mut self) {
+        self.0.stop();
+    }
+}
+
+impl<'a, S: Panic> Panic for Mut<'a, S> {
+    fn panic(&mut self) {
+        self.0.panic()
     }
 }
 

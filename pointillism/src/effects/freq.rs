@@ -29,8 +29,9 @@ impl<S: Frequency> Default for Vib<S> {
     }
 }
 
-impl<S: Frequency> Env<S> for Vib<S> {
-    fn modify_env(&mut self, sgn: &mut S, bend: smp::Env) {
+impl<S: Frequency> Val<S> for Vib<S> {
+    type Val = smp::Env;
+    fn modify_val(&mut self, sgn: &mut S, bend: smp::Env) {
         *sgn.freq_mut() = self.base * bend.0;
     }
 }

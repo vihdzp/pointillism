@@ -160,7 +160,7 @@ impl<S: SignalMut> Stop for Stopping<S> {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Retrigger;
 
-impl<S: SignalMut> map::Mut<S> for Retrigger {
+impl<S: SignalMut> Mut<S> for Retrigger {
     fn modify(&mut self, sgn: &mut S) {
         sgn.retrigger();
     }
