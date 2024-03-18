@@ -13,6 +13,9 @@ const LENGTH: unt::RawTime = unt::RawTime::new_sec(45.0);
 /// Fade-out length.
 const FADE: unt::RawTime = unt::RawTime::new_sec(5.0);
 
+/// The base frequency for the song.
+const BASE_FREQ: unt::RawFreq = unt::RawFreq::G3;
+
 /// The sequence of intervals.
 const INTERVALS: [f64; 6] = [
     9.0 / 8.0,
@@ -55,7 +58,7 @@ fn pluck() -> impl SignalMut<Sample = smp::Mono> {
     };
 
     // Play in a loop.
-    let mut freq = unt::Freq::from_raw(unt::RawFreq::G3, SAMPLE_RATE);
+    let mut freq = unt::Freq::from_raw(BASE_FREQ, SAMPLE_RATE);
     let mut poly = gen::Polyphony::new();
     poly.add(u8::MAX, sgn(freq));
     let mut note = 0;
@@ -91,22 +94,32 @@ fn bass() -> impl SignalMut<Sample = smp::Mono> {
     let fade = unt::Time::from_raw(FADE, SAMPLE_RATE);
 
     // Deep saw wave.
-    let saw = gen::Loop::<smp::Mono, _>::new(
-        crv::Saw,
-        unt::Freq::from_raw(unt::RawFreq::G2, SAMPLE_RATE),
-    );
+    let saw = |ratio: f64| {
+        gen::Loop::<smp::Mono, _>::new(
+            crv::Saw,
+            unt::Freq::from_raw(BASE_FREQ / ratio, SAMPLE_RATE),
+        )
+    };
+    let mix = rtn::Mix::new(saw(2.0), saw(1.5));
 
     // Lowers the pitch according to the main melody.
-    /*let env = eff::MutSgn::new(saw, gen::Once::new(crv::PosSaw,unt::Time map::Func::new(|val|{
-
-    }
-
-    ))*/
+    let env = ctr::Time::new(
+        mix,
+        map::Func::new(
+            |mix: &mut rtn::Mix<gen::Loop<_, _>, gen::Loop<_, _>>, time| {
+                let exp = time / (6.0 * unt::Time::from_raw(BEAT, SAMPLE_RATE));
+                for sgn in [&mut mix.0, &mut mix.1] {
+                    *sgn.freq_mut() =
+                        unt::Freq::from_raw((BASE_FREQ / 2.0) * COMMA.powf(exp), SAMPLE_RATE);
+                }
+            },
+        ),
+    );
 
     // Subtle low-pass.
     eff::flt::LoFiltered::new_coefs(
-        eff::env::ArEnv::new_ar(saw, eff::env::Ar::new(length, fade)),
-        eff::flt::SingleZero::single_zero(-1.0).with_gain(unt::Vol::from_db(-18.0)),
+        eff::env::ArEnv::new_ar(env, eff::env::Ar::new(length, fade)),
+        eff::flt::SingleZero::single_zero(-1.0).with_gain(unt::Vol::from_db(-15.0)),
     )
 }
 
@@ -123,7 +136,7 @@ fn main() {
     let mut delay_sgn = eff::dly::Exp::new_exp_owned(mix, delay, unt::Vol::ZERO);
 
     Song::new_func(length + fade, sample_rate, |time| {
-        let delay_gain = 0.7 * (time / length).sqrt();
+        let delay_gain = 0.8 * (time / length).sqrt();
         delay_sgn.vol_mut().gain = delay_gain;
 
         // Normalizes volume to 1.

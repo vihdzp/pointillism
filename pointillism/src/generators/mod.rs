@@ -461,6 +461,7 @@ impl<A: Audio, F: FnMut(unt::Time) -> A> Signal for TimeFunc<A, F> {
 
 impl<A: Audio, F: FnMut(unt::Time) -> A> SignalMut for TimeFunc<A, F> {
     fn advance(&mut self) {
+        self.time.advance();
         self.val = (self.func)(self.time);
     }
 

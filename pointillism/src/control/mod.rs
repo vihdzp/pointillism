@@ -447,7 +447,7 @@ pub struct Time<S: SignalMut, F: Val<S, Val = unt::Time>> {
 }
 
 impl<S: SignalMut, F: Val<S, Val = unt::Time>> Time<S, F> {
-    /// Initializes a new [`Time`].
+    /// Initializes a new [`Time`]. This isn't the same as a [`Timer`]!
     pub const fn new(sgn: S, func: F) -> Self {
         Self {
             time: unt::Time::ZERO,
