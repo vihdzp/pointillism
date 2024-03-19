@@ -56,7 +56,7 @@ fn main() {
     // Length of the file.
     let length = main_melody.total_time() + release;
 
-    Song::new(length, unt::SampleRate::default(), |_| {
+    Song::new_func(length, unt::SampleRate::default(), |_| {
         (main_melody.next() + bass_melody.next() * 0.8) * 0.15
     })
     .export("pointillism/examples/clair_de_lune.wav");

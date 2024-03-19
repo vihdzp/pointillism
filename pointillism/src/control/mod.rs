@@ -390,7 +390,7 @@ impl<S: Frequency> Mut<S> for Arp {
 /// arp.skip();
 ///
 /// let mut timer = ctr::Timer::new(length);
-/// Song::new(2u8 * length, SAMPLE_RATE, |time| {
+/// Song::new_func(2u8 * length, SAMPLE_RATE, |time| {
 ///     // We switch up the arpeggio after the first phrase.
 ///     if timer.tick(time) {
 ///         arp.notes_mut()[2] = unt::Freq::from_raw(unt::RawFreq::F4, SAMPLE_RATE);

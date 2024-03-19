@@ -58,7 +58,7 @@
 //! let mut timer = ctr::Timer::new(2u8 * length);
 //!
 //! // We play the melody twice.
-//! Song::new(2u8 * length + release, SAMPLE_RATE, |time| {
+//! Song::new_func(2u8 * length + release, SAMPLE_RATE, |time| {
 //!     // After the melody has been played twice, stop all voices.
 //!     if timer.tick(time) {
 //!         melody_loop.sgn_mut().stop_all();

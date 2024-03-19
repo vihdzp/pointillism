@@ -160,7 +160,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// // The original signal.
 /// let mut signal = gen::Loop::new(crv::Sin, unt::Freq::from_raw_default(unt::RawFreq::A3));
 ///
-/// Song::new(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
+/// Song::new_func(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
 ///     // Thanks to `Ref`, we're able to re-use our signal.
 ///     // However, we need to re-define it for every sample.
 ///     let sgn1 = eff::PwMapSgn::inf_clip(rtn::Ref::new(&signal));
@@ -190,7 +190,7 @@ impl<S: Signal<Sample = smp::Mono>> Duplicate<S> {
 /// let sgn2 = eff::PwMapSgn::cubic(rtn::Ref::new(&cell));
 /// let stereo = rtn::Stereo::new(sgn1, sgn2);
 ///
-/// Song::new(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
+/// Song::new_func(unt::Time::from_sec_default(3.0), unt::SampleRate::default(), |_| {
 ///     // The `advance` method here uses interior mutability.
 ///     let res = stereo.get();
 ///     cell.advance();

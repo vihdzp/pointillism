@@ -20,10 +20,10 @@
 //! const FILENAME: &str = "examples/buffer.wav";
 //!
 //! // Creates some dummy wave file. In this case, a 440 Hz sine wave for 1s.
-//! Song::new_sgn(
+//! Song::new(
 //!     unt::Time::from_raw_default(unt::RawTime::SEC),
 //!     unt::SampleRate::default(),
-//!     &mut gen::Loop::<smp::Mono, crv::Sin>::default(),
+//!     gen::Loop::<smp::Mono, crv::Sin>::default(),
 //! )
 //! .export(FILENAME);
 //!
@@ -37,7 +37,7 @@
 //!
 //! // We can change the interpolation method here.
 //! let mut sgn = buf::int::Stretch::new_drop(buf_sgn, 1.0 / FACTOR);
-//! Song::new_sgn(time * FACTOR, unt::SampleRate::default(), &mut sgn).export(FILENAME);
+//! Song::new(time * FACTOR, unt::SampleRate::default(), sgn).export(FILENAME);
 //! ```
 
 use crate::{prelude::*, sample::WavSample};

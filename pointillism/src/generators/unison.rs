@@ -381,7 +381,7 @@ impl<S: smp::Sample, C: Map<Input = unt::Val, Output = f64>, E: SignalMut<Sample
 /// // If you play a large amount of curves and remove this, you'll get some wacky interference.
 /// unison.sgn_mut().randomize_phases();
 ///
-/// Song::new(2u8 * len, unt::SampleRate::default(), |_| {
+/// Song::new_func(2u8 * len, unt::SampleRate::default(), |_| {
 ///     // We pan every curve according to how much its detuned.
 ///     let sgn: smp::Stereo = (0..NUM)
 ///         .into_iter()

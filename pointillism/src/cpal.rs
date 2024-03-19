@@ -39,7 +39,7 @@
 //! let sgn = gen::Loop::<smp::Mono, _>::new(crv::Sin, freq);
 //!
 //! // Creates the stream and plays it.
-//! let stream = Song::new_sgn_owned(length, sample_rate, sgn).build_output_stream(
+//! let stream = Song::new(length, sample_rate, sgn).build_output_stream(
 //!     &device,
 //!     buffer_size,
 //!     |err| eprintln!("{err}"),
