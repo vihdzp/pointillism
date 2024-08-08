@@ -187,6 +187,7 @@ impl<T: Coefficients, U: Coefficients> DiffEq<T, U> {
     }
 
     /// Applies an overall gain factor. Returns `self`.
+    #[must_use]
     pub fn with_gain(mut self, gain: unt::Vol) -> Self {
         self.gain(gain);
         self

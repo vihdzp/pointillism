@@ -287,7 +287,7 @@ impl<'a, S: Stop> Stop for Mut<'a, S> {
 
 impl<'a, S: Panic> Panic for Mut<'a, S> {
     fn panic(&mut self) {
-        self.0.panic()
+        self.0.panic();
     }
 }
 

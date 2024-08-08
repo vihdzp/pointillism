@@ -203,7 +203,7 @@ where
     }
 }
 
-impl<'a, A: Audio, F: FnMut(unt::Time) -> A> Song<gen::TimeFunc<A, F>> {
+impl< A: Audio, F: FnMut(unt::Time) -> A> Song<gen::TimeFunc<A, F>> {
     /// A convenience function to create a [`new`](Self::new) song from a function taking in a time
     /// stamp.
     #[must_use]
