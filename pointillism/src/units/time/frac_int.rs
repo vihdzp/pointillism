@@ -144,7 +144,7 @@ macro_rules! impl_from_int {
     ($($ty: ty),*) => {
         $(impl From<$ty> for FracInt {
             fn from(value: $ty) -> Self {
-                Self::new(value as u64)
+                Self::new(u64::from(value))
             }
         }
     )*};
@@ -176,6 +176,7 @@ macro_rules! impl_mul_div_uint {
             type Output = Self;
 
             fn mul(self, rhs: $ty) -> Self {
+                #[allow(clippy::cast_lossless)]
                 Self(self.0 * rhs as u64)
             }
         }
@@ -184,6 +185,7 @@ macro_rules! impl_mul_div_uint {
             type Output = Self;
 
             fn div(self, rhs: $ty) -> Self {
+                #[allow(clippy::cast_lossless)]
                 Self(self.0 / rhs as u64)
             }
         }
@@ -259,6 +261,6 @@ mod test {
         assert_eq!(format!("{}", FracInt::new(0)), "0");
         assert_eq!(format!("{}", FracInt::new(1)), "1");
         assert_eq!(format!("{}", FracInt::from_f32(0.375)), "0.375");
-        assert_eq!(format!("{}", FracInt::EPS), "0.0000152587890625")
+        assert_eq!(format!("{}", FracInt::EPS), "0.0000152587890625");
     }
 }

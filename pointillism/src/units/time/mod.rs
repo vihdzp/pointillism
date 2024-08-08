@@ -242,7 +242,7 @@ mod test {
         if cfg!(feature = "human-duration") {
             assert_eq!(pretty, "1y 0mon 0d 0h 0m 0s 0ms");
         } else {
-            assert_eq!(pretty, "31536000s")
+            assert_eq!(pretty, "31536000s");
         }
     }
 
@@ -260,6 +260,6 @@ mod test {
         assert_eq!(
             format!("{}", Time::MAX),
             "281474976710655.9999847412109375 samples"
-        )
+        );
     }
 }

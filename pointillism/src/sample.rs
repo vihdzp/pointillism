@@ -237,13 +237,15 @@ pub unsafe trait Array:
     /// A default implementation for the [`AsRef`] trait.
     fn _as_ref(&self) -> &[Self::Item] {
         // Safety: this works due to the safety guarantees on the trait.
-        unsafe { std::slice::from_raw_parts((self as *const Self).cast(), Self::SIZE) }
+        unsafe { std::slice::from_raw_parts(std::ptr::from_ref::<Self>(self).cast(), Self::SIZE) }
     }
 
     /// A default implementation for the [`AsMut`] trait.
     fn _as_mut(&mut self) -> &mut [Self::Item] {
         // Safety: this works due to the safety guarantees on the trait.
-        unsafe { std::slice::from_raw_parts_mut((self as *mut Self).cast(), Self::SIZE) }
+        unsafe {
+            std::slice::from_raw_parts_mut(std::ptr::from_mut::<Self>(self).cast(), Self::SIZE)
+        }
     }
 }
 
@@ -531,7 +533,7 @@ macro_rules! impl_wav_signed {
         $(
             impl WavSample for $ty {
                 fn into_mono(self) -> Mono {
-                    Mono(self as f64 / <$ty>::MAX as f64)
+                    Mono(f64::from(self) / f64::from(<$ty>::MAX))
                 }
             }
         )*

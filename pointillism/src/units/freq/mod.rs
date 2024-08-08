@@ -307,6 +307,6 @@ mod test {
     /// Tests [`Freq`] printing.
     #[test]
     fn print_freq() {
-        assert_eq!(format!("{:.6}", Freq::default()), "0.009977 samples^-1")
+        assert_eq!(format!("{:.6}", Freq::default()), "0.009977 samples^-1");
     }
 }
