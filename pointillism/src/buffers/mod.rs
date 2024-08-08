@@ -427,7 +427,9 @@ where
             usize::try_from(length).expect("buffer too large"),
         ));
 
-        self.sgn.fill(&mut data);
+        for sample in &mut data {
+            *sample = self.sgn.next();
+        }
         data
     }
 }

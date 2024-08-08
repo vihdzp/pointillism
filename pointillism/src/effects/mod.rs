@@ -107,7 +107,6 @@ where
     fn retrigger(&mut self) {
         self.sgn_mut().retrigger();
     }
-
 }
 
 impl<S: Frequency, F: Map<Input = S::Sample>> Frequency for MapSgn<S, F>

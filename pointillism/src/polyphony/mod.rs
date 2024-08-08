@@ -139,22 +139,6 @@ impl<K: Eq + Hash + Clone, S: SignalMut + Done> SignalMut for Polyphony<K, S> {
         self.signals.clear();
     }
 
-    fn fill<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
-        let mut iter = self.signals_mut().map(|(_, sgn)| sgn);
-        if let Some(fst) = iter.next() {
-            fst.fill(buffer);
-        }
-
-        for sgn in iter {
-            sgn.fill_add(buffer);
-        }
-    }
-
-    fn fill_add<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
-        for sgn in self.signals_mut().map(|(_, sgn)| sgn) {
-            sgn.fill_add(buffer);
-        }
-    }
 }
 
 impl<K: Eq + Hash + Clone, S: SignalMut + Done> Base for Polyphony<K, S> {
