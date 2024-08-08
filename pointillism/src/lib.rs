@@ -39,6 +39,7 @@
 //! | [`eff`] | `effects` | For effects, meaning types that alter other signals.
 //! | [`gen`] | `generators` | Types that generate a signal "on their own". This includes the basic oscillators like [`gen::Loop`] and [`gen::Once`].
 //! | [`map`] | `map` | Basic maps and associated traits.
+//! | [`poly`] | `poly` | Playing multiple instances of a single signal at once.
 //! | [`sgn`] | `signal` | Traits on signals, including the basic [`Signal`] and [`SignalMut`].
 //! | [`smp`] | `smp` | Basic traits and types for sample types, including [`smp::Mono`] and [`smp::Stereo`].
 //! | [`rtn`] | `routing` | Structures for mixing or combining different signals together.
@@ -104,6 +105,7 @@ pub mod curves;
 pub mod effects;
 pub mod generators;
 pub mod map;
+pub mod polyphony;
 pub mod routing;
 pub mod sample;
 pub mod signal;
@@ -268,7 +270,7 @@ pub mod prelude {
     // Abbreviate module names.
     pub use crate::{
         buffers as buf, control as ctr, curves as crv, effects as eff, generators as gen, map,
-        routing as rtn, sample as smp, signal as sgn, units as unt,
+        polyphony as poly, routing as rtn, sample as smp, signal as sgn, units as unt,
     };
 
     // Import traits.

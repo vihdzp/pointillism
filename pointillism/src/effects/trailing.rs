@@ -8,7 +8,7 @@ use crate::prelude::*;
 /// always return `false`.
 ///
 /// **Important note**: Using this is somewhat of a hack. If used repeatedly in a
-/// [`Polyphony`](crate::gen::Polyphony) struct, it will greatly slow down the code.
+/// [`Polyphony`](crate::poly::Polyphony) struct, it will greatly slow down the code.
 pub struct Trailing<S: SignalMut> {
     /// The inner signal.
     pub sgn: S,

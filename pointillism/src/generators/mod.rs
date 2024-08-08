@@ -11,12 +11,7 @@ use crate::prelude::*;
 use std::marker::PhantomData;
 
 mod buffer;
-pub mod poly;
-pub mod unison;
-
-pub use buffer::{Chunks, LoopBuf, OnceBuf};
-pub use poly::Polyphony;
-pub use unison as uni;
+pub use buffer::{LoopBuf, OnceBuf};
 
 /// Converts a plain curve into a sample curve that outputs a signal of the specified type.
 #[derive(Clone, Copy, Debug, Default)]

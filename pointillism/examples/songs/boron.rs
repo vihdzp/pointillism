@@ -59,14 +59,14 @@ fn pluck() -> impl SignalMut<Sample = smp::Mono> {
 
     // Play in a loop.
     let mut freq = unt::Freq::from_raw(BASE_FREQ, SAMPLE_RATE);
-    let mut poly = gen::Polyphony::new();
+    let mut poly = poly::Polyphony::new();
     poly.add(u8::MAX, sgn(freq));
     let mut note = 0;
 
     let seq = ctr::Loop::new(
         vec![beat],
         poly,
-        map::Func::new(move |poly: &mut gen::Polyphony<_, _>| {
+        map::Func::new(move |poly: &mut poly::Polyphony<_, _>| {
             freq *= INTERVALS[note % INTERVALS.len()];
 
             let n = note as u8;

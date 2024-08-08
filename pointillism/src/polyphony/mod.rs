@@ -1,12 +1,17 @@
-//! Declares the [`Polyphony`] struct, which allows for multiple signals of the same type to play at
-//! the same time.
+//! Declares multiple polyphonic structs, which allows for multiple signals of the same type to play
+//! at the same time.
 //!
 //! ## Todo
+//!
+//! Explain what each struct does.
 //!
 //! Define another kind of polyphony that works with limited voices instead?
 
 use crate::prelude::*;
 use std::{collections::HashMap, hash::Hash};
+
+mod unison;
+pub use unison::{DetuneCurveSgn, DetuneSgn, Unison, UnisonCurve, UnisonRef};
 
 /// A polyphonic signal.
 ///
@@ -132,6 +137,23 @@ impl<K: Eq + Hash + Clone, S: SignalMut + Done> SignalMut for Polyphony<K, S> {
 
     fn retrigger(&mut self) {
         self.signals.clear();
+    }
+
+    fn fill<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
+        let mut iter = self.signals_mut().map(|(_, sgn)| sgn);
+        if let Some(fst) = iter.next() {
+            fst.fill(buffer);
+        }
+
+        for sgn in iter {
+            sgn.fill_add(buffer);
+        }
+    }
+
+    fn fill_add<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
+        for sgn in self.signals_mut().map(|(_, sgn)| sgn) {
+            sgn.fill_add(buffer);
+        }
     }
 }
 

@@ -168,10 +168,8 @@ macro_rules! impl_base {
 
 pub(crate) use impl_base;
 
-/// Represents a signal that ends.
-///
-/// This trait is used in [polyphonic](crate::gen::poly) signals, so that a synth can be cleared
-/// from memory when it stops.
+/// Represents a signal that ends. This trait is used in [polyphonic](crate::gen::poly) signals, so
+/// that a synth can be cleared from memory when it stops.
 ///
 /// If a signal never ends, it should not implement this trait. If you really want to use such a
 /// signal within a [`Polyphony`](crate::gen::poly) struct, wrap it in the
@@ -188,7 +186,7 @@ pub trait Done: Signal {
     fn is_done(&self) -> bool;
 }
 
-/// Represents a signal that can be stopped. You can think of the `stop` method as an analog to a
+/// Represents a signal that can be stopped. You can think of the `stop` method as analogous to a
 /// MIDI note off event.
 ///
 /// Note that stopping a signal doesn't necessarily mean it will immediately stop producing sound.
@@ -198,9 +196,8 @@ pub trait Stop: SignalMut {
     fn stop(&mut self);
 }
 
-/// Represents a signal that can be stopped abruptly.
-///
-/// All sound or envelope data should stop being produced once the `panic` method is called.
+/// Represents a signal that can be stopped abruptly. All sound or envelope data should stop being
+/// produced once the `panic` method is called.
 ///
 /// Depending on how your code is structured, it might be easier to simply stop calling `next` on
 /// your signal.

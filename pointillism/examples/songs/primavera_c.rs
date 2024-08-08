@@ -75,8 +75,8 @@ fn melody() -> impl SignalMut<Sample = smp::Mono> {
     let mut index = 0;
     ctr::Loop::new(
         vec![unt::Time::from_sec_default(4.0)],
-        gen::Polyphony::new(),
-        map::Func::new(move |poly: &mut gen::Polyphony<_, _>| {
+        poly::Polyphony::new(),
+        map::Func::new(move |poly: &mut poly::Polyphony<_, _>| {
             freq *= INTERVALS[index % INTERVALS.len()];
             poly.add(index, trem(freq));
             index += 1;
