@@ -15,8 +15,8 @@ pub trait FilterMap {
     /// Evaluates the function, given the previous inputs and outputs.
     fn eval<A: Audio, I: Ring, O: Ring>(&self, inputs: &I, outputs: &O) -> A
     where
-        I::Buf: buf::BufferMut<Item = A>,
-        O::Buf: buf::BufferMut<Item = A>;
+        I::Buf: BufferMut<Item = A>,
+        O::Buf: BufferMut<Item = A>;
 }
 
 /// In its most general form, a filter is defined by its previous inputs, its previous outputs, and
@@ -29,8 +29,8 @@ pub trait FilterMap {
 /// inputs/outputs, at no cost.
 pub struct Filter<A: Audio, I: Ring, O: Ring, F: FilterMap>
 where
-    I::Buf: buf::BufferMut<Item = A>,
-    O::Buf: buf::BufferMut<Item = A>,
+    I::Buf: BufferMut<Item = A>,
+    O::Buf: BufferMut<Item = A>,
 {
     /// The filter map.
     pub func: F,
@@ -45,8 +45,8 @@ where
 
 impl<A: Audio, I: Ring, O: Ring, F: FilterMap> Filter<A, I, O, F>
 where
-    I::Buf: buf::BufferMut<Item = A>,
-    O::Buf: buf::BufferMut<Item = A>,
+    I::Buf: BufferMut<Item = A>,
+    O::Buf: BufferMut<Item = A>,
 {
     /// Initializes a filter with given preconditions.
     pub const fn new_prev(func: F, inputs: I, outputs: O) -> Self {
@@ -102,8 +102,8 @@ where
 pub struct Filtered<S: Signal, I: Ring, O: Ring, F: FilterMap>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     /// The filtered signal.
     pub sgn: S,
@@ -114,8 +114,8 @@ where
 impl<S: Signal, I: Ring, O: Ring, F: FilterMap> Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     /// Initializes a [`Filtered`] signal.
     pub const fn new(sgn: S, filter: Filter<S::Sample, I, O, F>) -> Self {
@@ -136,8 +136,8 @@ where
 impl<S: Signal, I: Ring, O: Ring, F: FilterMap> Signal for Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     type Sample = S::Sample;
 
@@ -149,8 +149,8 @@ where
 impl<S: SignalMut, I: Ring, O: Ring, F: FilterMap> SignalMut for Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     fn advance(&mut self) {
         self.next();
@@ -169,8 +169,8 @@ where
 impl<S: Base, I: Ring, O: Ring, F: FilterMap> Base for Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     type Base = S::Base;
 
@@ -186,8 +186,8 @@ where
 impl<S: Stop, I: Ring, O: Ring, F: FilterMap> Stop for Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     fn stop(&mut self) {
         self.sgn.stop();
@@ -197,8 +197,8 @@ where
 impl<S: Panic, I: Ring, O: Ring, F: FilterMap> Panic for Filtered<S, I, O, F>
 where
     S::Sample: Audio,
-    I::Buf: buf::BufferMut<Item = S::Sample>,
-    O::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
+    O::Buf: BufferMut<Item = S::Sample>,
 {
     fn panic(&mut self) {
         self.sgn.panic();

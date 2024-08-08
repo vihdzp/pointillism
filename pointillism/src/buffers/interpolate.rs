@@ -46,7 +46,7 @@ pub fn hermite<S: smp::SampleBase>(x0: S, x1: S, x2: S, x3: S, t: unt::Val) -> S
 ///
 /// Interpolation is particularly relevant for time [`Stretching`](Stretch).
 pub trait Interpolate:
-    Map<Input = unt::Val, Output = <Self::Buf as buf::Buffer>::Item> + Ring + Sized
+    Map<Input = unt::Val, Output = <Self::Buf as Buffer>::Item> + Ring + Sized
 {
     /// How many samples ahead of the current one must be loaded?
     const LOOK_AHEAD: u8;
@@ -59,7 +59,7 @@ pub trait Interpolate:
     ///
     /// This will advance the signal once for the current frame, and once for every
     /// [`Self::LOOK_AHEAD`] frame.
-    fn init<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(sgn: &mut S) -> Self {
+    fn init<S: SignalMut<Sample = <Self::Buf as Buffer>::Item>>(sgn: &mut S) -> Self {
         let mut inter = Self::EMPTY;
         inter.push_many(sgn, Self::LOOK_AHEAD as usize + 1);
         inter
@@ -289,7 +289,7 @@ impl<A: Audio> Interpolate for Hermite<A> {
 /// Samples a [`SignalMut`] and time-stretches it. Both pitch and speed will be modified.
 pub struct Stretch<S: SignalMut, I: Interpolate>
 where
-    I::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
 {
     /// The signal being sampled.
     sgn: S,
@@ -308,7 +308,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> Stretch<S, I>
 where
-    I::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
 {
     /// Initializes a new [`Stretch`].
     ///
@@ -405,7 +405,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> Signal for Stretch<S, I>
 where
-    I::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
 {
     type Sample = S::Sample;
 
@@ -416,7 +416,7 @@ where
 
 impl<S: SignalMut, I: Interpolate> SignalMut for Stretch<S, I>
 where
-    I::Buf: buf::BufferMut<Item = S::Sample>,
+    I::Buf: BufferMut<Item = S::Sample>,
 {
     fn advance(&mut self) {
         // The next position to read.

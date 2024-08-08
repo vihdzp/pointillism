@@ -14,7 +14,7 @@ mod buffer;
 pub mod poly;
 pub mod unison;
 
-pub use buffer::{LoopBuf, OnceBuf};
+pub use buffer::{Chunks, LoopBuf, OnceBuf};
 pub use poly::Polyphony;
 pub use unison as uni;
 

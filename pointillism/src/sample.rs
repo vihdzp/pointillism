@@ -618,7 +618,7 @@ mod test {
     }
 
     /// Tests that we can transmute an array of [`Mono`] into an array of [`Stereo`]. This is needed
-    /// for reading a stereo [`Buffer`](crate::buf::Buffer) from a WAV file.
+    /// for reading a stereo [`Buffer`](crate::Buffer) from a WAV file.
     #[test]
     fn transmute_test() {
         let stereo: [Stereo; 2] = unsafe { std::mem::transmute(Mono::array([1.0, 2.0, 3.0, 4.0])) };

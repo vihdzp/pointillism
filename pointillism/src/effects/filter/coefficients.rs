@@ -17,7 +17,7 @@ pub trait Coefficients {
     /// This is used for both inputs and outputs.
     fn eval<A: Audio, B: Ring>(&self, inputs: &B) -> A
     where
-        B::Buf: buf::Buffer<Item = A>;
+        B::Buf: Buffer<Item = A>;
 
     /// Scales all coefficients by a given factor.
     fn scale(&mut self, factor: f64);
@@ -44,7 +44,7 @@ impl<T: AsRef<[f64]> + AsMut<[f64]>> Dense<T> {
 impl<T: AsRef<[f64]> + AsMut<[f64]>> Coefficients for Dense<T> {
     fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
-        B::Buf: buf::Buffer<Item = A>,
+        B::Buf: Buffer<Item = A>,
     {
         self.0
             .as_ref()
@@ -114,7 +114,7 @@ impl<T: AsRef<[(usize, f64)]> + AsMut<[(usize, f64)]>> Sparse<T> {
 impl<T: AsRef<[(usize, f64)]> + AsMut<[(usize, f64)]>> Coefficients for Sparse<T> {
     fn eval<A: Audio, B: Ring>(&self, samples: &B) -> A
     where
-        B::Buf: buf::Buffer<Item = A>,
+        B::Buf: Buffer<Item = A>,
     {
         self.0
             .as_ref()
@@ -206,8 +206,8 @@ impl<T: Coefficients> DiffEq<T, Zero> {
 impl<T: Coefficients, U: Coefficients> FilterMap for DiffEq<T, U> {
     fn eval<A: Audio, I: Ring, O: Ring>(&self, inputs: &I, outputs: &O) -> A
     where
-        I::Buf: buf::BufferMut<Item = A>,
-        O::Buf: buf::BufferMut<Item = A>,
+        I::Buf: BufferMut<Item = A>,
+        O::Buf: BufferMut<Item = A>,
     {
         // Direct form 1.
         self.input.eval(inputs) - self.feedback.eval(outputs)

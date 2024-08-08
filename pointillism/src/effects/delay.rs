@@ -18,7 +18,7 @@ use crate::prelude::*;
 #[derive(Clone, Debug)]
 pub struct Delay<
     S: Signal<Sample = B::Item>,
-    B: buf::BufferMut,
+    B: BufferMut,
     F: Map<Input = B::Item, Output = B::Item>,
 > {
     /// The played signal.
@@ -39,7 +39,7 @@ pub struct Delay<
     pub feedback: F,
 }
 
-impl<S: Signal<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Output = B::Item>>
+impl<S: Signal<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>>
     Delay<S, B, F>
 {
     /// Initializes a new delay.
@@ -96,8 +96,8 @@ where
     }
 }
 
-impl<S: Signal<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Output = B::Item>>
-    Signal for Delay<S, B, F>
+impl<S: Signal<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>> Signal
+    for Delay<S, B, F>
 {
     type Sample = S::Sample;
 
@@ -106,11 +106,8 @@ impl<S: Signal<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Out
     }
 }
 
-impl<
-        S: SignalMut<Sample = B::Item>,
-        B: buf::BufferMut,
-        F: Map<Input = B::Item, Output = B::Item>,
-    > SignalMut for Delay<S, B, F>
+impl<S: SignalMut<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>>
+    SignalMut for Delay<S, B, F>
 {
     fn advance(&mut self) {
         self.read_sgn();
@@ -127,11 +124,8 @@ impl<
     }
 }
 
-impl<
-        S: Frequency<Sample = B::Item>,
-        B: buf::BufferMut,
-        F: Map<Input = B::Item, Output = B::Item>,
-    > Frequency for Delay<S, B, F>
+impl<S: Frequency<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>>
+    Frequency for Delay<S, B, F>
 {
     fn freq(&self) -> unt::Freq {
         self.sgn.freq()
@@ -142,7 +136,7 @@ impl<
     }
 }
 
-impl<S: Base<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Output = B::Item>> Base
+impl<S: Base<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>> Base
     for Delay<S, B, F>
 {
     type Base = S::Base;
@@ -156,7 +150,7 @@ impl<S: Base<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Outpu
     }
 }
 
-impl<S: Stop<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Output = B::Item>> Stop
+impl<S: Stop<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>> Stop
     for Delay<S, B, F>
 {
     fn stop(&mut self) {
@@ -164,7 +158,7 @@ impl<S: Stop<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Outpu
     }
 }
 
-impl<S: Panic<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Output = B::Item>> Panic
+impl<S: Panic<Sample = B::Item>, B: BufferMut, F: Map<Input = B::Item, Output = B::Item>> Panic
     for Delay<S, B, F>
 {
     fn panic(&mut self) {
@@ -176,7 +170,7 @@ impl<S: Panic<Sample = B::Item>, B: buf::BufferMut, F: Map<Input = B::Item, Outp
 /// A delay that only plays once.
 pub type Pure<S, B> = Delay<S, B, map::Zero<<S as Signal>::Sample, <S as Signal>::Sample>>;
 
-impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> Pure<S, B> {
+impl<S: Signal<Sample = B::Item>, B: BufferMut> Pure<S, B> {
     /// Initializes a delay that only plays once.
     ///
     /// To use an empty, owned buffer, see [`Self::new_pure_owned`].
@@ -202,7 +196,7 @@ where
 /// delay, but other than that, you'll probably want a value exclusively between `0.0` and `1.0`.
 pub type Exp<S, B> = Delay<S, B, map::Pw<<S as Signal>::Sample, unt::Vol>>;
 
-impl<S: Signal<Sample = B::Item>, B: buf::BufferMut> Exp<S, B> {
+impl<S: Signal<Sample = B::Item>, B: BufferMut> Exp<S, B> {
     /// Initializes a new [`Exp`].
     ///
     /// To use an empty, owned buffer, see [`Self::new_exp_owned`].
@@ -240,7 +234,7 @@ const fn comp_flip(vol: unt::Vol) -> map::Comp<map::Pw<smp::Stereo, unt::Vol>, m
     map::Comp::new(map::Pw::new(vol), map::Flip)
 }
 
-impl<S: Signal<Sample = smp::Stereo>, B: buf::BufferMut<Item = smp::Stereo>> Flip<S, B> {
+impl<S: Signal<Sample = smp::Stereo>, B: BufferMut<Item = smp::Stereo>> Flip<S, B> {
     /// Initializes a new [`Flip`].
     ///
     /// You can set the volume to `1.0` for an infinite delay, but other than that, you'll probably

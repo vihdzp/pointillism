@@ -23,7 +23,7 @@ use crate::{mod_inc, prelude::*};
 /// Actually test that [`Shift`] buffers are more efficient!
 pub trait Ring {
     /// The backing buffer type.
-    type Buf: buf::BufferMut;
+    type Buf: BufferMut;
 
     /// Returns a reference to the backing buffer.
     fn buffer(&self) -> &Self::Buf;
@@ -49,10 +49,10 @@ pub trait Ring {
     }
 
     /// Pushes a value into the buffer, phasing out some older value.
-    fn push(&mut self, value: <Self::Buf as buf::Buffer>::Item);
+    fn push(&mut self, value: <Self::Buf as Buffer>::Item);
 
     /// Loads `count` samples from a signal, phasing out the old ones.
-    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(
+    fn push_many<S: SignalMut<Sample = <Self::Buf as Buffer>::Item>>(
         &mut self,
         sgn: &mut S,
         count: usize,
@@ -68,21 +68,21 @@ pub trait Ring {
     /// ## Panics
     ///
     /// Panics if `index` is not smaller than the capacity.
-    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item;
+    fn get(&self, index: usize) -> <Self::Buf as Buffer>::Item;
 
     /// Gets a mutable reference to the `n`-th previously pushed value from the buffer.
     ///
     /// ## Panics
     ///
     /// Panics if `index` is not smaller than the capacity.
-    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item;
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as Buffer>::Item;
 
     /// Gets the last value pushed into the buffer.
     ///
     /// ## Panics
     ///
     /// Panics in the case of an empty buffer.
-    fn fst(&self) -> <Self::Buf as buf::Buffer>::Item {
+    fn fst(&self) -> <Self::Buf as Buffer>::Item {
         self.get(0)
     }
 }
@@ -92,12 +92,12 @@ pub trait Ring {
 ///
 /// This is somewhat more efficient than [`Circ`] for small buffers, but the cost quickly adds up.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Shift<B: buf::BufferMut> {
+pub struct Shift<B: BufferMut> {
     /// The inner buffer.
     pub inner: B,
 }
 
-impl<B: buf::BufferMut> Shift<B> {
+impl<B: BufferMut> Shift<B> {
     /// Initializes a new [`Shift`] buffer.
     pub const fn new(inner: B) -> Self {
         Self { inner }
@@ -117,7 +117,7 @@ fn shift<R: Ring>(ring: &mut R, index: usize, count: usize) {
     buf.as_mut()[index + count] = buf[index];
 }
 
-impl<B: buf::BufferMut> Ring for Shift<B> {
+impl<B: BufferMut> Ring for Shift<B> {
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -128,11 +128,11 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
         &mut self.inner
     }
 
-    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
+    fn get(&self, index: usize) -> <Self::Buf as Buffer>::Item {
         self.inner[index]
     }
 
-    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as Buffer>::Item {
         &mut self.inner[index]
     }
 
@@ -147,7 +147,7 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
         }
     }
 
-    fn push_many<S: SignalMut<Sample = <Self::Buf as buf::Buffer>::Item>>(
+    fn push_many<S: SignalMut<Sample = <Self::Buf as Buffer>::Item>>(
         &mut self,
         sgn: &mut S,
         count: usize,
@@ -179,7 +179,7 @@ impl<B: buf::BufferMut> Ring for Shift<B> {
 ///
 /// For very small buffers, [`Shift`] might be more efficient.
 #[derive(Clone, Debug, Default)]
-pub struct Circ<B: buf::BufferMut> {
+pub struct Circ<B: BufferMut> {
     /// The inner buffer.
     pub inner: B,
 
@@ -187,7 +187,7 @@ pub struct Circ<B: buf::BufferMut> {
     pos: usize,
 }
 
-impl<B: buf::BufferMut> Circ<B> {
+impl<B: BufferMut> Circ<B> {
     /// Initializes a new [`Circ`] buffer.
     pub const fn new(inner: B) -> Self {
         Self { inner, pos: 0 }
@@ -204,7 +204,7 @@ impl<B: buf::BufferMut> Circ<B> {
     }
 }
 
-impl<B: buf::BufferMut> Ring for Circ<B> {
+impl<B: BufferMut> Ring for Circ<B> {
     type Buf = B;
 
     fn buffer(&self) -> &Self::Buf {
@@ -215,11 +215,11 @@ impl<B: buf::BufferMut> Ring for Circ<B> {
         &mut self.inner
     }
 
-    fn get(&self, index: usize) -> <Self::Buf as buf::Buffer>::Item {
+    fn get(&self, index: usize) -> <Self::Buf as Buffer>::Item {
         self.inner[self.index(index)]
     }
 
-    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
+    fn get_mut(&mut self, index: usize) -> &mut <Self::Buf as Buffer>::Item {
         let idx = self.index(index);
         &mut self.inner[idx]
     }
@@ -247,7 +247,9 @@ fn zst_mut<'a, T>() -> &'a mut T {
 pub struct EmptyRing<A: Audio>(std::marker::PhantomData<A>);
 
 /// Error message for empty buffers.
-const EMPTY_BUFFER: &str = "can't get an element from an empty buffer";
+fn panic_empty_buffer() {
+    panic!("can't get an element from an empty buffer");
+}
 
 impl<A: Audio> Ring for EmptyRing<A> {
     type Buf = buf::Empty<A>;
@@ -260,16 +262,18 @@ impl<A: Audio> Ring for EmptyRing<A> {
         zst_mut()
     }
 
-    fn push(&mut self, _: <Self::Buf as buf::Buffer>::Item) {
+    fn push(&mut self, _: <Self::Buf as Buffer>::Item) {
         // No-op.
     }
 
-    fn get(&self, _: usize) -> <Self::Buf as buf::Buffer>::Item {
-        panic!("{EMPTY_BUFFER}")
+    fn get(&self, _: usize) -> <Self::Buf as Buffer>::Item {
+        panic_empty_buffer();
+        unreachable!()
     }
 
-    fn get_mut(&mut self, _: usize) -> &mut <Self::Buf as buf::Buffer>::Item {
-        panic!("{EMPTY_BUFFER}")
+    fn get_mut(&mut self, _: usize) -> &mut <Self::Buf as Buffer>::Item {
+        panic_empty_buffer();
+        unreachable!()
     }
 }
 

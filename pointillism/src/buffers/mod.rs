@@ -1,8 +1,11 @@
 //! Defines different types for audio buffers.
 //!
 //! You can load a buffer from a WAV file (if the `hound` feature is enabled), or you can create
-//! your own buffer and write a signal into it, to then read it back. This can be useful if you want
-//! to loop an expensive to compute signal. This is also used in [`eff::dly::Delay`].
+//! your own buffer and write a signal into it, to then read it back. This has two main
+//! applications:
+//!
+//! - Looping a precomputed signal via [`gen::LoopBuf`] or [`eff::dly::Delay`].
+//! - Computing data in chunks via [`gen::Chunks`].
 //!
 //! You can also use a buffer if you want to process large amounts of audio data before playing it
 //! back. This is useful for certain algorithms, such as the
@@ -420,13 +423,12 @@ where
     /// Panics if a buffer of this size can't be created.
     pub fn write(&mut self) -> Dyn<S::Sample> {
         let length = self.length.samples.int();
-        let mut data = Vec::with_capacity(usize::try_from(length).expect("buffer too large"));
+        let mut data = Dyn::from_data(Vec::with_capacity(
+            usize::try_from(length).expect("buffer too large"),
+        ));
 
-        for _ in 0..length {
-            data.push(self.sgn.next());
-        }
-
-        Dyn::from_data(data)
+        self.sgn.fill(&mut data);
+        data
     }
 }
 

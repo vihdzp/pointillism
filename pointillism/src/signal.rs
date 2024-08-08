@@ -87,6 +87,9 @@ pub trait Signal {
 /// - [`advance`](SignalMut::advance): Advances the state of the signal by a frame.
 /// - [`retrigger`](SignalMut::retrigger): Resets the signal to its initial state.
 ///
+/// You might optionally want to override [`fill`](SignalMut::fill) and
+/// [`fill_add`](SignalMut::fill_add), if advancing the generator in bulk is more efficient.
+///
 /// See the [module docs](self) for an example implementation.
 pub trait SignalMut: Signal {
     /// Advances the state of the signal by a frame.
@@ -100,6 +103,20 @@ pub trait SignalMut: Signal {
         let res = self.get();
         self.advance();
         res
+    }
+
+    /// Fills a buffer with successively generated samples.
+    fn fill<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
+        for sample in buffer.as_mut_slice() {
+            *sample = self.next();
+        }
+    }
+
+    /// Adds successively generated samples to those in a buffer.
+    fn fill_add<B: crate::BufferMut<Item = Self::Sample>>(&mut self, buffer: &mut B) {
+        for sample in buffer.as_mut_slice() {
+            *sample += self.next();
+        }
     }
 }
 
